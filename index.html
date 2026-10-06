@@ -175,7 +175,7 @@ html,body{overscroll-behavior:none;touch-action:none;
     <button id="btnContinue" class="big" style="display:none">Fortsetzen</button>
     <button id="btnStart" class="big">Neues Spiel</button>
     <div class="row"><button id="btnShop">Kr&auml;mer</button><button id="btnWiki">Almanach</button></div>
-    <button id="btnAch">Erfolge</button>
+    <div class="row"><button id="btnAch">Erfolge</button><button id="btnColor" style="display:none">Farbdruck</button></div>
     <div class="row"><button id="btnCopy">Seed kopieren</button><button id="btnLink">Link kopieren</button></div>
     <div id="menuNote"></div>
     <div id="menuStats"></div>
@@ -229,7 +229,8 @@ html,body{overscroll-behavior:none;touch-action:none;
   <div class="kicker">Letzte Seite</div>
   <h1 id="finName"></h1>
   <div class="sub" id="finText"></div>
-  <h1 style="font-style:italic;letter-spacing:.3em;margin:18px 0">Fin</h1>
+  <h1 style="font-style:italic;letter-spacing:.3em;margin:18px 0 4px">Fin</h1>
+  <div style="font-size:12px;font-style:italic;margin-bottom:16px">&hellip; vorerst. Fortsetzung folgt.</div>
   <button id="btnFin" class="big">Zur&uuml;ck zum Titel</button>
 </div></div>
 <div id="ach" class="page" style="display:none;z-index:7"><div class="sheet">
@@ -258,6 +259,10 @@ const T = {GRASS:0,WATER:1,SHORE:2,ROAD:3,ROADEDGE:4,BRIDGE:5,RAIL:6,MOUNT:7,FOO
 const TNAME = ['Wiese','Wasser','Ufer','Straße','Straßenrand','Brücke','Geländer','Berg','Geröll','Wald','Acker','Acker','Fluss (Furt)'];
 // Druckfarben: Tinte, Mittelton, Papier (ABGR für Uint32-ImageData)
 const PAL = new Uint32Array([0xFF2B242A, 0xFF8F888F, 0xFFD2E6E8, 0xFF2A2ACF]);
+// Farbdruck (Belohnung für alle Erfolge): je Farbton drei Druckfarben (dunkel, mittel, hell). 0 neutral, 1 Wiese, 2 Wasser, 3 Ufer, 4 Weg, 5 Holz, 6 Stein, 7 Geröll, 8 Waldboden, 9/10 Felder, 11 Laub, 12 Haus
+const CPAL = new Uint32Array([0xFF2B242A,0xFF8F888F,0xFFD2E6E8,0xFF243A2B,0xFF5EA37F,0xFFA8E3CF,0xFF58351F,0xFFC6864F,0xFFF2E0BF,0xFF2A4A5A,0xFF6AA8C9,0xFFB8E2F0,0xFF2A3A4A,0xFF729AB8,0xFFBCDCEC,0xFF1A263A,0xFF345A8A,0xFF8AB9D9,0xFF332E2E,0xFF948D8B,0xFFE0DDDC,0xFF30343A,0xFF7A868F,0xFFC2D0D8,0xFF20331F,0xFF487A4F,0xFF8CCCA9,0xFF184A5A,0xFF4AB2D2,0xFFA6E6F3,0xFF204A3F,0xFF58AE9C,0xFFB0E8E2,0xFF1C3016,0xFF447A3F,0xFF8AD09F,0xFF18203B,0xFF3A55A8,0xFFC4DFF0]);
+const TINT_OF_TYPE = new Uint8Array([1, 2, 3, 4, 4, 5, 6, 6, 7, 8, 9, 10, 2]);   // Reihenfolge wie T
+const COLOR = { on: false, free: false };
 const RED = 1;                      // reservierter Wert im Graupuffer: einzige Schmuckfarbe (Rot)
 const BAYER = new Float32Array([0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5].map(v => (v + .5) / 16));
 const PLAYER_SPEED = 36;
@@ -511,6 +516,10 @@ const Shapes = {
     return {r: [a, b], l: [a.flipped(), b.flipped()]};
   }
 };
+// Farbton je Gestalt (nur im Farbdruck sichtbar)
+{ const tag = (names, t) => { for (const k of names) { const f = Shapes[k]; if (!f) continue; Shapes[k] = function () { const sp = f.apply(Shapes, arguments); if (sp && typeof sp === 'object') sp.tint = t; return sp; }; } };
+  tag(['conifer', 'leaf', 'bigtree', 'worldtree'], 11); tag(['house', 'mill', 'stall'], 12); tag(['deadtree'], 5);
+  tag(['rock', 'well', 'grave', 'stone', 'tower', 'castle', 'obelisk', 'church', 'chapel', 'ruin', 'peak', 'altar', 'giantCastle', 'giantPillar', 'giantStatue', 'crypt'], 6); }
 
 // ============================================================ WORLD
 class World {
@@ -960,6 +969,20 @@ class WorldGenerator {
       }
       for (let i = 0; i < pts.length; i++) roadPts.push(pts[i]);
     }
+    // Turm und Burgruine liegen hoch im Geröll. Damit man sie nicht nur theoretisch erreicht, führt von der nächsten Straße ein Saumpfad hinauf.
+    const sites = {};
+    { const sd = c => { let d = 1e9; for (const s of setts) d = Math.min(d, cdist(s.c, c)); return d; };
+      { let b = -1, bs = -1e9; for (let cy = 8; cy < CN - 8; cy++) for (let cx = 8; cx < CN - 8; cx++) { const c = cy * CN + cx; if (ctype(c) !== T.FOOT || sd(c) < 12 || roadCell[c]) continue; if (ch[c] > bs) { bs = ch[c]; b = c; } } if (b >= 0) sites.tower = b; }
+      { let b = -1, bs = -1e9; for (let cy = 10; cy < CN - 10; cy++) for (let cx = 10; cx < CN - 10; cx++) { const c = cy * CN + cx;
+          if (ctype(c) !== T.FOOT || ctype(c - 1) !== T.FOOT || ctype(c + 1) !== T.FOOT || sd(c) < 10 || roadCell[c] || (sites.tower !== undefined && cdist(sites.tower, c) < 24)) continue;
+          if (ch[c] > bs) { bs = ch[c]; b = c; } }
+        if (b >= 0) sites.castle = b; }
+      const tcost = (a, b) => rcost(a, b) + (ctype(b) === T.WATER ? 1e5 : cWater[b] ? 60 : 0);                       // Pfade meiden Seen
+      for (const key of ['tower', 'castle']) { const c0 = sites[key]; if (c0 === undefined) continue;
+        const path = findPath(c0, c => roadCell[c] === 1, tcost); if (!path) { delete sites[key]; continue; }
+        let pts = []; path.forEach((c, i) => { const e = i === 0 || i === path.length - 1 ? 0 : 8; pts.push(cpx(c) + (hash2(c, 3, S + 67) - .5) * e, cpy(c) + (hash2(c, 4, S + 67) - .5) * e); });
+        for (const c of path) roadCell[c] = 1;
+        pts = resample(chaikin(chaikin(pts))); roadLines.push(pts); for (let i = 0; i < pts.length; i++) roadPts.push(pts[i]); } }
     for (let i = 0; i < roadPts.length; i += 2) disc(roadPts[i], roadPts[i + 1], 8, k => { if (type[k] === T.MOUNT) type[k] = T.FOOT; });   // Pass
     // Gassen innerhalb der Orte
     for (const s of setts) {
@@ -999,14 +1022,13 @@ class WorldGenerator {
     const settDist = c => { let d = 1e9; for (const s of setts) d = Math.min(d, cdist(s.c, c)); return d; };
 
     // ---------- 6. Standorte der besonderen Orte (vor dem Druck, weil sie Lichtungen schlagen)
-    const sites = {};
     { let b = -1, bs = -1; for (let c = 0; c < CN * CN; c++) if (score[c] > -1e8 && !roadCell[c] && creach(c)) { const d = settDist(c) + hash2(c, 5, S) * 3; if (d > bs) { bs = d; b = c; } } if (b >= 0) { sites.ruin = b; clearForest(cpx(b), cpy(b), 34); } }
     { let b = -1, bs = -1; for (let cy = 12; cy < CN - 12; cy++) for (let cx = 12; cx < CN - 12; cx++) { const c = cy * CN + cx; let ok = !roadCell[c] && creach(c);
         for (let dy = -1; dy <= 1 && ok; dy++) for (let dx = -1; dx <= 1; dx++) if (ctype(c + dy * CN + dx) !== T.FOREST) { ok = false; break; }
         if (!ok || (sites.ruin !== undefined && cdist(sites.ruin, c) < 18)) continue;
         const d = Math.min(settDist(c), 40) + hash2(c, 6, S) * 6; if (d > bs) { bs = d; b = c; } }
       if (b >= 0) { sites.circle = b; clearForest(cpx(b), cpy(b), 26); } }
-    { let b = -1, bs = -1e9; for (let cy = 8; cy < CN - 8; cy++) for (let cx = 8; cx < CN - 8; cx++) { const c = cy * CN + cx; if (ctype(c) !== T.FOOT || settDist(c) < 12 || !creach(c)) continue; if (ch[c] > bs) { bs = ch[c]; b = c; } } if (b >= 0) sites.tower = b; }
+    if (sites.tower !== undefined && !creach(sites.tower)) delete sites.tower; if (sites.castle !== undefined && !creach(sites.castle)) delete sites.castle;
     { let b = -1, bs = -1; for (let c = 0; c < CN * CN; c++) if (score[c] > -1e8 && !roadCell[c] && creach(c) && ctype(c) === T.GRASS && settDist(c) > 12 && (sites.ruin === undefined || cdist(sites.ruin, c) > 10)) { const h = hash2(c, 9, S); if (h > bs) { bs = h; b = c; } } if (b >= 0) sites.bigtree = b; }
     // Opferaltar: abgelegen, aber erreichbar, auf einer kleinen Lichtung
     { let b = -1, bs = -1; for (let c = 0; c < CN * CN; c++) if (score[c] > -1e8 && !roadCell[c] && creach(c) && settDist(c) > 15 && [sites.ruin, sites.circle, sites.bigtree].every(o => o === undefined || cdist(o, c) > 14)) { const h = hash2(c, 11, S); if (h > bs) { bs = h; b = c; } }
@@ -1120,9 +1142,7 @@ class WorldGenerator {
         if (free(x, y) && free(x - 5, y) && free(x + 5, y) && !blockedSite(x, y)) { w.add(x, y, obelisk); poi('Obelisk', x, y, 18); done = true; break; } }
     }
     // Verfallene Burg: hoch im Geröll über dem Land, fern vom Turm
-    { let b = -1, bs = -1e9; for (let cy = 10; cy < CN - 10; cy++) for (let cx = 10; cx < CN - 10; cx++) { const c = cy * CN + cx;
-        if (ctype(c) !== T.FOOT || ctype(c - 1) !== T.FOOT || ctype(c + 1) !== T.FOOT || settDist(c) < 10 || !creach(c) || (sites.tower !== undefined && cdist(sites.tower, c) < 24)) continue;
-        if (ch[c] > bs) { bs = ch[c]; b = c; } }
+    { const b = sites.castle === undefined ? -1 : sites.castle;
       if (b >= 0) { const x = cpx(b), y = cpy(b); w.add(x, y, castle); poi('Burgruine', x, y, 28); } }
     // Turm: höchster freier Punkt im Geröll, abseits der Orte
     if (sites.tower !== undefined) { const x = cpx(sites.tower), y = cpy(sites.tower); w.add(x, y, tower); poi('Turm', x, y, 18); }
@@ -1294,35 +1314,36 @@ class Renderer {
     this.canvas.width = this.bw; this.canvas.height = this.bh;
     this.canvas.style.width = this.bw * this.scale + 'px';
     this.canvas.style.height = this.bh * this.scale + 'px';
-    this.frame = new Uint8Array(this.bw * this.bh);
+    this.frame = new Uint8Array(this.bw * this.bh); this.tint = new Uint8Array(this.bw * this.bh);
     this.img = this.ctx.createImageData(this.bw, this.bh);
     this.out = new Uint32Array(this.img.data.buffer);
   }
   blit(s, sx, sy) {
-    const f = this.frame, bw = this.bw, bh = this.bh, d = s.d, w = s.w;
+    const f = this.frame, bw = this.bw, bh = this.bh, d = s.d, w = s.w, tb = COLOR.on ? this.tint : null, ct = s.tint | 0;
     const x0 = Math.max(0, -sx), x1 = Math.min(w, bw - sx), y0 = Math.max(0, -sy), y1 = Math.min(s.h, bh - sy);
     for (let y = y0; y < y1; y++) {
       let si = y * w + x0, di = (sy + y) * bw + sx + x0;
-      for (let x = x0; x < x1; x++, si++, di++) { const g = d[si]; if (g >= 0) f[di] = g; }
+      if (tb) for (let x = x0; x < x1; x++, si++, di++) { const g = d[si]; if (g >= 0) { f[di] = g; tb[di] = ct; } }
+      else for (let x = x0; x < x1; x++, si++, di++) { const g = d[si]; if (g >= 0) f[di] = g; }
     }
   }
   // wie blit, aber zeilenweise geschert: die Krone neigt sich, der Stamm bleibt stehen
   blitSway(s, sx, sy, amt) {
-    const f = this.frame, bw = this.bw, bh = this.bh, d = s.d, w = s.w, h = s.h;
+    const f = this.frame, bw = this.bw, bh = this.bh, d = s.d, w = s.w, h = s.h, tb = COLOR.on ? this.tint : f, ct = s.tint | 0, col = COLOR.on;
     for (let y = 0; y < h; y++) {
       const ty = sy + y; if (ty < 0 || ty >= bh) continue;
       const ox = sx + Math.round(amt * (h - 3 - y) / h * (y < h - 2 ? 1 : 0));
-      for (let x = 0; x < w; x++) { const g = d[y * w + x], tx = ox + x; if (g >= 0 && tx >= 0 && tx < bw) f[ty * bw + tx] = g; }
+      for (let x = 0; x < w; x++) { const g = d[y * w + x], tx = ox + x; if (g >= 0 && tx >= 0 && tx < bw) { f[ty * bw + tx] = g; if (col) tb[ty * bw + tx] = ct; } }
     }
   }
-  dot(x, y, g) { if (x >= 0 && y >= 0 && x < this.bw && y < this.bh) this.frame[y * this.bw + x] = g; }
+  dot(x, y, g) { if (x >= 0 && y >= 0 && x < this.bw && y < this.bh) { this.frame[y * this.bw + x] = g; this.tint[y * this.bw + x] = 0; } }
   // Wahrzeichen mit Parallaxe: jede Zeile wird je nach Höhe über dem Fuß seitlich versetzt – der Boden bleibt, die Spitze wandert
   blitShear(s, sx, sy, k, hole, hx, hy) {        // hole: rund um (hx, hy) bleibt ein kleines Guckloch frei, mit gerastertem Rand
-    const f = this.frame, bw = this.bw, bh = this.bh, d = s.d, w = s.w, y0 = Math.max(0, -sy), y1 = Math.min(s.h, bh - sy), R1 = 13, R2 = 18;
+    const f = this.frame, bw = this.bw, bh = this.bh, d = s.d, w = s.w, y0 = Math.max(0, -sy), y1 = Math.min(s.h, bh - sy), R1 = 13, R2 = 18, tb = this.tint, ct = s.tint | 0;
     for (let y = y0; y < y1; y++) { const hg = s.ay - y, ox = sx + (hg > 0 ? Math.round(k * hg) : 0), x0 = Math.max(0, -ox), x1 = Math.min(w, bw - ox), Y = sy + y; let si = y * w + x0, di = Y * bw + ox + x0;
       if (hole && Y > hy - R2 && Y < hy + R2) { const dy2 = (Y - hy) * (Y - hy);
-        for (let x = x0; x < x1; x++, si++, di++) { const g = d[si]; if (g < 0) continue; const X = ox + x, q = (X - hx) * (X - hx) + dy2; if (q < R1 * R1 || (q < R2 * R2 && ((X + Y) & 1))) continue; f[di] = g; } }
-      else for (let x = x0; x < x1; x++, si++, di++) { const g = d[si]; if (g >= 0) f[di] = g; } }
+        for (let x = x0; x < x1; x++, si++, di++) { const g = d[si]; if (g < 0) continue; const X = ox + x, q = (X - hx) * (X - hx) + dy2; if (q < R1 * R1 || (q < R2 * R2 && ((X + Y) & 1))) continue; f[di] = g; tb[di] = ct; } }
+      else for (let x = x0; x < x1; x++, si++, di++) { const g = d[si]; if (g >= 0) { f[di] = g; tb[di] = ct; } } }
   }
   blitDoor(s, sx, sy) {                          // jedes zweite Pixel: man sieht hindurch
     const f = this.frame, bw = this.bw, bh = this.bh, d = s.d, w = s.w;
@@ -1336,6 +1357,8 @@ class Renderer {
     const bw = this.bw, bh = this.bh, cx = cam.x, cy = cam.y, f = this.frame;
     // 1. Boden
     for (let y = 0; y < bh; y++) { const o = (cy + y) * WORLD + cx; f.set(world.ground.subarray(o, o + bw), y * bw); }
+    const color = COLOR.on, tb = this.tint;
+    if (color) { const ty = world.type; for (let y = 0; y < bh; y++) { let o = (cy + y) * WORLD + cx, i = y * bw; for (let x = 0; x < bw; x++, o++, i++) tb[i] = TINT_OF_TYPE[ty[o]]; } }
     // Seen: die Wellenstriche wandern langsam, Zeile um Zeile gegenläufig (nur Zeilen, in denen überhaupt See liegt)
     if (world.waterRow) { const ty = world.type, sh = time * 2.2 | 0;
       for (let y = 0; y < bh; y++) { const wy = cy + y; if ((wy & 3) !== 0 || !world.waterRow[wy]) continue;
@@ -1395,7 +1418,7 @@ class Renderer {
         const v = g * .0078431;
         let l = v | 0;
         if (v - l > BAYER[br | (wx & 3)]) l++;
-        out[i] = PAL[l];
+        out[i] = color ? CPAL[tb[i] * 3 + l] : PAL[l];
       }
     }
     this.ctx.putImageData(this.img, 0, 0);
@@ -1646,7 +1669,7 @@ class Combat {
       for (let i = 0; i < 14; i++) { const d = this.get(this.drops); if (d) { d.alive = true; d.gold = false; d.pull = false; d.x = e.x + (Math.random() - .5) * 30; d.y = e.y + (Math.random() - .5) * 24; d.v = 4; } }
       for (let i = 0; i < 12; i++) this.coin(e.x + (Math.random() - .5) * 36, e.y + (Math.random() - .5) * 28, 3);
       this.boom(e.x, e.y - 6, 40); this.g.toast('Der Knochenkönig zerfällt. Ein Tor öffnet sich – du hast ' + BAL.gateTime + ' Sekunden, dann kommt die Dunkelheit.');
-      document.getElementById('vignette').classList.remove('dread'); SAVE.bump({totalBossKills: 1}); ACH.give('koenig'); this.g.save(); this.g.bossReward(); return;
+      document.getElementById('vignette').classList.remove('dread'); SAVE.bump({totalBossKills: 1}); ACH.give('koenig'); if ((e.revived | 0) >= 2) ACH.give('zweimal'); this.g.save(); this.g.bossReward(); return;
     }
     if (e.type.guard) {                            // Wächter besiegt: Beute, der Magnet liegt frei
       if (this.altar) this.altar.state = 2; ACH.give('kugel');
@@ -1721,7 +1744,7 @@ class Combat {
     if (this.bossState === 1 && t >= 300) { this.bossState = 2; const b = this.spawnAt(BOSS, this.bossAt.x, this.bossAt.y, 0); if (b) { this.boss = b; b.cd = 2; } g.toast('Der Knochenkönig ist erwacht. Er kommt.'); }
     // ---- Kapellen: begrenzte, kleine Heilung
     for (const s of this.shrines) { if (s.cd > 0) s.cd -= dt;
-      if (s.left > 0 && s.cd <= 0 && p.hp < p.maxHp && Math.abs(p.x - s.x) < 16 && p.y - s.y < 14 && p.y - s.y > -8) { s.left--; s.cd = 20; p.hp = Math.min(p.maxHp, p.hp + 10); this.shrineLook(); g.toast(s.left ? 'Ein Fenster schließt sich (+10 Leben)' : 'Das letzte Fenster schließt sich (+10 Leben)'); g.save(); } }
+      if (s.left > 0 && s.cd <= 0 && p.hp < p.maxHp && Math.abs(p.x - s.x) < 16 && p.y - s.y < 14 && p.y - s.y > -8) { s.left--; s.cd = 20; ACH.give('kirche'); p.hp = Math.min(p.maxHp, p.hp + 10); this.shrineLook(); g.toast(s.left ? 'Ein Fenster schließt sich (+10 Leben)' : 'Das letzte Fenster schließt sich (+10 Leben)'); g.save(); } }
     // ---- Opferaltar: Wächter erscheint bei Annäherung; ist er tot, zieht der Magnet alles Liegengebliebene heran
     const AL = this.altar;
     if (AL) { const ax = p.x - AL.x, ay = p.y - AL.y;
@@ -1729,7 +1752,7 @@ class Combat {
         if (e) { AL.state = 1; e.hp = GUARD.hp * this.lvlMul; e.cd = .9; e.dashT = 0; e.dx = e.dy = 0; this.guard = e; g.toast('Der Altar erwacht – die Fleischkugel rollt an!'); } }
       else if (AL.state === 2 && !AL.taken && Math.abs(ax) < 13 && ay < 12 && ay > -8) { AL.taken = true; if (AL.obj) AL.obj.spr = ALTAR_SPR[0];
         let n = 0; for (const d of this.drops) if (d.alive) { d.pull = true; n++; }
-        g.toast('Der Magnet zieht ' + n + ' Splitter und Münzen zu dir.'); g.save(); } }
+        ACH.give('magnet'); g.toast('Der Magnet zieht ' + n + ' Splitter und Münzen zu dir.'); g.save(); } }
     // ---- Mietstall: vor dem Tor stehen -> Frage, ob man für 25 Gold ein Pferd will
     const ST = this.stall;
     if (ST) { const near = Math.abs(p.x - ST.x) < 13 && p.y - ST.y > 0 && p.y - ST.y < 14;
@@ -1741,7 +1764,7 @@ class Combat {
       else { for (let i = 0; i < 8; i++) this.coin(BL.x + (Math.random() - .5) * 18, BL.y + Math.random() * 8, 3); g.toast('Die Glocke ist stumm – nur Gold.'); }
       g.refreshItems(); g.save(); }
     // ---- Fundstellen
-    for (const c of this.caches) if (!c.open && Math.abs(p.x - c.x) < 6 && Math.abs(p.y - c.y) < 6) { c.open = true;
+    for (const c of this.caches) if (!c.open && Math.abs(p.x - c.x) < 6 && Math.abs(p.y - c.y) < 6) { c.open = true; ACH.give('truhe');
       if (c.item) { const o = this.offers(), pk = o[Math.random() * o.length | 0]; this.choose(pk); g.toast('Fund (' + c.place + '): ' + this.describe(pk).title); g.refreshItems(); }
       else { p.hp = Math.min(p.maxHp, p.hp + 25); g.toast('Proviant (' + c.place + '): +25 Leben'); }
       for (let i = 0; i < 4; i++) this.coin(c.x + (Math.random() - .5) * 16, c.y + 4 + Math.random() * 6, 2);
@@ -2038,7 +2061,18 @@ const LAST_LEVEL = 3;                                  // hinter dem Tor der dri
 // Erfolge: im Profil gespeichert, Meldung als eigenes Band, damit sie keine Spielmeldung verdrängt.
 const ACH = { got: {}, q: [], busy: false, t: 0,
   list: [
+    ['erstblut', 'Erstes Blut', 'Den ersten Feind erlegen'],
+    ['stufe2', 'Dazugelernt', 'Zum ersten Mal eine Stufe aufsteigen'],
+    ['name', 'Wer bin ich?', 'Der Legende einen Namen geben'],
+    ['karte', 'Kartenleser', 'Die Karte aufschlagen'],
+    ['fluss', 'Nasse Füße', 'Durch einen Fluss waten'],
+    ['truhe', 'Fundsache', 'Eine Fundstelle plündern'],
+    ['kirche', 'Stoßgebet', 'In Kirche oder Kapelle heilen'],
+    ['glocke', 'Wer hat geläutet?', 'Die Unheilsglocke einsammeln'],
+    ['magnet', 'Anziehend', 'Den Magneten vom Opferaltar nehmen'],
+    ['min5', 'Fünf Minuten Ruhm', 'Bis zur Ankunft des Knochenkönigs überleben'],
     ['koenig', 'Königsmörder', 'Den Knochenkönig besiegen'],
+    ['zweimal', 'Bleib endlich liegen', 'Den Knochenkönig besiegen, nachdem er zweimal aufgestanden ist'],
     ['ebene2', 'Durchs Tor', 'Ebene 2 erreichen'],
     ['ebene3', 'Tiefer hinab', 'Ebene 3 erreichen'],
     ['fin', 'Fin', 'Durch das letzte Tor schreiten'],
@@ -2054,18 +2088,27 @@ const ACH = { got: {}, q: [], busy: false, t: 0,
     ['gold100', 'Klimpernder Beutel', '100 Gold in einem Lauf bei sich tragen'],
     ['reiter', 'Hoch zu Ross', 'Ein Pferd kaufen'],
     ['kunde', 'Stammkunde in spe', 'Beim Krämer etwas kaufen'],
+    ['faden', 'Am seidenen Faden', 'Das Tor mit weniger als einem Fünftel des Lebens erreichen'],
+    ['unbelehrbar', 'Unbelehrbar', 'Zehn Läufe beginnen'],
+    ['totengraeber', 'Totengräber', 'Insgesamt 10 000 Feinde erlegen'],
     ['nachruf', 'Erste Zeile im Nachruf', 'Zum ersten Mal sterben'],
+    ['lichtscheu', 'Lichtscheu', 'Von der Dunkelheit geholt werden'],
     ['kurz', 'Kurzmeldung', 'In der ersten Minute sterben'],
     ['ohrwurm', 'Ohrwurm', 'Die Musik zweimal am Stück ertragen'],
     ['erster', 'Aller Anfang', 'Den ersten Erfolg erringen']],
-  load(pr) { this.got = Object.assign({}, pr.achievements, this.got); },
+  load(pr) { this.got = Object.assign({}, pr.achievements, this.got); this.base = pr.totalKills | 0; if (pr.totalRuns >= 10) this.give('unbelehrbar'); if (HERO.name) this.give('name'); this.unlock(); },
+  unlock() { const all = this.count() >= this.list.length; if (all && !COLOR.free) { COLOR.free = true; try { COLOR.on = localStorage.getItem('loColor') !== '0'; } catch (e) { COLOR.on = true; } }
+    const b = document.getElementById('btnColor'); if (b) { b.style.display = COLOR.free ? '' : 'none'; b.textContent = 'Farbdruck: ' + (COLOR.on ? 'an' : 'aus'); } },
   count() { return this.list.filter(a => this.got[a[0]]).length; },
   give(id) { if (this.got[id]) return; const a = this.list.find(x => x[0] === id); if (!a) return; this.got[id] = Date.now();
     SAVE.update(pr => { (pr.achievements = pr.achievements || {})[id] = this.got[id]; });
-    this.q.push(a[1]); this.next(); if (id !== 'erster') this.give('erster'); },
+    this.q.push(a[1]); this.next(); if (id !== 'erster') this.give('erster'); { const ab = document.getElementById('btnAch'); if (ab) ab.textContent = 'Erfolge · ' + this.count() + '/' + this.list.length; }
+    if (!COLOR.free && this.count() >= this.list.length) { this.unlock(); this.q.push('Alle Erfolge – Farbdruck freigeschaltet'); this.next(); } },
   next() { if (this.busy || !this.q.length) return; this.busy = true; const el = document.getElementById('achToast'); el.textContent = 'Erfolg · ' + this.q.shift(); el.style.opacity = 1;
     setTimeout(() => { el.style.opacity = 0; setTimeout(() => { this.busy = false; this.next(); }, 350); }, 2600); },
   check(g) { if (g.stopped || g.dead || performance.now() - this.t < 500) return; this.t = performance.now(); const c = g.combat, it = c.items;
+    if (c.kills >= 1) this.give('erstblut'); if (g.player.level >= 2) this.give('stufe2'); if (c.bossState >= 2) this.give('min5'); if (it.glocke) this.give('glocke'); if (HERO.name) this.give('name');
+    if ((this.base | 0) + c.kills >= 10000) this.give('totengraeber'); if (g.world.typeAt(g.player.x, g.player.y) === T.RIVER) this.give('fluss');
     if (c.kills >= 500) this.give('schnitter'); if (c.kills >= 2000) this.give('sense'); if (g.player.level >= 20) this.give('stufe20');
     if (Object.keys(it).length >= 10) this.give('voll'); for (const k in it) if (it[k] >= 5) { this.give('meister'); break; }
     if (it.seuche && it.kette && it.flamme) this.give('kraefte'); if (c.gold >= 100) this.give('gold100');
@@ -2107,7 +2150,7 @@ class Game {
     requestAnimationFrame(this.loop);
   }
   stop() { this.stopped = true; MUSIC.sync(false, 0); clearTimeout(this.toastT); for (const [tg, ev, fn] of this.listeners) tg.removeEventListener(ev, fn); this.listeners.length = 0; }
-  openMap() {
+  openMap() { ACH.give('karte');
     if (this.dead || this.paused || this.userPaused) return;
     this.userPaused = true; this.save();
     document.getElementById('mapKicker').textContent = 'Ebene ' + this.level + ' · Seed ' + this.seed;
@@ -2130,7 +2173,7 @@ class Game {
   refreshItems() { document.getElementById('hudItems').textContent = this.combat.itemList(); }
   toast(msg) { const el = document.getElementById('toast'); el.textContent = msg; el.style.opacity = 1; clearTimeout(this.toastT); this.toastT = setTimeout(() => { el.style.opacity = 0; }, 2800); }
   nextLevel() {                                  // neue Welt aus WorldSeed + Ebene, Spieler behält alles
-    const cb = this.combat; if (cb.dark > 0) ACH.give('nacht'); else if (cb.gateT < 3) ACH.give('knapp');
+    const cb = this.combat; if (this.player.hp < this.player.maxHp * .2) ACH.give('faden'); if (cb.dark > 0) ACH.give('nacht'); else if (cb.gateT < 3) ACH.give('knapp');
     if (this.level >= LAST_LEVEL) { this.finish(); return; }
     this.paused = true; this.transition = true; const L = document.getElementById('loading'); L.style.display = 'flex';
     setTimeout(() => {
@@ -2171,12 +2214,12 @@ class Game {
   }
   finish() {                                     // durch das letzte Tor: geschafft
     this.dead = true; const c = this.combat, hn = heroName(), on = document.getElementById('finName'); on.textContent = hn; on.style.fontSize = hn.length > 9 ? '22px' : hn.length > 5 ? '28px' : '';
-    document.getElementById('finText').textContent = `${hn} schritt durch das letzte Tor. ${LAST_LEVEL} Ebenen, ${c.kills} gefallene Feinde, Stufe ${this.player.level}, ${c.gold} Goldstücke – und der Knochenkönig bleibt liegen. Die Legende ist geschrieben.`;
+    document.getElementById('finText').textContent = `${hn} schritt durch das letzte Tor. ${LAST_LEVEL} Ebenen, ${c.kills} gefallene Feinde, Stufe ${this.player.level}, ${c.gold} Goldstücke – und der Knochenkönig bleibt liegen. Doch das ist noch nicht das Ende: Diese Legende wird weitergeschrieben.`;
     document.getElementById('fin').style.display = 'flex'; ACH.give('fin');
     SAVE.del('runs', 'active'); SAVE.bump({totalKills: c.kills, highestLevel: this.level, gold: c.goldPending, totalWins: 1}); c.goldPending = 0;
   }
   gameOver() {
-    this.dead = true; const c = this.combat, tt = c.time | 0; ACH.give('nachruf'); if (this.level === 1 && tt < 60) ACH.give('kurz');
+    this.dead = true; const c = this.combat, tt = c.time | 0; ACH.give('nachruf'); if (this.level === 1 && tt < 60) ACH.give('kurz'); if (c.dark > 0) ACH.give('lichtscheu');
     const hn = heroName(), on = document.getElementById('overName'); on.textContent = '† ' + hn + ' †'; on.style.fontSize = hn.length > 9 ? '22px' : hn.length > 5 ? '28px' : '';
     document.getElementById('overText').textContent = `${hn} fiel durch ${c.lastSrc || 'einen Feind'} in Ebene ${this.level} nach ${tt / 60 | 0} Min. ${tt % 60} Sek. auf Stufe ${this.player.level}. ${c.kills} Feinde fielen zuvor. Zurück bleiben ${c.gold} Goldstücke – und eine Legende.`;
     document.getElementById('over').style.display = 'flex';
@@ -2325,8 +2368,9 @@ class Game {
   $('btnAgain').addEventListener('click', toMenu); $('btnFin').addEventListener('click', toMenu);
   $('btnAch').addEventListener('click', () => { const box = $('achList'); box.textContent = ''; $('achCount').textContent = ACH.count() + ' von ' + ACH.list.length + ' errungen';
     for (const [id, name, desc] of ACH.list) { const d = document.createElement('div'), m = document.createElement('i'), t = document.createElement('span'), b = document.createElement('b'); if (ACH.got[id]) d.className = 'got';
-      m.textContent = ACH.got[id] ? '✓' : '·'; b.textContent = name; t.append(b, desc); d.append(m, t); box.append(d); }
+      m.textContent = ACH.got[id] ? '✓' : '·'; b.textContent = ACH.got[id] ? name : '???'; t.append(b, ACH.got[id] ? desc : 'Noch nicht entdeckt'); d.append(m, t); box.append(d); }
     $('ach').style.display = 'flex'; $('ach').scrollTop = 0; });
+  $('btnColor').addEventListener('click', () => { COLOR.on = !COLOR.on; try { localStorage.setItem('loColor', COLOR.on ? '1' : '0'); } catch (e) {} ACH.unlock(); });
   $('btnAchBack').addEventListener('click', () => { $('ach').style.display = 'none'; });
   $('btnShop').addEventListener('click', () => { renderShop(); $('shop').style.display = 'flex'; });
   // ---- Almanach: wird aus denselben Tabellen gebaut wie das Spiel, bleibt also von selbst aktuell
