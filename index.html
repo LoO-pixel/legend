@@ -70,6 +70,11 @@ html,body{overscroll-behavior:none;touch-action:none;
 #hud .bigbar .bar{height:7px;margin-top:3px}#hud .bigbar .bar i{background:#cf2a2a}
 #arrow{position:fixed;left:50%;top:50%;width:0;height:0;margin:-7px 0 0 -6px;display:none;pointer-events:none;z-index:2;
   border-left:14px solid #cf2a2a;border-top:7px solid transparent;border-bottom:7px solid transparent;filter:drop-shadow(0 0 1px #e8e6d2) drop-shadow(0 0 1px #e8e6d2)}
+#achToast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 44px);transform:translateX(-50%);width:max-content;max-width:84%;padding:5px 12px;background:#2a242b;color:#e8e6d2;border:1px solid #e8e6d2;outline:1px solid #2a242b;font:700 11px/1.3 Georgia,serif;letter-spacing:.14em;text-transform:uppercase;text-align:center;opacity:0;transition:opacity .3s;pointer-events:none;z-index:9}
+#achList div{display:flex;gap:8px;text-align:left;padding:6px 0;border-bottom:1px solid rgba(42,36,43,.35);font-size:12px;opacity:.45}
+#achList div.got{opacity:1}
+#achList b{display:block;font-size:13px;letter-spacing:.06em}
+#achList i{flex:none;width:16px;font-style:normal;font-weight:700;color:#cf2a2a}
 #toast{position:fixed;left:50%;top:20%;transform:translateX(-50%);width:max-content;max-width:84%;padding:6px 12px;background:#e8e6d2;color:#2a242b;border:1px solid #2a242b;
   box-shadow:0 0 0 2px #e8e6d2,0 0 0 3px #2a242b;font:italic 600 12px/1.35 Georgia,serif;text-align:center;opacity:0;transition:opacity .4s;pointer-events:none;z-index:3}
 #vignette{transition:background 3s}
@@ -170,6 +175,7 @@ html,body{overscroll-behavior:none;touch-action:none;
     <button id="btnContinue" class="big" style="display:none">Fortsetzen</button>
     <button id="btnStart" class="big">Neues Spiel</button>
     <div class="row"><button id="btnShop">Kr&auml;mer</button><button id="btnWiki">Almanach</button></div>
+    <button id="btnAch">Erfolge</button>
     <div class="row"><button id="btnCopy">Seed kopieren</button><button id="btnLink">Link kopieren</button></div>
     <div id="menuNote"></div>
     <div id="menuStats"></div>
@@ -207,7 +213,7 @@ html,body{overscroll-behavior:none;touch-action:none;
   <div id="wikiBody"></div>
   <button id="btnWikiBack" class="big">Zur&uuml;ck</button>
 </div></div>
-<div id="arrow"></div><div id="toast"></div>
+<div id="arrow"></div><div id="toast"></div><div id="achToast"></div>
 <div id="lvl" class="page" style="display:none"><div class="sheet">
   <div class="kicker" id="lvlKicker"></div>
   <h1 id="lvlTitle">W&auml;hle</h1>
@@ -218,6 +224,20 @@ html,body{overscroll-behavior:none;touch-action:none;
   <h1 id="overName"></h1>
   <div class="sub" id="overText"></div>
   <button id="btnAgain" class="big">Neue Ausgabe</button>
+</div></div>
+<div id="fin" class="page" style="display:none"><div class="sheet">
+  <div class="kicker">Letzte Seite</div>
+  <h1 id="finName"></h1>
+  <div class="sub" id="finText"></div>
+  <h1 style="font-style:italic;letter-spacing:.3em;margin:18px 0">Fin</h1>
+  <button id="btnFin" class="big">Zur&uuml;ck zum Titel</button>
+</div></div>
+<div id="ach" class="page" style="display:none;z-index:7"><div class="sheet">
+  <div class="kicker">Ruhmestafel</div>
+  <h1>Erfolge</h1>
+  <div class="sub" id="achCount"></div>
+  <div id="achList"></div>
+  <button id="btnAchBack" class="big" style="position:sticky;bottom:0;margin-top:12px">Zur&uuml;ck</button>
 </div></div>
 <div id="shop" class="page" style="display:none;z-index:5"><div class="sheet">
   <div class="kicker">Dauerhafte Verbesserungen</div>
@@ -1405,7 +1425,7 @@ const ENEMY_TYPES = [
 ];
 // ---- Waffen (je 5 Stufen, jede Stufe ändert etwas anderes) und passive Fähigkeiten. w = Gewicht im Angebot (selten = stark)
 // ---- Stellschrauben der Balance an einer Stelle
-const BAL = {gateTime: 25, lvlHp: .6, lvlDmg: .35, hpRamp: 200, spawnMin: .3, capMax: 130, bossSpawnMul: 2.2, afterBossMul: 3, lvlHeal: 5};
+const BAL = {gateTime: 25, darkTime: 25, lvlHp: .6, lvlDmg: .35, hpRamp: 200, spawnMin: .3, capMax: 130, bossSpawnMul: 2.2, afterBossMul: 3, lvlHeal: 5};
 const HERO = {name: ''};                      // der Name hinter "Legend of _"
 const heroName = () => HERO.name || 'Der Namenlose';
 const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V'];
@@ -1526,7 +1546,7 @@ class Combat {
     const wl = {}, al = {}; for (const id in this.items) (WEAPONS[id] ? wl : al)[id] = this.items[id];
     const b = this.boss && this.boss.alive ? this.boss : null;
     return {weapons: Object.keys(wl), weaponLevels: wl, abilities: Object.keys(al), abilityLevels: al, kills: this.kills, gold: this.gold, horse: this.g.player.horse | 0, stallUsed: this.stall && this.stall.used ? 1 : 0,
-      bossState: this.bossState, bossHP: b ? b.hp : 0, bossX: b ? b.x : 0, bossY: b ? b.y : 0, bossRev: b ? !!b.revived : false, exitState: this.exitOpen ? 1 : 0, exitX: this.exit.x, exitY: this.exit.y, gateT: this.gateT,
+      bossState: this.bossState, bossHP: b ? b.hp : 0, bossX: b ? b.x : 0, bossY: b ? b.y : 0, bossRev: b ? b.revived | 0 : 0, exitState: this.exitOpen ? 1 : 0, exitX: this.exit.x, exitY: this.exit.y, gateT: this.gateT,
       bell: this.bell && this.bell.taken ? 1 : 0,
       altar: this.altar ? (this.altar.taken ? 3 : this.altar.state === 2 ? 2 : 0) : 0,
       shrines: this.shrines.map(s => s.left), caches: this.caches.map(c => c.open ? 1 : 0)};
@@ -1547,7 +1567,7 @@ class Combat {
     if (this.altar && d.altar >= 2) { this.altar.state = 2; this.altar.taken = d.altar === 3; if (this.altar.taken && this.altar.obj) this.altar.obj.spr = ALTAR_SPR[0]; }
     this.bossState = clamp(d.bossState | 0, 0, 3);
     if (this.bossState === 1) document.getElementById('vignette').classList.add('dread');
-    if (this.bossState === 2) { const b = this.spawnAt(BOSS, +d.bossX || this.bossAt.x, +d.bossY || this.bossAt.y, 0); if (b) { if (d.bossHP > 0) b.hp = +d.bossHP; b.revived = !!d.bossRev; b.cd = 2; this.boss = b; } }
+    if (this.bossState === 2) { const b = this.spawnAt(BOSS, +d.bossX || this.bossAt.x, +d.bossY || this.bossAt.y, 0); if (b) { if (d.bossHP > 0) b.hp = +d.bossHP; b.revived = +d.bossRev | 0; b.cd = 2; this.boss = b; } }
     if (this.bossState === 3 || d.exitState) { this.bossState = 3; this.exitOpen = true; if (Number.isFinite(d.exitX) && Number.isFinite(d.exitY)) this.exit = {x: d.exitX, y: d.exitY, ok: true}; if (Number.isFinite(d.gateT)) this.gateT = d.gateT; }
     p.level = Math.max(1, d.playerLevel | 0); p.xp = Math.max(0, +d.XP || 0); p.xpNext = Math.max(3, +d.xpNext || 5); p.hp = clamp(+d.playerHP || 1, 1, p.maxHp);
     if (Number.isFinite(d.playerX) && Number.isFinite(d.playerY) && !this.g.world.blocked(d.playerX, d.playerY)) { p.x = d.playerX; p.y = d.playerY; }
@@ -1626,10 +1646,10 @@ class Combat {
       for (let i = 0; i < 14; i++) { const d = this.get(this.drops); if (d) { d.alive = true; d.gold = false; d.pull = false; d.x = e.x + (Math.random() - .5) * 30; d.y = e.y + (Math.random() - .5) * 24; d.v = 4; } }
       for (let i = 0; i < 12; i++) this.coin(e.x + (Math.random() - .5) * 36, e.y + (Math.random() - .5) * 28, 3);
       this.boom(e.x, e.y - 6, 40); this.g.toast('Der Knochenkönig zerfällt. Ein Tor öffnet sich – du hast ' + BAL.gateTime + ' Sekunden, dann kommt die Dunkelheit.');
-      document.getElementById('vignette').classList.remove('dread'); SAVE.bump({totalBossKills: 1}); this.g.save(); this.g.bossReward(); return;
+      document.getElementById('vignette').classList.remove('dread'); SAVE.bump({totalBossKills: 1}); ACH.give('koenig'); this.g.save(); this.g.bossReward(); return;
     }
     if (e.type.guard) {                            // Wächter besiegt: Beute, der Magnet liegt frei
-      if (this.altar) this.altar.state = 2;
+      if (this.altar) this.altar.state = 2; ACH.give('kugel');
       for (let i = 0; i < 8; i++) this.xpDrop(e.x + (Math.random() - .5) * 26, e.y + (Math.random() - .5) * 20, 3);
       for (let i = 0; i < 6; i++) this.coin(e.x + (Math.random() - .5) * 28, e.y + (Math.random() - .5) * 22, 2);
       this.boom(e.x, e.y - 6, 30); this.g.toast('Die Fleischkugel zerplatzt. Der Magnet auf dem Altar liegt frei.'); this.g.save(); return;
@@ -1728,9 +1748,10 @@ class Combat {
       g.save(); }
     // ---- Frist zum Tor: läuft sie ab, kommt die Dunkelheit und zehrt immer schneller am Leben (kein Schild, keine Rüstung hilft)
     if (this.exitOpen && (this.gateT -= dt) <= 0) {
-      if (this.dark === 0) g.toast('Zu spät. Die Dunkelheit kommt dich holen.');
-      this.dark += dt; p.hp -= p.maxHp * (.08 + .1 * this.dark) * dt; this.lastSrc = 'die Dunkelheit';
-      if (p.hp <= 0) { p.hp = 0; g.gameOver(); return; }
+      if (this.dark === 0) { g.toast('Zu spät. Die Dunkelheit kommt dich holen – und mit ihr alles, was in ihr haust.'); for (let i = 0; i < 4; i++) this.wave(t + this.tOff); }
+      this.dark += dt; const rem = BAL.darkTime - this.dark;                       // das Leben rinnt so aus, dass nach genau darkTime Sekunden Schluss ist – Heilung schiebt es nicht hinaus
+      p.hp = rem <= 0 ? 0 : p.hp - p.hp * Math.min(1, dt / rem) * .9; this.lastSrc = 'die Dunkelheit';
+      if (p.hp <= 0 || rem <= 0) { p.hp = 0; g.gameOver(); return; }
     }
     // ---- Ausgang
     if (this.exitOpen && Math.abs(p.x - this.exit.x) < 7 && Math.abs(p.y - this.exit.y) < 8) { g.nextLevel(); return; }
@@ -1743,7 +1764,8 @@ class Combat {
       this.spawnT = Math.max(BAL.spawnMin, 1.5 - te / 300 * 1.2) * (near < 110 ? 1.6 : 1) * (this.bossState === 2 ? BAL.bossSpawnMul : this.bossState === 3 ? BAL.afterBossMul : 1);
       const L2 = Math.min(g.level - 1, 3), lure = p.lure | 0;
       this.spawnT /= (1 + .25 * L2) * (1 + .2 * lure);                               // ab Ebene 2 dichter; die Unheilsglocke lockt zusätzlich an
-      if (this.alive < Math.min(225, Math.min(BAL.capMax, 40 + te / 3) * (1 + .15 * Math.min(L2, 2)) * (1 + .12 * lure))) this.spawn(te);
+      if (this.dark > 0) { this.spawnT = .03; if (this.alive < 236) { this.spawn(te); this.spawn(te); } }   // in der Dunkelheit kommen sie in Massen, bis das Feld voll ist
+      else if (this.alive < Math.min(225, Math.min(BAL.capMax, 40 + te / 3) * (1 + .15 * Math.min(L2, 2)) * (1 + .12 * lure))) this.spawn(te);
     }
     // ---- Gegnerwellen ab Ebene 2: alle 38 s bricht eine Horde eines Typs aus einer Richtung hervor
     if (g.level >= 2 && this.bossState < 3 && (this.waveT -= dt) <= 0) { this.waveT = 38; this.wave(t + this.tOff); }
@@ -1783,11 +1805,11 @@ class Combat {
             sp = 0; e.dashT -= dt; const k = e.face ? 0 : 1;
             if (e.state === 3) { e.spr = BOSS_ANIM.dead[k][clamp((1 - e.dashT / .9) * 6 | 0, 0, 5)];
               if (e.dashT <= 0) {
-                if (g.level >= 2 && !e.revived) { e.state = 4; e.dashT = 2.4; e.spr = BOSS_ANIM.corpse[k][0]; g.toast('Die Knochen zucken …'); }
+                if ((e.revived | 0) < Math.min(2, g.level - 1)) { e.state = 4; e.dashT = 2.4; e.spr = BOSS_ANIM.corpse[k][0]; g.toast('Die Knochen zucken …'); }
                 else { e.dying = true; this.corpse = {x: e.x, y: e.y, spr: BOSS_ANIM.corpse[k][0]}; this.kill(e); continue; } } }
             else if (e.state === 4) { e.spr = BOSS_ANIM.corpse[k][((t * 6 | 0) & 1) && e.dashT < 1 ? 1 : 0]; if (e.dashT <= 0) { e.state = 5; e.dashT = .6; } }
             else { e.spr = BOSS_ANIM.reborn[k][clamp((1 - e.dashT / .6) * 3 | 0, 0, 2)];
-              if (e.dashT <= 0) { e.state = 0; e.revived = true; e.hp = BOSS.hp * this.lvlMul * .5; e.cd = 1.5; g.toast('Der Knochenkönig erhebt sich noch einmal!'); } }
+              if (e.dashT <= 0) { e.state = 0; e.revived = (e.revived | 0) + 1; e.hp = BOSS.hp * this.lvlMul * .5; e.cd = 1.5; g.toast(e.revived > 1 ? 'Der Knochenkönig erhebt sich ein letztes Mal!' : 'Der Knochenkönig erhebt sich noch einmal!'); } }
             break;
           }
           sp = d > 220 ? 66 : ty.sp; e.cd -= dt; e.buff = 0;
@@ -1822,7 +1844,7 @@ class Combat {
       e.kx *= .86; e.ky *= .86;
       for (let j = i + 1; j < E.length; j++) { const o = E[j]; if (!o.alive) continue; const ox = o.x - e.x, oy = o.y - e.y;   // nicht aufeinander stehen
         if (plagueL && (e.plagueT > 0) !== (o.plagueT > 0) && ox > -7 && ox < 7 && oy > -7 && oy < 7) {                              // Berührung steckt an
-          const src = e.plagueT > 0 ? e : o, dst = src === e ? o : e; if (src.plagueGen <= plagueL) { dst.plagueT = 6; dst.plagueGen = src.plagueGen + 1; dst.plagueTick = .5; } }
+          const src = e.plagueT > 0 ? e : o, dst = src === e ? o : e; if (src.plagueGen <= plagueL) { dst.plagueT = 6; dst.plagueGen = src.plagueGen + 1; dst.plagueTick = .5; this.boom(dst.x, dst.y - 3, 5); } }
         if (ox > -4 && ox < 4 && oy > -4 && oy < 4) { const s = 10 * dt, ax = ox < 0 ? -s : s, ay = oy < 0 ? -s : s; o.x += ax; o.y += ay; e.x -= ax; e.y -= ay; } }
       if (d < ty.r + 3 && ty.ai !== 'bomb' && !(e.frozT > 0) && !(ty.boss && e.state >= 3)) { this.hurt(ty.dmg, ty.boss ? 'den Knochenkönig' : 'einen ' + ty.name); if (ty.boss) p.inv = Math.max(p.inv, 1.1); }   // nach einem Boss-Treffer etwas länger unverwundbar
       if (Math.abs(e.x - p.x) < vx && Math.abs(e.y - p.y) < vy) this.dyn.push(e);
@@ -1974,7 +1996,11 @@ class Combat {
     if (this.exitOpen) { const ex = this.exit.x - cx, ey = this.exit.y - cy;               // Tor
       for (let i = 0; i < 16; i++) { const a = time * 2 + i * .3927; r.dot(Math.round(ex + Math.cos(a) * 7), Math.round(ey - 7 + Math.sin(a) * 9), (i & 1) ? RED : 20); }
       for (let k = 0; k < 14; k++) r.dot(ex + ((k * 5 + (time * 6 | 0)) % 5) - 2, ey - k, 20); }
-    for (let i = 0; i < this.dyn.length; i++) { const e = this.dyn[i]; if (e.plagueT > 0 && ((time * 5 | 0) + i) & 1) { const x = (e.x | 0) - cx, y = (e.y | 0) - e.spr.h - 2 - cy; r.dot(x, y, RED); r.dot(x - 1, y + 1, RED); r.dot(x + 1, y + 1, RED); r.dot(x, y + 1, 20); } }   // Seuchenmal
+    for (let i = 0; i < this.dyn.length; i++) { const e = this.dyn[i]; if (!(e.plagueT > 0)) continue;                      // Seuche: rote Pusteln auf dem Leib, ein Mal über dem Kopf, Dunst steigt auf
+      const sw = e.spr.w, sh = e.spr.h, x0 = (e.x | 0) - cx, yT = (e.y | 0) - sh - cy, k = (time * 4 | 0) + i * 7;
+      for (let j = 0; j < 4; j++) { const hx = hash2(k + j * 13, i, 77), hy = hash2(k + j * 5, i, 91); r.dot(x0 + ((hx - .5) * sw * .7 | 0), yT + 2 + (hy * (sh - 3) | 0), RED); }
+      r.dot(x0, yT - 3, RED); r.dot(x0 - 1, yT - 2, RED); r.dot(x0 + 1, yT - 2, RED); r.dot(x0, yT - 2, 20); r.dot(x0, yT - 1, RED);
+      const up = (time * 7 + i * 3) % 6 | 0; r.dot(x0 - 3 + (i & 1) * 6, yT - 1 - up, up > 3 ? 110 : RED); }
     for (const m of this.smoke) if (m.alive) { const x0 = Math.round(m.x) - cx, y0 = Math.round(m.y) - cy, u = m.t / m.life;
       if (m.spark) { r.dot(x0, y0, u < .5 ? RED : 20); r.dot(x0 - (m.vx > 0 ? 1 : -1), y0, 20); continue; }
       const R = m.r + u * 4.5, g = u < .25 ? 44 : u < .6 ? 96 : 150;                                       // Rauch: wird größer, heller und löchriger
@@ -2008,11 +2034,47 @@ function viewSize() {
   return [vw, vh];
 }
 viewSize(); addEventListener('resize', viewSize); addEventListener('orientationchange', () => setTimeout(viewSize, 250));
+const LAST_LEVEL = 3;                                  // hinter dem Tor der dritten Ebene ist Schluss
+// Erfolge: im Profil gespeichert, Meldung als eigenes Band, damit sie keine Spielmeldung verdrängt.
+const ACH = { got: {}, q: [], busy: false, t: 0,
+  list: [
+    ['koenig', 'Königsmörder', 'Den Knochenkönig besiegen'],
+    ['ebene2', 'Durchs Tor', 'Ebene 2 erreichen'],
+    ['ebene3', 'Tiefer hinab', 'Ebene 3 erreichen'],
+    ['fin', 'Fin', 'Durch das letzte Tor schreiten'],
+    ['knapp', 'Auf den letzten Drücker', 'Das Tor mit weniger als 3 Sekunden Frist erreichen'],
+    ['nacht', 'Nachtwanderer', 'Das Tor erreichen, obwohl die Dunkelheit schon da ist'],
+    ['kugel', 'Hackfleisch', 'Die Fleischkugel am Opferaltar besiegen'],
+    ['kraefte', 'Dreifaltigkeit', 'Seuche, Kettenblitz und Flammenschritte zugleich besitzen'],
+    ['schnitter', 'Schnitter', '500 Feinde in einem Lauf'],
+    ['sense', 'Große Ernte', '2000 Feinde in einem Lauf'],
+    ['stufe20', 'Gestandener Wanderer', 'Stufe 20 in einem Lauf'],
+    ['voll', 'Volle Taschen', 'Alle 10 Plätze belegen'],
+    ['meister', 'Meisterstück', 'Eine Waffe oder Fähigkeit auf Stufe V bringen'],
+    ['gold100', 'Klimpernder Beutel', '100 Gold in einem Lauf bei sich tragen'],
+    ['reiter', 'Hoch zu Ross', 'Ein Pferd kaufen'],
+    ['kunde', 'Stammkunde in spe', 'Beim Krämer etwas kaufen'],
+    ['nachruf', 'Erste Zeile im Nachruf', 'Zum ersten Mal sterben'],
+    ['kurz', 'Kurzmeldung', 'In der ersten Minute sterben'],
+    ['ohrwurm', 'Ohrwurm', 'Die Musik zweimal am Stück ertragen'],
+    ['erster', 'Aller Anfang', 'Den ersten Erfolg erringen']],
+  load(pr) { this.got = Object.assign({}, pr.achievements, this.got); },
+  count() { return this.list.filter(a => this.got[a[0]]).length; },
+  give(id) { if (this.got[id]) return; const a = this.list.find(x => x[0] === id); if (!a) return; this.got[id] = Date.now();
+    SAVE.update(pr => { (pr.achievements = pr.achievements || {})[id] = this.got[id]; });
+    this.q.push(a[1]); this.next(); if (id !== 'erster') this.give('erster'); },
+  next() { if (this.busy || !this.q.length) return; this.busy = true; const el = document.getElementById('achToast'); el.textContent = 'Erfolg · ' + this.q.shift(); el.style.opacity = 1;
+    setTimeout(() => { el.style.opacity = 0; setTimeout(() => { this.busy = false; this.next(); }, 350); }, 2600); },
+  check(g) { if (g.stopped || g.dead || performance.now() - this.t < 500) return; this.t = performance.now(); const c = g.combat, it = c.items;
+    if (c.kills >= 500) this.give('schnitter'); if (c.kills >= 2000) this.give('sense'); if (g.player.level >= 20) this.give('stufe20');
+    if (Object.keys(it).length >= 10) this.give('voll'); for (const k in it) if (it[k] >= 5) { this.give('meister'); break; }
+    if (it.seuche && it.kette && it.flamme) this.give('kraefte'); if (c.gold >= 100) this.give('gold100');
+    if (g.level >= 2) this.give('ebene2'); if (g.level >= 3) this.give('ebene3'); if (MUSIC.plays >= 2) this.give('ohrwurm'); } };
 // Musik: musik.mp3 liegt neben der index.html (zu groß zum Einbetten). Fehlt die Datei, bleibt es einfach still. Läuft als Schleife, solange der Lauf läuft.
-const MUSIC = { a: null, on: true, want: false, busy: false,
+const MUSIC = { a: null, on: true, want: false, busy: false, plays: 0, lastT: 0,
   init() { if (this.a) return; try { this.on = localStorage.getItem('loMusic') !== '0'; } catch (e) {} const a = this.a = new Audio('musik.mp3'); a.loop = true; a.preload = 'auto'; a.volume = .55; },
   unlock() { if (this.want) this.sync(true); },                                                    // iOS erlaubt Ton erst nach einer Berührung
-  sync(run) { this.init(); this.want = run; const a = this.a;
+  sync(run) { this.init(); this.want = run; const a = this.a; if (a.currentTime < this.lastT - 5) this.plays++; this.lastT = a.currentTime;
     if (!(run && this.on)) { if (!a.paused) a.pause(); return; }
     if (a.paused && !this.busy) { this.busy = true; a.play().then(() => { this.busy = false; }, () => { setTimeout(() => { this.busy = false; }, 1500); }); } } };
 class Game {
@@ -2068,6 +2130,8 @@ class Game {
   refreshItems() { document.getElementById('hudItems').textContent = this.combat.itemList(); }
   toast(msg) { const el = document.getElementById('toast'); el.textContent = msg; el.style.opacity = 1; clearTimeout(this.toastT); this.toastT = setTimeout(() => { el.style.opacity = 0; }, 2800); }
   nextLevel() {                                  // neue Welt aus WorldSeed + Ebene, Spieler behält alles
+    const cb = this.combat; if (cb.dark > 0) ACH.give('nacht'); else if (cb.gateT < 3) ACH.give('knapp');
+    if (this.level >= LAST_LEVEL) { this.finish(); return; }
     this.paused = true; this.transition = true; const L = document.getElementById('loading'); L.style.display = 'flex';
     setTimeout(() => {
       this.level++; this.world = WorldGenerator.generate(this.seed, this.level);
@@ -2083,7 +2147,7 @@ class Game {
   }
   stallAnswer(yes) {
     const c = this.combat;
-    if (yes && c.gold >= 25) { c.gold -= 25; c.goldPending -= 25; this.player.horse = 3; if (c.stall) c.stall.used = true; this.toast('Du sitzt auf. Drei Treffer, dann ist das Pferd weg.'); }
+    if (yes && c.gold >= 25) { c.gold -= 25; c.goldPending -= 25; this.player.horse = 3; ACH.give('reiter'); if (c.stall) c.stall.used = true; this.toast('Du sitzt auf. Drei Treffer, dann ist das Pferd weg.'); }
     document.getElementById('stallPage').style.display = 'none'; this.paused = false; this.last = 0; this.save();
   }
   showChoice(kicker, title, offers) {            // drei Karten; das Spiel hält an, bis eine gewählt ist
@@ -2105,15 +2169,21 @@ class Game {
     if (!offs.length) { for (let i = 0; i < 12; i++) c.coin(this.player.x + (Math.random() - .5) * 40, this.player.y + (Math.random() - .5) * 30, 4); return; }
     this.showChoice('Der Knochenkönig ist gefallen', 'Wähle eine Kraft', offs);
   }
+  finish() {                                     // durch das letzte Tor: geschafft
+    this.dead = true; const c = this.combat, hn = heroName(), on = document.getElementById('finName'); on.textContent = hn; on.style.fontSize = hn.length > 9 ? '22px' : hn.length > 5 ? '28px' : '';
+    document.getElementById('finText').textContent = `${hn} schritt durch das letzte Tor. ${LAST_LEVEL} Ebenen, ${c.kills} gefallene Feinde, Stufe ${this.player.level}, ${c.gold} Goldstücke – und der Knochenkönig bleibt liegen. Die Legende ist geschrieben.`;
+    document.getElementById('fin').style.display = 'flex'; ACH.give('fin');
+    SAVE.del('runs', 'active'); SAVE.bump({totalKills: c.kills, highestLevel: this.level, gold: c.goldPending, totalWins: 1}); c.goldPending = 0;
+  }
   gameOver() {
-    this.dead = true; const c = this.combat, tt = c.time | 0;
+    this.dead = true; const c = this.combat, tt = c.time | 0; ACH.give('nachruf'); if (this.level === 1 && tt < 60) ACH.give('kurz');
     const hn = heroName(), on = document.getElementById('overName'); on.textContent = '† ' + hn + ' †'; on.style.fontSize = hn.length > 9 ? '22px' : hn.length > 5 ? '28px' : '';
     document.getElementById('overText').textContent = `${hn} fiel durch ${c.lastSrc || 'einen Feind'} in Ebene ${this.level} nach ${tt / 60 | 0} Min. ${tt % 60} Sek. auf Stufe ${this.player.level}. ${c.kills} Feinde fielen zuvor. Zurück bleiben ${c.gold} Goldstücke – und eine Legende.`;
     document.getElementById('over').style.display = 'flex';
     SAVE.del('runs', 'active'); SAVE.bump({totalKills: c.kills, highestLevel: this.level, gold: c.goldPending}); c.goldPending = 0;
   }
   loop(now) {
-    MUSIC.sync(!this.stopped && !this.dead && !this.userPaused && document.visibilityState !== 'hidden', this.combat.time);
+    ACH.check(this); MUSIC.sync(!this.stopped && !this.dead && !this.userPaused && document.visibilityState !== 'hidden', this.combat.time);
     if (this.stopped) return;
     requestAnimationFrame(this.loop);
     if (document.visibilityState === 'hidden') return;
@@ -2128,7 +2198,7 @@ class Game {
     if (this.shakeT > 0) { this.shakeT -= dt; const a = (this.shakeA || 0) * Math.max(0, this.shakeT / .32), cam = this.camera;   // Bildwackeln nach einer Explosion, klingt schnell ab
       cam.x = clamp(cam.x + Math.round((Math.random() - .5) * 2 * a), 0, Math.max(0, WORLD - r.bw)); cam.y = clamp(cam.y + Math.round((Math.random() - .5) * 2 * a), 0, Math.max(0, WORLD - r.bh)); }
     r.render(this.world, this.player, this.camera, now / 1000, dt, this.combat);
-    if (this.combat.dark > 0) { const rr = Math.max(6, 62 - this.combat.dark * 15); document.getElementById('vignette').style.background = `radial-gradient(ellipse at center,rgba(0,0,0,0) ${rr * .3}%,rgba(0,0,0,.97) ${rr}%)`; }   // die Dunkelheit zieht sich zu
+    if (this.combat.dark > 0) { const rr = Math.max(6, 62 - this.combat.dark * 56 / BAL.darkTime); document.getElementById('vignette').style.background = `radial-gradient(ellipse at center,rgba(0,0,0,0) ${rr * .3}%,rgba(0,0,0,.97) ${rr}%)`; }   // die Dunkelheit zieht sich zu
     if ((this.hudT -= dt) <= 0) { this.hudT = .2; const p = this.player, c = this.combat, tt = c.time | 0;
       document.getElementById('hpFill').style.width = (p.hp / p.maxHp * 100) + '%';
       document.getElementById('xpFill').style.width = Math.min(100, p.xp / p.xpNext * 100) + '%';
@@ -2137,7 +2207,7 @@ class Game {
       for (const [id, big] of [['boss', c.boss], ['guard', c.guard]]) {            // Boss und Altarwächter haben je eine eigene Leiste
         const bb = document.getElementById(id + 'Bar');
         if (big && big.alive) { bb.style.display = 'block'; document.getElementById(id + 'Name').textContent = big.type.name; document.getElementById(id + 'Fill').style.width = clamp(big.hp / (big.type.hp * c.lvlMul) * 100, 0, 100) + '%'; } else bb.style.display = 'none'; }
-      const left = Math.ceil(Math.max(0, 300 - c.time)), clock = c.bossState === 3 ? (c.gateT > 0 ? 'Tor: ' + Math.ceil(c.gateT) + ' s' : 'Dunkelheit!') : c.bossState === 2 ? 'Boss!' : String(left / 60 | 0).padStart(2, '0') + ':' + String(left % 60).padStart(2, '0');   // läuft rückwärts bis zum Boss
+      const left = Math.ceil(Math.max(0, 300 - c.time)), clock = c.bossState === 3 ? (c.gateT > 0 ? 'Tor: ' + Math.ceil(c.gateT) + ' s' : 'Dunkelheit: ' + Math.max(0, Math.ceil(BAL.darkTime - c.dark)) + ' s') : c.bossState === 2 ? 'Boss!' : String(left / 60 | 0).padStart(2, '0') + ':' + String(left % 60).padStart(2, '0');   // läuft rückwärts bis zum Boss
       document.getElementById('hudText').textContent = `Ebene ${this.level} · Stufe ${p.level} · ${clock} · ${c.kills} † · ${c.gold} Gold${p.horse > 0 ? ' · Pferd ' + '♞'.repeat(p.horse) : ''}`; }
     if (this.debug && dt) {
       this.fps += (1 / dt - this.fps) * .05;
@@ -2215,7 +2285,7 @@ class Game {
     if (activeRun) bc.textContent = `Fortsetzen · Ebene ${activeRun.level} · ${fmt(activeRun.elapsedTime || 0)}`;
     $('btnStart').className = activeRun ? '' : 'big';
     const pr = await SAVE.profile();
-    $('btnShop').textContent = 'Krämer · ' + pr.gold + ' Gold';
+    $('btnShop').textContent = 'Krämer · ' + pr.gold + ' Gold'; ACH.load(pr); $('btnAch').textContent = 'Erfolge · ' + ACH.count() + '/' + ACH.list.length;
     $('menuWarn').textContent = SAVE.volatile ? 'Hier lässt sich nichts dauerhaft speichern (Vorschau/privater Modus). Gold, Käufe und Spielstand gelten nur, bis die Seite geschlossen wird.' : '';
     $('menuStats').textContent = pr.totalRuns ? `Läufe ${pr.totalRuns} · Höchste Ebene ${Math.max(1, pr.highestLevel)} · Feinde ${pr.totalKills} · Bosse ${pr.totalBossKills}` : '';
   }
@@ -2229,7 +2299,7 @@ class Game {
       tag.textContent = maxed ? 'Ausgebaut' : cost + ' Gold' + (pr.gold < cost ? ' · es fehlen ' + (cost - pr.gold) : ' · kaufen'); t.textContent = m.name + (L ? ' ' + ROMAN[L] : '') + (m.max > 1 ? '  (' + L + '/' + m.max + ')' : ''); x.textContent = m.desc;
       b.append(tag, t, x); b.disabled = maxed || pr.gold < cost;
       b.addEventListener('click', async () => {
-        await SAVE.update(cur => { const l = cur.metaUpgrades[id] | 0; if (l >= m.max || cur.gold < metaCost(id, l)) return false; cur.gold -= metaCost(id, l); cur.metaUpgrades[id] = l + 1; });
+        await SAVE.update(cur => { const l = cur.metaUpgrades[id] | 0; if (l >= m.max || cur.gold < metaCost(id, l)) return false; cur.gold -= metaCost(id, l); cur.metaUpgrades[id] = l + 1; ACH.give('kunde'); });
         renderShop();
       });
       box.appendChild(b);
@@ -2238,7 +2308,7 @@ class Game {
   function toMenu() {                                   // zurück ins Menü ohne Seitenwechsel (kein Neuladen -> kein 404)
     if (window.game && window.game.stop) window.game.stop();
     window.game = null;
-    for (const id of ['over', 'hud', 'lvl', 'arrow', 'pause', 'pauseBtn', 'shop', 'mapBtn', 'mapPage', 'joy', 'stallPage', 'wiki']) $(id).style.display = 'none';
+    for (const id of ['over', 'fin', 'ach', 'hud', 'lvl', 'arrow', 'pause', 'pauseBtn', 'shop', 'mapBtn', 'mapPage', 'joy', 'stallPage', 'wiki']) $(id).style.display = 'none';
     $('vignette').classList.remove('dread'); $('vignette').style.background = ''; $('toast').style.opacity = 0;
     try { const u = new URL(location.href); u.searchParams.delete('seed'); history.replaceState(null, '', u.toString()); } catch (e) {}
     input.value = randomSeed(); note.textContent = ''; menu.style.display = 'flex'; menuPreview(curSeed(), 200);
@@ -2252,7 +2322,12 @@ class Game {
   $('btnCopy').addEventListener('click', () => copy(String(curSeed()), 'Seed kopiert.'));
   $('btnLink').addEventListener('click', () => copy(seedUrl(curSeed()), 'Link kopiert.'));
   input.addEventListener('keydown', e => { if (e.key === 'Enter') start(curSeed(), null); });
-  $('btnAgain').addEventListener('click', toMenu);
+  $('btnAgain').addEventListener('click', toMenu); $('btnFin').addEventListener('click', toMenu);
+  $('btnAch').addEventListener('click', () => { const box = $('achList'); box.textContent = ''; $('achCount').textContent = ACH.count() + ' von ' + ACH.list.length + ' errungen';
+    for (const [id, name, desc] of ACH.list) { const d = document.createElement('div'), m = document.createElement('i'), t = document.createElement('span'), b = document.createElement('b'); if (ACH.got[id]) d.className = 'got';
+      m.textContent = ACH.got[id] ? '✓' : '·'; b.textContent = name; t.append(b, desc); d.append(m, t); box.append(d); }
+    $('ach').style.display = 'flex'; $('ach').scrollTop = 0; });
+  $('btnAchBack').addEventListener('click', () => { $('ach').style.display = 'none'; });
   $('btnShop').addEventListener('click', () => { renderShop(); $('shop').style.display = 'flex'; });
   // ---- Almanach: wird aus denselben Tabellen gebaut wie das Spiel, bleibt also von selbst aktuell
   const ENEMY_INFO = {Schlurfer: 'Langsam, kommt in Massen.', 'Läufer': 'Schnell, hält wenig aus.', Schwarm: 'Flattert zu sechst im Zickzack heran.', 'Schütze': 'Hält Abstand und schießt. Den Geschossen kann man ausweichen.',
