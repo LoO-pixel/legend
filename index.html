@@ -137,7 +137,7 @@ html,body{overscroll-behavior:none;touch-action:none;
 .page{align-items:flex-start}.page .sheet{margin:auto}
 .page button:disabled{opacity:.38}
 #shop .card{min-height:52px;padding:6px 12px}
-#pause,#over,#lvl,#mapPage,#stallPage{background:rgba(42,36,43,.55);background-image:none}
+#pause,#over,#lvl,#mapPage,#stallPage,#smithPage{background:rgba(42,36,43,.55);background-image:none}
 #hudItems{margin-top:4px;font-size:8px;line-height:1.5;letter-spacing:.08em;opacity:.9}
 .page button.card{text-align:left;text-transform:none;letter-spacing:.02em;font-size:13px;line-height:1.35;padding:9px 12px;min-height:62px}
 .page button.card small{display:block;font-size:9px;letter-spacing:.24em;text-transform:uppercase;opacity:.7}
@@ -206,6 +206,13 @@ html,body{overscroll-behavior:none;touch-action:none;
   <div class="sub" id="stallText"></div>
   <button id="btnHorse" class="big">Aufsitzen &middot; 25 Gold</button>
   <button id="btnNoHorse">Weitergehen</button>
+</div></div>
+<div id="smithPage" class="page" style="display:none"><div class="sheet">
+  <div class="kicker">Schmiede</div>
+  <h1>Zwei werden eins</h1>
+  <div class="sub" id="smithText"></div>
+  <div id="smithCards"></div>
+  <button id="btnNoSmith">Weitergehen</button>
 </div></div>
 <div id="wiki" class="page" style="display:none;z-index:7"><div class="sheet">
   <div class="kicker">Nachschlagewerk f&uuml;r Wanderer</div>
@@ -499,6 +506,16 @@ const Shapes = {
     const a = Sprite.fromRows(top.concat(['.#.#..#.#..', '.#.#..#.#..']), m, 5, 8), b = Sprite.fromRows(top.concat(['..#.#.#.#..', '.#...#...#.']), m, 5, 8);
     return {r: [a, b], l: [a.flipped(), b.flipped()]};
   },
+  smithy() {                                     // Schmiede: Dach mit rauchendem Schlot, offene Esse mit Glut, Amboss vor der Tür
+    const w = 25, h = 18, s = new Sprite(w, h, 12, h - 1), D = 24, L = 238;
+    for (let y = 0; y < 3; y++) for (let x = 17; x < 21; x++) s.px(x, y, D); s.px(18, 0, 110); s.px(19, 0, 110);
+    for (let y = 2; y < 8; y++) { const ins = 7 - y; for (let x = ins; x < w - ins; x++) s.px(x, y, (y > 2 && y < 7 && (x + y) % 3 === 0) ? 130 : D); }
+    for (let y = 8; y < h; y++) for (let x = 1; x < w - 1; x++) s.px(x, y, x === 1 || x === w - 2 || y === h - 1 ? D : x < 10 ? L : x === 10 ? D : 34);
+    for (let y = 11; y < h - 1; y++) { s.px(4, y, D); s.px(5, y, D); s.px(6, y, D); }      // Tür
+    for (let y = 12; y < 16; y++) for (let x = 13; x < 21; x++) s.px(x, y, y === 12 ? D : (x + y) % 2 ? RED : 60);   // Glut in der Esse
+    for (let x = 14; x < 20; x++) s.px(x, 16, L); s.px(16, 15, L); s.px(17, 15, L);                                  // Amboss
+    s.solid = {hw: 11, hh: 8}; return s;
+  },
   stall() {                                      // Mietstall: Dach, offene Box mit Pferdekopf, Zaun
     const w = 25, h = 16, s = new Sprite(w, h, 12, h - 1), D = 24, L = 238;
     for (let y = 0; y < 6; y++) { const ins = 5 - y; for (let x = ins; x < w - ins; x++) s.px(x, y, (y > 0 && y < 5 && (x + y) % 3 === 0) ? 130 : D); }
@@ -518,7 +535,7 @@ const Shapes = {
 };
 // Farbton je Gestalt (nur im Farbdruck sichtbar)
 { const tag = (names, t) => { for (const k of names) { const f = Shapes[k]; if (!f) continue; Shapes[k] = function () { const sp = f.apply(Shapes, arguments); if (sp && typeof sp === 'object') sp.tint = t; return sp; }; } };
-  tag(['conifer', 'leaf', 'bigtree', 'worldtree'], 11); tag(['house', 'mill', 'stall'], 12); tag(['deadtree'], 5);
+  tag(['conifer', 'leaf', 'bigtree', 'worldtree'], 11); tag(['house', 'mill', 'stall', 'smithy'], 12); tag(['deadtree'], 5);
   tag(['rock', 'well', 'grave', 'stone', 'tower', 'castle', 'obelisk', 'church', 'chapel', 'ruin', 'peak', 'altar', 'giantCastle', 'giantPillar', 'giantStatue', 'crypt'], 6); }
 
 // ============================================================ WORLD
@@ -1134,6 +1151,11 @@ class WorldGenerator {
     { let done = false; for (const s of setts.slice(1).concat(setts.slice(0, 1))) { if (done) break;
         for (let tries = 0; tries < 18 && !done; tries++) { const a = rng() * 6.283, d = (s.kind === 'Stadt' ? 95 : 54) + rng() * 22, x = s.x + Math.cos(a) * d | 0, y = s.y + Math.sin(a) * d | 0;
           if ([[0, 0], [-11, 0], [11, 0], [0, -7], [-8, 9], [8, 9]].every(([p, q]) => free(x + p, y + q)) && !blockedSite(x, y)) { w.add(x, y, stall); poi('Stall', x, y, 22); done = true; } } } }
+    // Schmiede: am Rand der Stadt (sonst eines Dorfes). Eigener Zufall, damit bestehende Welten sonst unverändert bleiben
+    { const R2 = mulberry32((S ^ 0x51ED5) >>> 0), smithy = Shapes.smithy(); let done = false;
+      for (const s of setts) { if (done) break;
+        for (let tries = 0; tries < 24 && !done; tries++) { const a = R2() * 6.283, d = (s.kind === 'Stadt' ? 92 : 54) + R2() * 26, x = s.x + Math.cos(a) * d | 0, y = s.y + Math.sin(a) * d | 0;
+          if ([[0, 0], [-11, 0], [11, 0], [0, -8], [-8, 9], [8, 9], [0, 9]].every(([p, q]) => free(x + p, y + q)) && !blockedSite(x, y)) { w.add(x, y, smithy); poi('Schmied', x, y, 22); done = true; } } } }
     // Obelisk: Wegmarke an einer Landstraße, fern der Kapelle
     for (let tries = 0, done = false; tries < 40 && !done && roadLines.length; tries++) {
       const line = pick(roadLines), i = ((line.length / 2) * (.2 + rng() * .6) | 0) * 2, px = line[i], py = line[i + 1];
@@ -1197,7 +1219,7 @@ class WorldGenerator {
     const s0 = setts[0] || {x: W / 2, y: W / 2};
     w.spawn.x = s0.x; w.spawn.y = s0.y + 7;
     for (let r = 0; r < 300 && w.blocked(w.spawn.x, w.spawn.y); r += 2) { const a = r * 2.4; w.spawn.x = s0.x + Math.cos(a) * r; w.spawn.y = s0.y + Math.sin(a) * r; }
-    const far = w.pois.filter(p => !['Großer Baum', 'Kirche', 'Mühle', 'Friedhof', 'Opferaltar', 'Stall'].includes(p.kind) && w.reachable(p.x, p.y)).sort((a, b) => Math.hypot(b.x - w.spawn.x, b.y - w.spawn.y) - Math.hypot(a.x - w.spawn.x, a.y - w.spawn.y));
+    const far = w.pois.filter(p => !['Großer Baum', 'Kirche', 'Mühle', 'Friedhof', 'Opferaltar', 'Stall', 'Schmied'].includes(p.kind) && w.reachable(p.x, p.y)).sort((a, b) => Math.hypot(b.x - w.spawn.x, b.y - w.spawn.y) - Math.hypot(a.x - w.spawn.x, a.y - w.spawn.y));
     w.exit = far[0] || null; w.bossSpawn = far[1] || far[0] || null;
     return w;
   }
@@ -1252,7 +1274,7 @@ class WorldGenerator {
     if (exit) label(exit.x, exit.y, 'Tor', 30, 'bold', 26);
     for (const s of w.settlements) label(s.x, s.y, s.kind, 32, 'bold', 18);
     if (bell) label(bell.x, bell.y, 'Glocke', 26, 'italic', 16);
-    const rank = ['Weltenbaum', 'Riesenburg', 'Nekropole', 'Riesensäule', 'Kolossstatue', 'Stall', 'Opferaltar', 'Kapelle', 'Kirche', 'Turm', 'Burgruine', 'Ruine', 'Steinkreis', 'Obelisk', 'Großer Baum', 'Mühle', 'Friedhof'];
+    const rank = ['Weltenbaum', 'Riesenburg', 'Nekropole', 'Riesensäule', 'Kolossstatue', 'Schmied', 'Stall', 'Opferaltar', 'Kapelle', 'Kirche', 'Turm', 'Burgruine', 'Ruine', 'Steinkreis', 'Obelisk', 'Großer Baum', 'Mühle', 'Friedhof'];
     for (const p of w.pois.slice().sort((a, b) => rank.indexOf(a.kind) - rank.indexOf(b.kind))) label(p.x, p.y, p.kind, 26, 'italic', 13);
   }
   // Generator-Debug: ganze Welt als Karte (Debugfarben erlaubt), ohne Gameplay
@@ -1448,10 +1470,10 @@ const ENEMY_TYPES = [
 ];
 // ---- Waffen (je 5 Stufen, jede Stufe ändert etwas anderes) und passive Fähigkeiten. w = Gewicht im Angebot (selten = stark)
 // ---- Stellschrauben der Balance an einer Stelle
-const BAL = {gateTime: 25, darkTime: 25, lvlHp: .6, lvlDmg: .35, hpRamp: 200, spawnMin: .3, capMax: 130, bossSpawnMul: 2.2, afterBossMul: 3, lvlHeal: 5};
+const BAL = {eHp: 1.15, eDmg: 1.2, gateTime: 25, darkTime: 25, lvlHp: .6, lvlDmg: .35, hpRamp: 200, spawnMin: .3, capMax: 130, bossSpawnMul: 2.2, afterBossMul: 3, lvlHeal: 5};
 const HERO = {name: ''};                      // der Name hinter "Legend of _"
 const heroName = () => HERO.name || 'Der Namenlose';
-const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V'];
+const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
 const WEAPONS = {
   messer:    {name: 'Messer',        w: 5,   desc: ['Fliegt auf den nächsten Feind', 'Zwei Messer', 'Schnellere Folge', 'Durchschlägt einen Feind', 'Messer kehren zurück']},
   axt:       {name: 'Axt',           w: 4,   desc: ['Hoher Bogen, durchschlägt alles', 'Mehr Schaden', 'Zwei Äxte', 'Größere Schneide', 'Drei Äxte']},
@@ -1467,6 +1489,17 @@ const WEAPONS = {
   // ---- Kräfte: gibt es nur als Lohn für einen besiegten Boss (found); danach auch beim Stufenaufstieg ausbaubar
   seuche:    {name: 'Seuche',        w: 3, found: true, desc: ['Steckt einen Feind an: er siecht dahin und steckt jeden an, den er berührt', 'Mehr Schaden, greift eine Berührung weiter um sich', 'Mehr Schaden, steckt öfter neu an', 'Mehr Schaden, greift weiter um sich', 'Mehr Schaden, steckt noch öfter an']},
   kette:     {name: 'Kettenblitz',   w: 3, found: true, desc: ['Ein Blitz springt über 3 Feinde', 'Springt über 4 Feinde, mehr Schaden', 'Springt über 5 Feinde, mehr Schaden', 'Springt über 6 Feinde, mehr Schaden', 'Springt über 7 Feinde, mehr Schaden']},
+  // ---- Schmiedewerke: entstehen nur beim Schmied aus zwei Waffen (forge); die Zutaten gehen dabei verloren
+  pest:      {name: 'Pestbeule',     w: 3, forge: ['seuche', 'bombe'],   desc: ['Infizierte platzen beim Tod und stecken alle ringsum an', 'Größere Explosion, mehr Schaden', 'Steckt öfter neu an', 'Größere Explosion, mehr Schaden', 'Steckt noch öfter an, mehr Schaden']},
+  dampf:     {name: 'Dampfkessel',   w: 3, forge: ['ring', 'frost'],     desc: ['Ein Ring, der abwechselnd brennt und friert; Unterkühlte nehmen doppelten Feuerschaden', 'Größerer Ring, mehr Schaden', 'Größerer Ring, mehr Schaden', 'Größerer Ring, mehr Schaden', 'Größerer Ring, mehr Schaden']},
+  gewitter:  {name: 'Gewittersturm', w: 3, forge: ['blitz', 'kette'],    desc: ['Der Einschlag springt über 3 weitere Feinde und lähmt jeden kurz', 'Springt weiter, mehr Schaden', 'Zwei Einschläge', 'Springt weiter, mehr Schaden', 'Drei Einschläge']},
+  hagel:     {name: 'Klingenhagel',  w: 3, forge: ['messer', 'bogen'],   desc: ['Ein Fächer aus sechs Klingen, die Feinde durchschlagen', 'Sieben Klingen, mehr Schaden', 'Acht Klingen, schnellere Folge', 'Neun Klingen, mehr Schaden', 'Zehn Klingen, schnellere Folge']},
+  hellebarde:{name: 'Hellebarde',    w: 3, forge: ['axt', 'speer'],      desc: ['Weiter Rundschlag um dich, dazu ein Stoß in Laufrichtung', 'Weiterer Schlag, mehr Schaden', 'Schnellere Folge, mehr Schaden', 'Stößt auch nach hinten', 'Weiterer Schlag, mehr Schaden']},
+  totenvogel:{name: 'Totenvogel',    w: 3, forge: ['begleiter', 'magie'],desc: ['Zwei Raben kreisen; jeder Hieb entlässt ein Irrlicht, das selbst Feinde sucht', 'Mehr Schaden, Irrlichter öfter', 'Drei Raben', 'Mehr Schaden, Irrlichter öfter', 'Vier Raben']},
+  beben:     {name: 'Erdbeben',      w: 3, forge: ['stoss', 'bombe'],    desc: ['Drei Wellen hintereinander; der aufgerissene Boden bremst alle', 'Größere Wellen, mehr Schaden', 'Vier Wellen', 'Größere Wellen, mehr Schaden', 'Schnellere Folge, mehr Schaden']},
+  pestfeuer: {name: 'Pestfeuer',     w: 3, forge: ['flamme', 'seuche'],  desc: ['Deine Feuerspur verbrennt und steckt jeden an, der hindurchläuft', 'Heißer, brennt länger', 'Heißer, brennt länger', 'Heißer, brennt länger', 'Heißer, brennt länger']},
+  eislanze:  {name: 'Eislanze',      w: 3, forge: ['frost', 'speer'],    desc: ['Durchbohrt eine Reihe und friert sie ein; schon Unterkühlte zersplittern mit Flächenschaden', 'Mehr Schaden', 'Auch nach hinten', 'Mehr Schaden', 'Schnellere Folge, mehr Schaden']},
+  kugel:     {name: 'Kugelblitz',    w: 3, forge: ['magie', 'kette'],    desc: ['Eine langsame Kugel, die ständig Blitze auf Nahestehende abgibt', 'Mehr Schaden, hält länger', 'Mehr Schaden, hält länger', 'Zwei Kugeln', 'Mehr Schaden, hält länger']},
   flamme:    {name: 'Flammenschritte', w: 3, found: true, desc: ['Du ziehst eine Feuerspur hinter dir her', 'Heißer, brennt länger', 'Heißer, brennt länger', 'Heißer, brennt länger', 'Heißer, brennt länger']}
 };
 const PASSIVES = {
@@ -1475,7 +1508,7 @@ const PASSIVES = {
   magnet:  {name: 'Elsternblick',  w: 4,   desc: '+30 % Sammelreichweite',        apply: p => { p.pickup *= 1.3; }},
   kraft:   {name: 'Wetzstein',     w: 2.5, desc: '+10 % Schaden',                 apply: p => { p.dmgMul += .1; }},
   eile:    {name: 'Stundenglas',   w: 2.5, desc: 'Waffen 8 % schneller bereit',   apply: p => { p.cdMul *= .92; }},
-  wams:    {name: 'Lederwams',     w: 3,   desc: 'Jeder Treffer 1 Schaden weniger', apply: p => { p.armor += 1; }},
+  wams:    {name: 'Lederwams',     w: 3,   max: 10, desc: 'Jeder Treffer 1 Schaden weniger, ausbaubar bis Stufe X (ein Viertel jedes Treffers kommt immer durch)', apply: p => { p.armor += 1; }},
   auge:    {name: 'Scharfes Auge', w: 2.5, desc: '+8 % kritische Treffer',        apply: p => { p.crit += .08; }},
   fibel:   {name: 'Fibel',         w: 3,   desc: '+12 % Erfahrung',               apply: p => { p.xpMul += .12; }},
   weite:   {name: 'Langer Arm',    w: 2.5, desc: '+10 % Reichweite und Fläche',   apply: p => { p.area += .1; }},
@@ -1501,7 +1534,8 @@ const META = {
   wams:   {name: 'Kettenhemd',     desc: 'Jeder Treffer 1 Schaden weniger je Stufe', max: 2, base: 90},
   zweit:  {name: 'Zweite Waffe',   desc: 'Jeder Lauf beginnt mit einer zufälligen zweiten Waffe', max: 1, base: 150}
 };
-const metaCost = (id, lvl) => Math.round(META[id].base * [1, 2, 3.5, 5.5, 8][lvl]);
+const FORGE_COST = 60, FORGE_MIN = 3;            // Schmied: Preis je Werk, Mindeststufe beider Zutaten
+const metaCost = (id, lvl) => Math.round(META[id].base * (META[id].mul || [1, 2, 3.5, 5.5, 8])[lvl]);
 const GUARD = {name: 'Die Fleischkugel', ai: 'ball', guard: true, hp: BOSS.hp / 2, sp: 10, dmg: 8, xp: 8, r: 7, spr: BALL_SPR[0]};   // Wächter des Altars: halb so stark wie der Boss
 class Combat {
   constructor(game, allWeapons) {
@@ -1511,7 +1545,7 @@ class Combat {
     this.proj = Array.from({length: 160}, () => ({alive: false, x: 0, y: 0, vx: 0, vy: 0, g: 0, dmg: 0, life: 0, kind: 0, pierce: 0, rb: 0, target: null, hits: [], ret: 0}));
     this.drops = Array.from({length: 900}, () => ({alive: false, x: 0, y: 0, v: 0, gold: false, pull: false}));
     this.fx = Array.from({length: 48}, () => ({alive: false, x: 0, y: 0, x2: 0, y2: 0, t: 0, r: 0, kind: 0}));
-    this.flames = Array.from({length: 70}, () => ({alive: false, x: 0, y: 0, t: 0})); this.chainHit = [];
+    this.flames = Array.from({length: 70}, () => ({alive: false, x: 0, y: 0, t: 0})); this.chainHit = []; this.spent = {}; this.pestQ = []; this.ptag = 0;
     this.smoke = Array.from({length: 90}, () => ({alive: false, x: 0, y: 0, vx: 0, vy: 0, t: 0, life: 0, r: 0, spark: false}));
     this.dyn = []; this.playerVisible = true;
     game.player.horse = 0;
@@ -1520,7 +1554,7 @@ class Combat {
     this.weapons = []; this.items = {}; this.aimX = 1; this.aimY = 0;
     this.gold = 0; this.goldPending = 0;
     this.choose({id: 'messer', kind: 'w', lvl: 1});
-    if ((game.meta.zweit | 0) > 0) { const ids = Object.keys(WEAPONS).filter(id => id !== 'messer' && !WEAPONS[id].found); this.choose({id: ids[Math.random() * ids.length | 0], kind: 'w', lvl: 1}); }
+    if ((game.meta.zweit | 0) > 0) { const ids = Object.keys(WEAPONS).filter(id => id !== 'messer' && !WEAPONS[id].found && !WEAPONS[id].forge); this.choose({id: ids[Math.random() * ids.length | 0], kind: 'w', lvl: 1}); }
     if (allWeapons) for (const id in WEAPONS) if (!this.items[id]) this.choose({id, kind: 'w', lvl: 1});
     this.setupLevel();
   }
@@ -1530,7 +1564,7 @@ class Combat {
     document.getElementById('vignette').classList.remove('dread');
     this.time = 0; this.spawnT = 1.5; this.alive = 0;
     for (const pool of [this.enemies, this.proj, this.drops, this.fx, this.flames, this.smoke]) for (const o of pool) { o.alive = false; o.pull = false; }
-    this.lvlMul = 1 + BAL.lvlHp * (g.level - 1); this.dmgLvl = 1 + BAL.lvlDmg * (g.level - 1); this.tOff = Math.min(180, 50 * (g.level - 1));
+    this.lvlMul = (1 + BAL.lvlHp * (g.level - 1)) * BAL.eHp; this.dmgLvl = (1 + BAL.lvlDmg * (g.level - 1)) * BAL.eDmg; this.tOff = Math.min(180, 50 * (g.level - 1));
     this.graves = w.pois.filter(o => o.kind === 'Friedhof' || o.kind === 'Nekropole'); this.ruins = w.pois.filter(o => o.kind === 'Ruine' || o.kind === 'Burgruine');
     const spot = this.spot = (x, y) => { for (let r = 0; r < 70; r += 3) for (let a = 0; a < 6.28; a += .7) { const px = x + Math.cos(a) * r, py = y + 10 + Math.sin(a) * r; if (!w.blocked(px, py) && !w.blocked(px + 2, py) && !w.blocked(px - 2, py) && w.reachable(px | 0, py | 0)) return {x: px | 0, y: py | 0, ok: true}; } return {x, y: y + 10, ok: false}; };
     // Kapellen und Kirche: je drei Kerzen = drei kleine Heilungen
@@ -1541,6 +1575,7 @@ class Combat {
     this.altar = ap ? {x: ap.x, y: ap.y, obj: ap.obj, state: 0, taken: false} : null; this.guard = null;
     this.waveT = 25;
     const sp0 = w.pois.find(o => o.kind === 'Stall'); this.stall = sp0 && w.reachable(sp0.x, sp0.y + 6) ? {x: sp0.x, y: sp0.y, asked: false, used: false} : null;
+    const sm0 = w.pois.find(o => o.kind === 'Schmied'); this.smith = sm0 && w.reachable(sm0.x, sm0.y + 6) ? {x: sm0.x, y: sm0.y, asked: false, used: false} : null; this.pestQ.length = 0;
     // Unheilsglocke: liegt in jeder Ebene an einem besonderen Ort und ist nur dort zu bekommen
     const bp = w.pois.filter(o => ['Steinkreis', 'Großer Baum', 'Obelisk', 'Mühle', 'Ruine'].includes(o.kind) && o !== w.exit);
     const bo = bp.length ? bp[w.seed % bp.length] : null, bs0 = bo ? spot(bo.x - 16, bo.y - 8) : spot(w.spawn.x + 90, w.spawn.y - 70);
@@ -1557,7 +1592,7 @@ class Combat {
   applyMeta() {
     const p = this.g.player, m = this.g.meta || {}; p.lure = 0; p.shield = 0; p.shieldT = 0; p.twin = 0; p.leech = 0; this.leechPool = 0;
     p.maxHp += 10 * (m.vita | 0); p.hp = p.maxHp; p.dmgMul += .05 * (m.kraft | 0); p.speedMul += .03 * (m.tempo | 0);
-    p.pickup *= 1 + .1 * (m.magnet | 0); p.xpMul += .05 * (m.lehre | 0); p.armor += (m.wams | 0); this.goldMul = 1 + .15 * (m.gier | 0);
+    p.pickup *= 1 + .1 * (m.magnet | 0); p.xpMul += .05 * (m.lehre | 0); p.armor += Math.min(m.wams | 0, META.wams.max); this.goldMul = 1 + .15 * (m.gier | 0);
   }
   coin(x, y, v) { const d = this.get(this.drops); if (d) { d.alive = true; d.gold = true; d.pull = false; d.x = x; d.y = y; d.v = v; } }
   xpDrop(x, y, v) {                              // ist der Vorrat voll, geht nichts verloren: der Wert wandert in einen liegenden Splitter
@@ -1568,7 +1603,7 @@ class Combat {
   serialize() {
     const wl = {}, al = {}; for (const id in this.items) (WEAPONS[id] ? wl : al)[id] = this.items[id];
     const b = this.boss && this.boss.alive ? this.boss : null;
-    return {weapons: Object.keys(wl), weaponLevels: wl, abilities: Object.keys(al), abilityLevels: al, kills: this.kills, gold: this.gold, horse: this.g.player.horse | 0, stallUsed: this.stall && this.stall.used ? 1 : 0,
+    return {weapons: Object.keys(wl), weaponLevels: wl, abilities: Object.keys(al), abilityLevels: al, kills: this.kills, gold: this.gold, horse: this.g.player.horse | 0, stallUsed: this.stall && this.stall.used ? 1 : 0, smithUsed: this.smith && this.smith.used ? 1 : 0, spent: Object.keys(this.spent),
       bossState: this.bossState, bossHP: b ? b.hp : 0, bossX: b ? b.x : 0, bossY: b ? b.y : 0, bossRev: b ? b.revived | 0 : 0, exitState: this.exitOpen ? 1 : 0, exitX: this.exit.x, exitY: this.exit.y, gateT: this.gateT,
       bell: this.bell && this.bell.taken ? 1 : 0,
       altar: this.altar ? (this.altar.taken ? 3 : this.altar.state === 2 ? 2 : 0) : 0,
@@ -1578,15 +1613,16 @@ class Combat {
   restore(d) {
     const p = this.g.player;
     p.maxHp = 100; p.pickup = 24; p.dmgMul = 1; p.cdMul = 1; p.area = 1; p.crit = 0; p.armor = 0; p.xpMul = 1; p.speedMul = 1; this.applyMeta();
-    this.weapons = []; this.items = {};
+    this.weapons = []; this.items = {}; this.spent = {};
     const all = Object.assign({}, d.weaponLevels, d.abilityLevels);
-    for (const id in all) { const kind = WEAPONS[id] ? 'w' : PASSIVES[id] ? 'p' : null; if (!kind) continue; const L = clamp(all[id] | 0, 1, 5); for (let l = 1; l <= L; l++) this.choose({id, kind, lvl: l}); }
+    for (const id in all) { const kind = WEAPONS[id] ? 'w' : PASSIVES[id] ? 'p' : null; if (!kind) continue; const L = clamp(all[id] | 0, 1, (WEAPONS[id] || PASSIVES[id]).max || 5); for (let l = 1; l <= L; l++) this.choose({id, kind, lvl: l}); }
     if (!this.weapons.length) this.choose({id: 'messer', kind: 'w', lvl: 1});
     this.time = Math.max(0, +d.elapsedTime || 0); this.kills = d.kills | 0; this.gold = d.gold | 0; p.horse = clamp(d.horse | 0, 0, 3);
     if (Array.isArray(d.shrines) && d.shrines.length === this.shrines.length) { this.shrines.forEach((s, i) => { s.left = clamp(d.shrines[i] | 0, 0, 3); }); this.shrineLook(); }
     if (Array.isArray(d.caches) && d.caches.length === this.caches.length) this.caches.forEach((c, i) => { c.open = !!d.caches[i]; });
     if (this.bell && d.bell) this.bell.taken = true;
     if (this.stall && d.stallUsed) this.stall.used = true;
+    if (this.smith && d.smithUsed) this.smith.used = true; this.spent = {}; if (Array.isArray(d.spent)) for (const id of d.spent) if (WEAPONS[id]) this.spent[id] = 1;
     if (this.altar && d.altar >= 2) { this.altar.state = 2; this.altar.taken = d.altar === 3; if (this.altar.taken && this.altar.obj) this.altar.obj.spr = ALTAR_SPR[0]; }
     this.bossState = clamp(d.bossState | 0, 0, 3);
     if (this.bossState === 1) document.getElementById('vignette').classList.add('dread');
@@ -1605,7 +1641,7 @@ class Combat {
     while (qh < qt) { const c = q[qh++], d = dist[c]; if (d >= 50 && d <= 100 && (c & 3) === 0) band.push(c); if (d >= 100) continue; const cx = c % RN, cy = c / RN | 0;
       for (let k = 0; k < 4; k++) { const nx = cx + (k === 0) - (k === 1), ny = cy + (k === 2) - (k === 3); if (nx < 0 || ny < 0 || nx >= RN || ny >= RN) continue; const n = ny * RN + nx; if (reach[n] && dist[n] < 0) { dist[n] = d + 1; q[qt++] = n; } } }
     let best = null, bd = 1e9;
-    for (const o of w.pois) { if (o.kind === 'Stall' || o.kind === 'Kirche') continue; const sp = this.spot(o.x, o.y - 2); if (!sp.ok) continue; const d = dist[(sp.y >> 2) * RN + (sp.x >> 2)]; if (d >= 50 && d <= 100 && Math.abs(d - 75) < bd) { bd = Math.abs(d - 75); best = sp; } }
+    for (const o of w.pois) { if (o.kind === 'Stall' || o.kind === 'Schmied' || o.kind === 'Kirche') continue; const sp = this.spot(o.x, o.y - 2); if (!sp.ok) continue; const d = dist[(sp.y >> 2) * RN + (sp.x >> 2)]; if (d >= 50 && d <= 100 && Math.abs(d - 75) < bd) { bd = Math.abs(d - 75); best = sp; } }
     for (let tries = 0; !best && tries < 60 && band.length; tries++) { const c = band[Math.random() * band.length | 0], x = (c % RN) * 4 + 2, y = (c / RN | 0) * 4 + 2; if (!w.blocked(x, y) && !w.blocked(x + 3, y) && !w.blocked(x - 3, y) && !w.blocked(x, y - 3)) best = {x, y, ok: true}; }
     if (best) this.exit = best;
   }
@@ -1629,7 +1665,7 @@ class Combat {
   hurt(d, src) { const p = this.g.player; if (p.inv > 0) return;
     if (p.shield > 0 && p.shieldT <= 0) { p.shieldT = 13.5 - 1.5 * p.shield; p.inv = .6; this.boom(p.x, p.y - 3, 9, 2); return; }   // Schutzschild fängt den Treffer ab
     if (p.horse > 0 && --p.horse === 0) this.g.toast('Dein Pferd geht durch. Du läufst wieder zu Fuß.');                          // drei Treffer, dann ist das Pferd weg
-    const dm = Math.max(1, d * this.dmgLvl - p.armor); p.hp -= dm; this.lastSrc = src || 'einen Feind'; if (this.onHurt) this.onHurt(dm, this.lastSrc); p.inv = .6; if (p.hp <= 0) { p.hp = 0; this.g.gameOver(); } }
+    const hitD = d * this.dmgLvl, dm = Math.max(1, hitD * .25, hitD - p.armor); p.hp -= dm; this.lastSrc = src || 'einen Feind'; if (this.onHurt) this.onHurt(dm, this.lastSrc); p.inv = .6; if (p.hp <= 0) { p.hp = 0; this.g.gameOver(); } }
   spawn(t) {
     const g = this.g, p = g.player, w = g.world, R = Math.hypot(g.renderer.bw, g.renderer.bh) / 2 + 12;
     let x = 0, y = 0, ty = T.MOUNT;
@@ -1664,6 +1700,7 @@ class Combat {
   kill(e) {
     if (e.type.boss && !e.dying) { e.state = 3; e.dashT = .9; e.hp = 1; e.flash = 0; return; }   // erst zerfallen, dann entscheidet sich, ob er wiederkommt
     e.alive = false; this.alive--; this.kills++;
+    if (e.plagueT > 0 && this.items.pest && this.pestQ.length < 60) this.pestQ.push(e.x, e.y - 2);   // platzt im nächsten Bild – so läuft die Kettenreaktion sichtbar durch die Horde
     if (e.type.boss) {                             // Boss besiegt: Beute, Ausgang öffnet sich
       this.bossState = 3; this.exitOpen = true; this.placeGate(); this.gateT = BAL.gateTime; this.dark = 0;
       for (let i = 0; i < 14; i++) { const d = this.get(this.drops); if (d) { d.alive = true; d.gold = false; d.pull = false; d.x = e.x + (Math.random() - .5) * 30; d.y = e.y + (Math.random() - .5) * 24; d.v = 4; } }
@@ -1685,8 +1722,8 @@ class Combat {
   // ---- Angebote beim Stufenaufstieg: gewichtet, höchstens 10 Plätze für Waffen + Fähigkeiten zusammen
   offers() {
     const it = this.items, slots = Object.keys(it).length, c = [];
-    for (const id in WEAPONS) { const L = it[id] || 0; if (L === 0) { if (slots < 10 && !WEAPONS[id].found) c.push({id, kind: 'w', lvl: 1, w: WEAPONS[id].w}); } else if (L < 5) c.push({id, kind: 'w', lvl: L + 1, w: L >= 4 ? 3 : 5}); }
-    for (const id in PASSIVES) { const L = it[id] || 0; if (L === 0) { if (slots < 10 && !PASSIVES[id].found) c.push({id, kind: 'p', lvl: 1, w: PASSIVES[id].w}); } else if (L < 5) c.push({id, kind: 'p', lvl: L + 1, w: 3.5}); }
+    for (const id in WEAPONS) { const L = it[id] || 0; if (L === 0) { if (slots < 10 && !WEAPONS[id].found && !WEAPONS[id].forge && !this.spent[id]) c.push({id, kind: 'w', lvl: 1, w: WEAPONS[id].w}); } else if (L < 5) c.push({id, kind: 'w', lvl: L + 1, w: L >= 4 ? 3 : 5}); }
+    for (const id in PASSIVES) { const L = it[id] || 0; if (L === 0) { if (slots < 10 && !PASSIVES[id].found) c.push({id, kind: 'p', lvl: 1, w: PASSIVES[id].w}); } else if (L < (PASSIVES[id].max || 5)) c.push({id, kind: 'p', lvl: L + 1, w: 3.5}); }
     const out = [];
     while (out.length < 3 && c.length) { let sum = 0; for (const o of c) sum += o.w; let r = Math.random() * sum, i = 0; while (i < c.length - 1 && (r -= c[i].w) > 0) i++; out.push(c.splice(i, 1)[0]); }
     if (!out.length) out.push({id: 'proviant', kind: 'x', lvl: 0});
@@ -1695,7 +1732,7 @@ class Combat {
   describe(o) {
     if (o.kind === 'x') return {title: 'Proviant', tag: '', text: '+30 Leben'};
     const d = o.kind === 'w' ? WEAPONS[o.id] : PASSIVES[o.id];
-    return {title: d.name + ' ' + ROMAN[o.lvl], tag: d.found && o.kind === 'w' ? (o.lvl === 1 ? 'Neue Kraft' : 'Kraft verstärken') : o.lvl === 1 ? (o.kind === 'w' ? 'Neue Waffe' : 'Neue Fähigkeit') : 'Verbesserung', text: o.kind === 'w' ? d.desc[o.lvl - 1] : d.desc};
+    return {title: d.name + ' ' + ROMAN[o.lvl], tag: d.forge ? 'Schmiedewerk verstärken' : d.found && o.kind === 'w' ? (o.lvl === 1 ? 'Neue Kraft' : 'Kraft verstärken') : o.lvl === 1 ? (o.kind === 'w' ? 'Neue Waffe' : 'Neue Fähigkeit') : 'Verbesserung', text: o.kind === 'w' ? d.desc[o.lvl - 1] : d.desc};
   }
   choose(o) {
     const p = this.g.player;
@@ -1703,6 +1740,18 @@ class Combat {
     this.items[o.id] = o.lvl;
     if (o.kind === 'p') PASSIVES[o.id].apply(p);
     else { const wp = this.weapons.find(w => w.id === o.id); if (wp) wp.lvl = o.lvl; else this.weapons.push({id: o.id, lvl: 1, cd: .4, ang: 0}); }
+  }
+  recipes() {                                    // alle Schmiedewerke mit Stand: geht es, und wenn nicht, woran fehlt es
+    const it = this.items, out = [];
+    for (const id in WEAPONS) { const f = WEAPONS[id].forge; if (!f || it[id]) continue; const la = it[f[0]] | 0, lb = it[f[1]] | 0;
+      out.push({id, a: f[0], b: f[1], la, lb, ok: la >= FORGE_MIN && lb >= FORGE_MIN && this.gold >= FORGE_COST}); }
+    return out;
+  }
+  forge(id) {
+    const f = WEAPONS[id] && WEAPONS[id].forge; if (!f || this.items[id] || (this.items[f[0]] | 0) < FORGE_MIN || (this.items[f[1]] | 0) < FORGE_MIN || this.gold < FORGE_COST) return false;
+    this.gold -= FORGE_COST; this.goldPending -= FORGE_COST;
+    for (const k of f) { delete this.items[k]; this.spent[k] = 1; } this.weapons = this.weapons.filter(w => w.id !== f[0] && w.id !== f[1]);
+    this.choose({id, kind: 'w', lvl: 1}); if (this.smith) this.smith.used = true; return true;
   }
   itemList() { return Object.keys(this.items).map(id => (WEAPONS[id] || PASSIVES[id]).name + ' ' + ROMAN[this.items[id]]).join(' · '); }
   aoe(x, y, R, dmg, kb) { const E = this.enemies; for (let i = 0; i < E.length; i++) { const e = E[i]; if (!e.alive) continue; const ox = e.x - x, oy = e.y - 2 - y, d = Math.hypot(ox, oy) || 1; if (d < R + e.type.r) this.hit(e, this.dmg(dmg), ox / d * kb, oy / d * kb); } }
@@ -1713,7 +1762,7 @@ class Combat {
       else { const a = (Math.random() < .5 ? 1 : -1) * .2, c = Math.cos(a), sn = Math.sin(a); this.shoot1(kind, x, y, vx * c - vy * sn, vx * sn + vy * c, g, dmg, life, pierce, rb, target); } }
     return q;
   }
-  shoot1(kind, x, y, vx, vy, g, dmg, life, pierce, rb, target) { const q = this.get(this.proj); if (!q) return null; q.pierce = pierce; q.rb = rb; q.target = target; q.hits.length = 0; q.ret = 0; q.alive = true; q.kind = kind; q.x = x; q.y = y; q.vx = vx; q.vy = vy; q.g = g; q.dmg = dmg; q.life = life; return q; }
+  shoot1(kind, x, y, vx, vy, g, dmg, life, pierce, rb, target) { const q = this.get(this.proj); if (!q) return null; q.tag = this.ptag; q.zt = 0; q.pierce = pierce; q.rb = rb; q.target = target; q.hits.length = 0; q.ret = 0; q.alive = true; q.kind = kind; q.x = x; q.y = y; q.vx = vx; q.vy = vy; q.g = g; q.dmg = dmg; q.life = life; return q; }
   // Explosion: Lichtblitz, Druckring, aufsteigender Rauch, fliegende Splitter – und das Bild wackelt kurz
   blast(x, y, R, shake) {
     this.boom(x, y, R); this.boom(x, y, R * .75, 4);
@@ -1757,6 +1806,9 @@ class Combat {
     const ST = this.stall;
     if (ST) { const near = Math.abs(p.x - ST.x) < 13 && p.y - ST.y > 0 && p.y - ST.y < 14;
       if (!near) ST.asked = false; else if (!ST.asked && !g.paused) { ST.asked = true; if (ST.used) g.toast('Der Stall ist leer – in dieser Ebene gibt es kein Pferd mehr.'); else if (p.horse <= 0) g.askStall(); } }
+    const SM = this.smith;
+    if (SM) { const near = Math.abs(p.x - SM.x) < 13 && p.y - SM.y > 0 && p.y - SM.y < 14;
+      if (!near) SM.asked = false; else if (!SM.asked && !g.paused) { SM.asked = true; if (SM.used) g.toast('Die Esse ist kalt – in dieser Ebene schmiedet er nichts mehr.'); else g.askSmith(); } }
     // ---- Unheilsglocke einsammeln
     const BL = this.bell;
     if (BL && !BL.taken && Math.abs(p.x - BL.x) < 6 && Math.abs(p.y - BL.y) < 7) { BL.taken = true; const L = this.items.glocke | 0;
@@ -1797,7 +1849,10 @@ class Combat {
     // ---- Gegner
     const farR = Math.hypot(g.renderer.bw, g.renderer.bh) * .9 + 40, vx = g.renderer.bw / 2 + 14, vy = g.renderer.bh / 2 + 16;
     this.dyn.length = 0; if (this.corpse) this.dyn.push(this.corpse);
-    const plagueL = this.items.seuche | 0;
+    const plagueL = Math.max(this.items.seuche | 0, this.items.pest | 0, this.items.pestfeuer | 0);
+    if (this.pestQ.length) { const PL = this.items.pest | 0, R = (15 + 2 * (PL >= 2) + 3 * (PL >= 4)) * p.area, Q = this.pestQ.splice(0, 12);
+      for (let k = 0; k < Q.length; k += 2) { const x = Q[k], y = Q[k + 1]; this.boom(x, y, R); this.boom(x, y, R * .6, 4);
+        for (let i = 0; i < E.length; i++) { const e = E[i]; if (!e.alive || Math.hypot(e.x - x, e.y - 2 - y) > R + e.type.r) continue; if (!(e.plagueT > 0)) { e.plagueT = 6; e.plagueGen = 0; e.plagueTick = .4; } this.hit(e, this.dmg(9 + 3 * PL), 0, 0); } } }
     for (const f of this.flames) if (f.alive && (f.t -= dt) <= 0) f.alive = false;
     for (const m of this.smoke) if (m.alive) { if ((m.t += dt) > m.life) { m.alive = false; continue; } m.x += m.vx * dt; m.y += m.vy * dt; if (m.spark) m.vy += 160 * dt; else { m.vx *= .97; m.vy *= .985; } }
     for (let i = 0; i < E.length; i++) {
@@ -1877,11 +1932,20 @@ class Combat {
     const A = p.area, px = p.x, py = p.y - 3;
     for (const wp of this.weapons) {
       const L = wp.lvl;
-      if (wp.id === 'flamme') {                  // Flammenschritte: alle paar Schritte bleibt Feuer liegen
+      if (wp.id === 'flamme' || wp.id === 'pestfeuer') {   // Flammenschritte: alle paar Schritte bleibt Feuer liegen (Pestfeuer steckt zusätzlich an)
+        const pf = wp.id === 'pestfeuer';
         const mvd = wp.lx === undefined ? 99 : Math.hypot(p.x - wp.lx, p.y - wp.ly);
         if (mvd > 5) { if (mvd < 40) { const f = this.get(this.flames); if (f) { f.alive = true; f.x = p.x; f.y = p.y; f.t = 1.6 + .5 * L; } } wp.lx = p.x; wp.ly = p.y; }
-        if ((wp.cd -= dt) <= 0) { wp.cd = .35; const dm = 2.5 + 1.3 * L;
-          for (let i = 0; i < E.length; i++) { const e = E[i]; if (!e.alive) continue; for (const f of this.flames) if (f.alive && Math.abs(e.x - f.x) < 6 && Math.abs(e.y - 1 - f.y) < 6) { this.hit(e, this.dmg(dm), 0, 0); break; } } }
+        if ((wp.cd -= dt) <= 0) { wp.cd = .35; const dm = 2.5 + 1.3 * L + (pf ? 1.5 : 0);
+          for (let i = 0; i < E.length; i++) { const e = E[i]; if (!e.alive) continue; for (const f of this.flames) if (f.alive && Math.abs(e.x - f.x) < 6 && Math.abs(e.y - 1 - f.y) < 6) { if (pf && !(e.plagueT > 0)) { e.plagueT = 6; e.plagueGen = 0; e.plagueTick = .4; } this.hit(e, this.dmg(dm), 0, 0); break; } } }
+        continue;
+      }
+      if (wp.id === 'totenvogel') {              // Raben kreisen; jeder Hieb entlässt (mit kurzer Pause) ein Irrlicht
+        wp.ang += dt * 3.2; wp.wcd = (wp.wcd || 0) - dt; const n = 2 + (L >= 3) + (L >= 5);
+        for (let k = 0; k < n; k++) { const a = wp.ang + k * 6.283 / n, bx = px + Math.cos(a) * 24 * A, by = py + Math.sin(a) * 17 * A;
+          for (let i = 0; i < E.length; i++) { const e = E[i]; if (e.alive && e.axeT <= 0 && Math.abs(e.x - bx) < 5 && Math.abs(e.y - 3 - by) < 5) { e.axeT = .35; this.hit(e, this.dmg(8 + 2 * L), Math.cos(a), Math.sin(a));
+            if (wp.wcd <= 0) { wp.wcd = L >= 4 ? .35 : L >= 2 ? .5 : .7; let tg = null; for (let tr = 0; tr < 10 && !tg; tr++) { const o = E[Math.random() * E.length | 0]; if (o.alive && o !== e && Math.abs(o.x - px) < 130 && Math.abs(o.y - py) < 130) tg = o; }
+              this.shoot1(4, bx, by, Math.cos(a) * 60, Math.sin(a) * 60, 0, 7 + 2 * L, 2.5, 0, 3, tg); } } } }
         continue;
       }
       if (wp.id === 'begleiter') {               // Raben kreisen ständig
@@ -1936,6 +2000,42 @@ class Combat {
           for (let i = 0; i < E.length; i++) { const e = E[i]; if (!e.alive) continue; const ox = e.x - px, oy = e.y - 2 - py; if (Math.hypot(ox, oy) > R + e.type.r) continue;
             this.hit(e, this.dmg(4), 0, 0); if (!e.alive) continue; e.slowT = dur; if (L >= 5 && !e.type.boss && !e.type.guard) e.frozT = 1.5; }
           this.boom(px, py, R, 2); wp.cd = (L >= 4 ? 4.2 : 6) * cdm; break; }
+        case 'pest': { let best = null, bd = (110 * A) ** 2;
+          for (let i = 0; i < E.length; i++) { const e = E[i]; if (!e.alive || e.plagueT > 0) continue; const q = (e.x - px) ** 2 + (e.y - py) ** 2; if (q < bd) { bd = q; best = e; } }
+          if (best) { best.plagueT = 7; best.plagueGen = 0; best.plagueTick = .3; wp.cd = (L >= 5 ? 1.8 : L >= 3 ? 2.4 : 3.2) * cdm; } else wp.cd = .4; break; }
+        case 'dampf': { const R = (21 + 2 * L) * A, hot = (t % 4) < 2;
+          for (let i = 0; i < E.length; i++) { const e = E[i]; if (!e.alive) continue; const ox = e.x - px, oy = e.y - 2 - py, d = Math.hypot(ox, oy) || 1; if (d > R + e.type.r) continue;
+            if (hot) this.hit(e, this.dmg((4 + L) * (e.slowT > 0 ? 2 : 1)), ox / d, oy / d); else { this.hit(e, this.dmg(2 + .5 * L), 0, 0); if (e.alive) e.slowT = 2.6; } }
+          wp.cd = .5 * cdm; break; }
+        case 'gewitter': { const n = 1 + (L >= 3) + (L >= 5), jumps = 3 + (L >= 2) + (L >= 4), list = this.chainHit; let any = false;
+          for (let k = 0; k < n; k++) { let cur = null; for (let tr = 0; tr < 14 && !cur; tr++) { const e = E[Math.random() * E.length | 0]; if (e.alive && Math.abs(e.x - px) < 100 * A && Math.abs(e.y - py) < 130 * A) cur = e; }
+            if (!cur) continue; any = true; list.length = 0; this.boom(cur.x, cur.y - 2, 0, 1); let dm = 24 + 4 * L;
+            for (let j = 0; j <= jumps && cur; j++) { const cx0 = cur.x, cy0 = cur.y - 3; list.push(cur); if (!cur.type.boss && !cur.type.guard) cur.frozT = Math.max(cur.frozT, .6); this.hit(cur, this.dmg(dm), 0, 0); dm *= .9;
+              let nx = null, bd = (58 * A) ** 2; for (let i = 0; i < E.length; i++) { const e = E[i]; if (!e.alive || list.indexOf(e) >= 0) continue; const q = (e.x - cx0) ** 2 + (e.y - 3 - cy0) ** 2; if (q < bd) { bd = q; nx = e; } }
+              if (nx) this.line(cx0, cy0, nx.x, nx.y - 3); cur = nx; } }
+          wp.cd = any ? (2.5 - .12 * L) * cdm : .2; break; }
+        case 'hagel': { let best = null, bd = (120 * A) ** 2;
+          for (let i = 0; i < E.length; i++) { const e = E[i]; if (!e.alive) continue; const q = (e.x - px) ** 2 + (e.y - 3 - py) ** 2; if (q < bd) { bd = q; best = e; } }
+          if (!best) { wp.cd = .15; break; }
+          const a0 = Math.atan2(best.y - 3 - py, best.x - px), n = 5 + L;
+          for (let k = 0; k < n; k++) { const a = a0 + (k - (n - 1) / 2) * .13; this.shoot1(0, px, py, Math.cos(a) * 170, Math.sin(a) * 170, 0, this.dmg(8 + 2 * (L >= 2) + 3 * (L >= 4)), .8 * A, 3, 0, null); }
+          wp.cd = (L >= 5 ? 1.05 : L >= 3 ? 1.25 : 1.5) * cdm; break; }
+        case 'hellebarde': { const R = (24 + 3 * (L >= 2) + 3 * (L >= 5)) * A, dm = 13 + 3 * (L - 1), ax = this.aimX, ay = this.aimY;
+          this.aoe(px, py, R, dm, 2.2); this.boom(px, py, R, 6);
+          for (const f of (L >= 4 ? [1, -1] : [1])) this.shoot(5, px, py, ax * f * 185, ay * f * 185, 0, this.dmg(dm + 2), .42 * A, 99);
+          wp.cd = (L >= 3 ? 1.7 : 2.1) * cdm; break; }
+        case 'beben': { const R = (34 + 4 * (L >= 2) + 4 * (L >= 4)) * A; this.aoe(px, py, R, 9 + 3 * (L >= 2) + 3 * (L >= 4) + 3 * (L >= 5), 3);
+          for (let i = 0; i < E.length; i++) { const e = E[i]; if (e.alive && Math.hypot(e.x - px, e.y - 2 - py) < R + e.type.r) e.slowT = Math.max(e.slowT, 2); }
+          this.boom(px, py, R, 5); g.shakeT = .2; g.shakeA = Math.max(g.shakeA || 0, 1.5);
+          wp.seq = (wp.seq | 0) + 1; if (wp.seq < (L >= 3 ? 4 : 3)) wp.cd = .38; else { wp.seq = 0; wp.cd = (L >= 5 ? 3.4 : 4.2) * cdm; } break; }
+        case 'eislanze': { const ax = this.aimX, ay = this.aimY; this.ptag = 'eis';
+          for (const f of (L >= 3 ? [1, -1] : [1])) this.shoot(5, px, py, ax * f * 180, ay * f * 180, 0, this.dmg(11 + 3 * (L >= 2) + 3 * (L >= 4) + 3 * (L >= 5)), .4 * A, 99);
+          this.ptag = 0; wp.cd = (L >= 5 ? 1.1 : 1.4) * cdm; break; }
+        case 'kugel': { const n = L >= 4 ? 2 : 1;
+          for (let k = 0; k < n; k++) { let best = null, bd = (140 * A) ** 2; for (let i = 0; i < E.length; i++) { const e = E[i]; if (!e.alive) continue; const q = (e.x - px) ** 2 + (e.y - 3 - py) ** 2; if (q < bd) { bd = q; best = e; } }
+            const a = (best ? Math.atan2(best.y - 3 - py, best.x - px) : Math.atan2(this.aimY, this.aimX)) + (k ? 2.2 : 0);
+            this.shoot1(7, px, py, Math.cos(a) * 26, Math.sin(a) * 26, 0, 5 + 2 * L, 4 + .5 * L, 99, 0, null); }
+          wp.cd = 4.5 * cdm; break; }
         case 'stoss': { const R = (30 + (L >= 3 ? 8 : 0)) * A; this.aoe(px, py, R, 6 + (L >= 2 ? 4 : 0) + (L >= 5 ? 5 : 0), 3.2); this.boom(px, py, R, 5); wp.cd = (L >= 4 ? 3 : 4) * cdm; break; }
       }
     }
@@ -1947,12 +2047,19 @@ class Combat {
       if (q.ret && q.life < q.ret) { q.ret = 0; q.vx = -q.vx; q.vy = -q.vy; q.hits.length = 0; q.pierce = 3; }   // Messer V kehrt um
       if (q.life <= 0) { q.alive = false; if (q.kind === 6) { const R = (22 + q.rb) * A; this.aoe(q.x, q.y, R, q.dmg, 1.5); this.blast(q.x, q.y, R, 3.2); } continue; }
       if (q.kind === 6) continue;
+      if (q.kind === 7) {                        // Kugelblitz: schlägt in kurzen Abständen auf bis zu drei Nahestehende über
+        if ((q.zt -= dt) <= 0) { q.zt = .32; let c = 0; const R2 = (46 * A) ** 2;
+          for (let j = 0; j < E.length && c < 3; j++) { const e = E[j]; if (!e.alive || (e.x - q.x) ** 2 + (e.y - 3 - q.y) ** 2 > R2) continue; this.line(q.x, q.y, e.x, e.y - 3); this.hit(e, this.dmg(q.dmg), 0, 0); c++; } }
+        continue; }
       if (q.kind === 2) { if (Math.abs(q.x - p.x) < 3 && Math.abs(q.y - (p.y - 3)) < 4.5) { this.hurt(q.dmg, 'ein Geschoss'); q.alive = false; } continue; }
       const v = Math.hypot(q.vx, q.vy) || 1;
       for (let j = 0; j < E.length; j++) { const e = E[j]; if (!e.alive || q.hits.indexOf(e) >= 0) continue; const r = e.type.r + 2 + q.rb;
         if (Math.abs(e.x - q.x) < r && Math.abs(e.y - r + 1 - q.y) < r + 1) {
           if (q.kind === 4) { const R = (11 + q.rb) * A; this.aoe(q.x, q.y, R, q.dmg, 1); this.boom(q.x, q.y, R); q.alive = false; break; }
-          if (q.hits.length < 16) q.hits.push(e); this.hit(e, q.dmg, q.vx / v, q.vy / v);
+          if (q.tag === 'eis') { const ex = e.x, ey = e.y - 2;      // Eislanze: Unterkühlte zersplittern, dann friert der Getroffene ein
+            if (e.slowT > 0 || e.frozT > 0) { this.boom(ex, ey, 12 * A, 2); this.aoe(ex, ey, 13 * A, 8, 0); }
+            if (e.alive) { e.slowT = 3.5; if (!e.type.boss && !e.type.guard) e.frozT = 1.2; } }
+          if (q.hits.length < 16) q.hits.push(e); if (e.alive) this.hit(e, q.dmg, q.vx / v, q.vy / v);
           if (q.pierce-- <= 0) { q.alive = false; break; }
         } }
     }
@@ -1992,8 +2099,14 @@ class Combat {
           r.dot(fx, fy, RED); if (i % 3 || !h) continue;                                           // dünner Glutreif; nur jede dritte Stelle trägt eine Zunge, sonst wird es ein Balken
           r.dot(fx, fy + 1, 20); r.dot(fx, fy - 1, RED); if (h > 1) r.dot(fx + ((i / 3 & 1) ? 1 : 0), fy - 2, RED); if (h > 2) r.dot(fx + ((i / 3 & 1) ? 1 : -1), fy - 3, RED); }
         for (let i = 0; i < 5; i++) { const a = -time * .9 + i * 1.257, q = R * (.5 + .12 * Math.sin(time * 2 + i)); if (((time * 6 | 0) + i) % 3) r.dot(Math.round(px + Math.cos(a) * q) - cx, Math.round(py + Math.sin(a) * q * .78) - cy - ((time * 6 | 0) + i) % 3, (i & 1) ? RED : 110); } }
-      else if (wp.id === 'begleiter') { const n = wp.lvl >= 5 ? 3 : wp.lvl >= 3 ? 2 : 1, fl = (time * 8 | 0) & 1;   // Rabe: Leib, Schwanz, heller Schnabel in Flugrichtung, schlagende Flügel
-        for (let k = 0; k < n; k++) { const a = wp.ang + k * 6.283 / n, x = Math.round(px + Math.cos(a) * 22 * A) - cx, y = Math.round(py + Math.sin(a) * 16 * A) - cy, f = Math.sin(a) < 0 ? 1 : -1;
+      else if (wp.id === 'dampf') {               // Dampfkessel: Glutreif in der heißen, Eiskranz in der kalten Phase
+        const R = (21 + 2 * wp.lvl) * A, n = Math.round(R * 3.2), hot = (this.time % 4) < 2;
+        for (let i = 0; i < n; i++) { const a = i * 6.283 / n + time * (hot ? .8 : -.4), fx = Math.round(px + Math.cos(a) * R) - cx, fy = Math.round(py + Math.sin(a) * R * .78) - cy;
+          if (hot) { r.dot(fx, fy, RED); if (i % 3 === 0) { r.dot(fx, fy + 1, 20); r.dot(fx, fy - 1, RED); if ((i + (time * 9 | 0)) % 2) r.dot(fx, fy - 2, RED); } }
+          else { r.dot(fx, fy, (i & 1) ? 238 : 110); if (i % 5 === 0) { r.dot(fx - 1, fy, 238); r.dot(fx + 1, fy, 238); r.dot(fx, fy - 1, 238); r.dot(fx, fy + 1, 238); r.dot(fx, fy, 20); } } } }
+      else if (wp.id === 'begleiter' || wp.id === 'totenvogel') { const tv = wp.id === 'totenvogel', n = tv ? 2 + (wp.lvl >= 3) + (wp.lvl >= 5) : wp.lvl >= 5 ? 3 : wp.lvl >= 3 ? 2 : 1, fl = (time * 8 | 0) & 1;   // Rabe: Leib, Schwanz, heller Schnabel in Flugrichtung, schlagende Flügel
+        for (let k = 0; k < n; k++) { const a = wp.ang + k * 6.283 / n, x = Math.round(px + Math.cos(a) * (tv ? 24 : 22) * A) - cx, y = Math.round(py + Math.sin(a) * (tv ? 17 : 16) * A) - cy, f = Math.sin(a) < 0 ? 1 : -1;
+          if (tv) { r.dot(x - 3 * f, y + 1, RED); r.dot(x - 4 * f, y + ((time * 10 | 0) & 1), RED); }
           r.dot(x, y, 18); r.dot(x - f, y, 18); r.dot(x - 2 * f, y, 18); r.dot(x + f, y, 238);
           if (fl) { r.dot(x, y - 1, 18); r.dot(x - f, y - 2, 18); r.dot(x - 2 * f, y - 3, 18); } else { r.dot(x, y + 1, 18); r.dot(x - f, y + 1, 18); r.dot(x - 2 * f, y + 2, 18); } } }
     }
@@ -2012,6 +2125,10 @@ class Combat {
           D(2.5, RED); D(4.5, sp ? 238 : 110); D(6.5, sp ? 110 : 238); break; }
         case 5: { const D = (k, g, o = 0) => r.dot(Math.round(x - ux * k - uy * o), Math.round(y - uy * k + ux * o), g);   // Speer: breite Spitze, langer Schaft, Fahrtstriche
           D(0, 238); D(1, 238); D(2, 20, 1); D(2, 20, -1); for (let k = 2; k < 9; k++) D(k, 20); D(4, 238, 2); D(5, 238, 2); D(6, 238, -2); D(7, 238, -2); break; }
+        case 7: { const k = (time * 12 | 0);       // Kugelblitz: heller Ball mit dunklem Rand, rotem Kern und zuckenden Funken
+          for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) { const d2 = dx * dx + dy * dy; if (d2 <= 10) r.dot(x + dx, y + dy, d2 > 5 ? 20 : 238); }
+          r.dot(x, y, RED); r.dot(x + ((k & 1) ? 1 : -1), y, RED);
+          for (let j = 0; j < 3; j++) { const a = k * 1.7 + j * 2.1, q2 = 5 + ((k + j) % 3); r.dot(Math.round(x + Math.cos(a) * q2), Math.round(y + Math.sin(a) * q2), (j & 1) ? 238 : 20); } break; }
         case 6: for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) r.dot(x + dx, y + dy, 20); r.dot(x + 1, y - 2, ((time * 10 | 0) & 1) ? RED : 238); break;
         default: r.dot(x, y, 238); r.dot(x - 1, y, 20); r.dot(x + 1, y, 20); r.dot(x, y - 1, 20); r.dot(x, y + 1, 20);
       }
@@ -2037,6 +2154,10 @@ class Combat {
         for (let k = 0; k < 70; k++) { if (k % 5 === 0) x += ((k * 7 + sd) % 5) - 2; if (k === 38) xb = x; r.dot(x, y0 - k, 238); r.dot(x + 1, y0 - k, 20); r.dot(x - 1, y0 - k, 20); }
         for (let j = 1; j < 13; j++) { const bx = xb + dir * j + ((j * 3 + sd) % 3 === 0 ? dir : 0), by2 = y0 - 38 + Math.round(j * 1.3); r.dot(bx, by2, 238); r.dot(bx, by2 + 1, 20); }
         for (const [dx, dy] of [[-4, 0], [4, 0], [-3, -1], [3, -1], [-2, 1], [2, 1], [0, -3], [-1, -2], [1, -2]]) r.dot(xf + dx, y0 + dy, 238); r.dot(xf, y0, RED); r.dot(xf - 1, y0, RED); r.dot(xf + 1, y0, RED); }
+      else if (f.kind === 6) {                   // Hellebarde: die Klinge fegt einmal im Kreis, dahinter ein kurzer Schweif
+        const u = f.t / .35, a0 = u * 6.283 - 1.57;
+        for (let q = 4; q <= f.r; q++) r.dot(Math.round(f.x + Math.cos(a0) * q) - cx, Math.round(f.y + Math.sin(a0) * q * .8) - cy, q > f.r - 4 ? 238 : 20);
+        for (let j = 1; j < 14; j++) { const a = a0 - j * .09; r.dot(Math.round(f.x + Math.cos(a) * f.r) - cx, Math.round(f.y + Math.sin(a) * f.r * .8) - cy, j < 5 ? 238 : (j & 1) ? 110 : 20); } }
       else if (f.kind === 5) {                   // Erdstoß: Druckwelle mit nachlaufendem zweiten Ring und kurzen Rissen im Boden
         const u = f.t / .35, R = 3 + u * f.r, n = 14 + (f.r | 0);
         for (let i = 0; i < n; i++) { const a = i * 6.283 / n, ca = Math.cos(a), sa = Math.sin(a) * .8, D = (q, g) => r.dot(Math.round(f.x + ca * q) - cx, Math.round(f.y + sa * q) - cy, g);
@@ -2087,6 +2208,7 @@ const ACH = { got: {}, q: [], busy: false, t: 0,
     ['meister', 'Meisterstück', 'Eine Waffe oder Fähigkeit auf Stufe V bringen'],
     ['gold100', 'Klimpernder Beutel', '100 Gold in einem Lauf bei sich tragen'],
     ['reiter', 'Hoch zu Ross', 'Ein Pferd kaufen'],
+    ['schmied', 'Heißes Eisen', 'Beim Schmied zwei Waffen verschmelzen'],
     ['kunde', 'Stammkunde in spe', 'Beim Krämer etwas kaufen'],
     ['faden', 'Am seidenen Faden', 'Das Tor mit weniger als einem Fünftel des Lebens erreichen'],
     ['unbelehrbar', 'Unbelehrbar', 'Zehn Läufe beginnen'],
@@ -2183,6 +2305,19 @@ class Game {
       this.save(); SAVE.bump({highestLevel: this.level});
     }, 60);
   }
+  askSmith() {                                   // Schmied: zwei Waffen (beide mind. Stufe III) verschmelzen zu einem Werk; die Zutaten sind danach weg
+    this.paused = true; const c = this.combat, box = document.getElementById('smithCards'), rec = c.recipes(); box.textContent = '';
+    document.getElementById('smithText').textContent = 'Der Schmied verschmilzt zwei Waffen ab Stufe ' + ROMAN[FORGE_MIN] + ' zu einem Werk. Die beiden gehen dabei verloren und kommen in diesem Lauf nicht wieder. ' + FORGE_COST + ' Gold, ein Werk je Ebene. Du trägst ' + c.gold + ' Gold.';
+    rec.sort((a, b) => (b.ok - a.ok) || ((b.la > 0) + (b.lb > 0)) - ((a.la > 0) + (a.lb > 0)));
+    for (const r of rec) { const W = WEAPONS[r.id], b = document.createElement('button'), tag = document.createElement('small'), t = document.createElement('b'), x = document.createElement('span'); b.className = 'card';
+      const part = (id, l) => WEAPONS[id].name + (l ? ' ' + ROMAN[l] : ' (fehlt)') + (l && l < FORGE_MIN ? ' – braucht ' + ROMAN[FORGE_MIN] : '');
+      tag.textContent = part(r.a, r.la) + ' + ' + part(r.b, r.lb) + (r.ok ? ' · ' + FORGE_COST + ' Gold · schmieden' : r.la >= FORGE_MIN && r.lb >= FORGE_MIN ? ' · es fehlen ' + (FORGE_COST - c.gold) + ' Gold' : '');
+      t.textContent = W.name; x.textContent = W.desc[0]; b.append(tag, t, x); b.disabled = !r.ok;
+      b.addEventListener('click', () => { if (c.forge(r.id)) { ACH.give('schmied'); this.toast('Der Hammer fällt: ' + W.name + ' ist geschmiedet.'); this.refreshItems(); } this.smithClose(); });
+      box.append(b); }
+    const pg = document.getElementById('smithPage'); pg.style.display = 'flex'; pg.scrollTop = 0;
+  }
+  smithClose() { document.getElementById('smithPage').style.display = 'none'; this.paused = false; this.last = 0; this.save(); }
   askStall() {
     this.paused = true; const c = this.combat, ok = c.gold >= 25, b = document.getElementById('btnHorse');
     document.getElementById('stallText').textContent = ok ? '25 Gold · du reitest 50 % schneller, bis du dreimal getroffen wirst. Nur ein Pferd je Ebene.' : 'Ein Pferd kostet 25 Gold. Du hast in diesem Lauf erst ' + c.gold + ' gesammelt.';
@@ -2208,7 +2343,7 @@ class Game {
   }
   levelUp() { this.showChoice('Stufe ' + this.player.level + ' erreicht', 'Wähle', this.combat.offers()); }
   bossReward() {                                 // Lohn für den Boss: eine von drei Kräften, neu oder eine Stufe stärker
-    const c = this.combat, offs = ['seuche', 'kette', 'flamme'].map(id => ({id, kind: 'w', lvl: (c.items[id] | 0) + 1})).filter(o => o.lvl <= 5);
+    const c = this.combat, offs = ['seuche', 'kette', 'flamme'].filter(id => !c.spent[id]).map(id => ({id, kind: 'w', lvl: (c.items[id] | 0) + 1})).filter(o => o.lvl <= 5);
     if (!offs.length) { for (let i = 0; i < 12; i++) c.coin(this.player.x + (Math.random() - .5) * 40, this.player.y + (Math.random() - .5) * 30, 4); return; }
     this.showChoice('Der Knochenkönig ist gefallen', 'Wähle eine Kraft', offs);
   }
@@ -2351,7 +2486,7 @@ class Game {
   function toMenu() {                                   // zurück ins Menü ohne Seitenwechsel (kein Neuladen -> kein 404)
     if (window.game && window.game.stop) window.game.stop();
     window.game = null;
-    for (const id of ['over', 'fin', 'ach', 'hud', 'lvl', 'arrow', 'pause', 'pauseBtn', 'shop', 'mapBtn', 'mapPage', 'joy', 'stallPage', 'wiki']) $(id).style.display = 'none';
+    for (const id of ['over', 'fin', 'ach', 'hud', 'lvl', 'arrow', 'pause', 'pauseBtn', 'shop', 'mapBtn', 'mapPage', 'joy', 'stallPage', 'smithPage', 'wiki']) $(id).style.display = 'none';
     $('vignette').classList.remove('dread'); $('vignette').style.background = ''; $('toast').style.opacity = 0;
     try { const u = new URL(location.href); u.searchParams.delete('seed'); history.replaceState(null, '', u.toString()); } catch (e) {}
     input.value = randomSeed(); note.textContent = ''; menu.style.display = 'flex'; menuPreview(curSeed(), 200);
@@ -2391,8 +2526,9 @@ class Game {
     para('Du läufst mit dem Daumen, deine Waffen feuern von selbst. Besiegte Feinde lassen rote Splitter (Erfahrung) und Münzen (Gold) fallen.');
     para('Die Uhr zählt fünf Minuten herunter. Dann erwacht der Knochenkönig irgendwo in der Welt und kommt zu dir; der rote Pfeil zeigt, wo er ist. Fällt er, wählst du eine Kraft, und in der Nähe öffnet sich ein Tor – wieder zeigt der Pfeil den Weg. Du hast 25 Sekunden, um hindurchzugehen; danach kommt die Dunkelheit. Durch das Tor geht es in die nächste, härtere Ebene.');
     para('Höchstens zehn Waffen und Fähigkeiten zusammen. Flüsse kannst du mit halbem Tempo durchwaten, Seen und Berge nicht. Auf Straßen und Brücken bist du schneller. Die Karte hält das Spiel an.');
-    h2('Waffen'); for (const id in WEAPONS) { const w = WEAPONS[id]; if (!w.found) entry(w.name, 'Stufe I bis V', w.desc.map((d, i) => ROMAN[i + 1] + ' ' + d).join(' · ')); }
-    h2('Fähigkeiten'); for (const id in PASSIVES) { const a = PASSIVES[id]; entry(a.name, a.found ? 'nur als Fund in der Welt, danach ausbaubar' : 'bis Stufe V', a.desc); }
+    h2('Waffen'); for (const id in WEAPONS) { const w = WEAPONS[id]; if (!w.found && !w.forge) entry(w.name, 'Stufe I bis V', w.desc.map((d, i) => ROMAN[i + 1] + ' ' + d).join(' · ')); }
+    h2('Schmiedewerke'); for (const id in WEAPONS) { const w = WEAPONS[id]; if (w.forge) entry(w.name, WEAPONS[w.forge[0]].name + ' + ' + WEAPONS[w.forge[1]].name, w.desc.map((d, i) => ROMAN[i + 1] + ' ' + d).join(' · ')); }
+    h2('Fähigkeiten'); for (const id in PASSIVES) { const a = PASSIVES[id]; entry(a.name, a.found ? 'nur als Fund in der Welt, danach ausbaubar' : 'bis Stufe ' + ROMAN[a.max || 5], a.desc); }
     h2('Kräfte des Knochenkönigs'); para('Wer den Boss besiegt, wählt eine dieser drei – neu oder eine Stufe stärker. Hast du eine, taucht sie auch beim Stufenaufstieg auf.');
     for (const id in WEAPONS) { const w = WEAPONS[id]; if (w.found) entry(w.name, 'Stufe I bis V', w.desc.map((d, i) => ROMAN[i + 1] + ' ' + d).join(' · ')); }
     h2('Gegner'); for (const e of ENEMY_TYPES) entry(e.name, fmtFrom(e), ENEMY_INFO[e.name] || '', e.spr);
@@ -2404,6 +2540,7 @@ class Game {
     entry('Kapelle und Kirche', 'drei kleine Heilungen', 'Stell dich davor: Ein rotes Fenster schließt sich und heilt 10 Leben. 20 Sekunden Pause dazwischen.', SHRINE_SPR.Kirche[3]);
     entry('Truhen', 'blinken rot', 'An Ruine, Burgruine, Turm und Steinkreis liegt ein Gegenstand. An Obelisk, Großem Baum, Mühlen und Friedhöfen liegt Proviant (+25 Leben). Immer mit etwas Gold.', Shapes.tower());
     entry('Opferaltar', 'einmal je Ebene', 'Nähert man sich, erscheint die Fleischkugel. Ist sie besiegt, zieht der Magnet alles heran, was irgendwo liegen geblieben ist.', ALTAR_SPR[1]);
+    entry('Schmiede', FORGE_COST + ' Gold, ein Werk je Ebene', 'Verschmilzt zwei Waffen ab Stufe ' + ROMAN[FORGE_MIN] + ' zu einem Schmiedewerk. Die Zutaten gehen verloren und kommen im selben Lauf nicht wieder; das Werk beginnt auf Stufe I und belegt nur einen Platz.', Shapes.smithy());
     entry('Mietstall', '25 Gold, einmal je Ebene', 'Zu Pferd bist du 50 % schneller, bis du dreimal getroffen wirst.', Shapes.stall());
     entry('Unheilsglocke', 'als „Glocke“ auf der Karte', 'Lockt mehr Feinde an – mehr Beute, mehr Gefahr. Nur hier zu bekommen.', null);
     entry('Wahrzeichen', 'nicht in jeder Welt', 'Manche Welten tragen ein riesiges Wahrzeichen: Weltenbaum, Riesenburg, Nekropole, Riesensäule oder Kolossstatue. Dort liegt eine Truhe; stehst du dahinter, öffnet sich um dich ein kleines Guckloch.', null);
@@ -2419,6 +2556,7 @@ class Game {
   $('mapBtn').addEventListener('click', () => { if (window.game && window.game.openMap) window.game.openMap(); });
   $('btnMapBack').addEventListener('click', () => { if (window.game && window.game.closeMap) window.game.closeMap(); });
   $('btnHorse').addEventListener('click', () => { if (window.game && window.game.stallAnswer) window.game.stallAnswer(true); });
+  $('btnNoSmith').addEventListener('click', () => { if (window.game && window.game.smithClose) window.game.smithClose(); });
   $('btnNoHorse').addEventListener('click', () => { if (window.game && window.game.stallAnswer) window.game.stallAnswer(false); });
   const mBtn = () => { $('btnMusic').textContent = 'Musik: ' + (MUSIC.on ? 'an' : 'aus'); }; mBtn();
   $('btnMusic').addEventListener('click', () => { MUSIC.on = !MUSIC.on; try { localStorage.setItem('loMusic', MUSIC.on ? '1' : '0'); } catch (e) {} mBtn(); });
