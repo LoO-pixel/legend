@@ -113,7 +113,12 @@ html,body{overscroll-behavior:none;touch-action:none;
 #cheatIn{width:100%;max-width:260px;height:44px;border:1px solid #e8e6d2;border-radius:0;background:transparent;color:#e8e6d2;text-align:center;font:700 18px/1 Georgia,serif;letter-spacing:.14em;-webkit-user-select:text;user-select:text;-webkit-appearance:none}
 #cheatMsg{min-height:20px;font-size:13px;font-style:italic;margin-top:10px}
 #rollClose{position:absolute;right:14px;top:calc(env(safe-area-inset-top) + 12px);z-index:2;width:44px;height:44px;border:1px solid #e8e6d2;border-radius:50%;background:#2a242b;color:#e8e6d2;font:700 16px Georgia,serif}
-#credits{display:inline-block;padding:6px 10px 0;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#2a242b}
+#foot{padding:6px 10px 0;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#2a242b}
+#credits{color:#2a242b}
+#opts h1{font-size:26px}
+#opts h2{font-size:11px;letter-spacing:.3em;text-transform:uppercase;border-bottom:1px solid #2a242b;padding:4px 0;margin:14px 0 8px}
+#opts button:disabled{opacity:.45}
+#optNote{min-height:16px;font-size:11px;font-style:italic;word-break:break-all}
 #menuStats:empty,#menuNote:empty,#menuWarn:empty{display:none}
 #menuNote{min-height:0}
 /* Querformat am Telefon: Kopf und Bedienfeld als Spalte rechts, Landschaft links */
@@ -187,13 +192,11 @@ html,body{overscroll-behavior:none;touch-action:none;
     <button id="btnContinue" class="big" style="display:none">Fortsetzen</button>
     <button id="btnStart" class="big">Neues Spiel</button>
     <div class="row"><button id="btnShop">Kr&auml;mer</button><button id="btnWiki">Almanach</button></div>
-    <div class="row"><button id="btnAch">Erfolge</button><button id="btnColor" style="display:none">Farbdruck</button></div>
-    <button id="btnEndless" style="display:none">Endlos</button>
-    <div class="row"><button id="btnCopy">Seed kopieren</button><button id="btnLink">Link kopieren</button></div>
+    <div class="row"><button id="btnAch">Erfolge</button><button id="btnOpts">Einstellungen</button></div>
     <div id="menuNote"></div>
     <div id="menuStats"></div>
     <div id="menuWarn"></div>
-    <a id="credits" href="#">Credits</a>
+    <div id="foot"><a id="credits" href="#">Credits</a> &middot; <span id="ver"></span></div>
   </div></div>
 </div>
 <div id="hud"><div class="bar"><i id="hpFill"></i></div><div class="bar" id="xpBar"><i id="xpFill"></i></div><div id="hudText"></div><div id="saveWarn">Speichern gerade nicht m&ouml;glich</div><div id="hudItems"></div><div id="bossBar" class="bigbar"><span id="bossName"></span><div class="bar"><i id="bossFill"></i></div></div><div id="guardBar" class="bigbar"><span id="guardName"></span><div class="bar"><i id="guardFill"></i></div></div></div>
@@ -273,6 +276,20 @@ html,body{overscroll-behavior:none;touch-action:none;
   <div class="gap"></div><p><i>Kein Schlurfer kam bei den Dreharbeiten dauerhaft zu Schaden.</i></p>
   <div id="cheatBox"><b>Cheats</b><input id="cheatIn" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="20" placeholder="Zauberwort"><div id="cheatMsg"></div></div>
 </div></div>
+<div id="opts" class="page" style="display:none;z-index:7"><div class="sheet">
+  <div class="kicker">Stellschrauben</div>
+  <h1>Einstellungen</h1>
+  <h2>Bild und Ton</h2>
+  <div class="row"><button id="btnMusic2"></button><button id="btnLens2"></button></div>
+  <h2>Freischaltbar</h2>
+  <button id="btnColor"></button>
+  <button id="btnTurbo"></button>
+  <button id="btnEndless"></button>
+  <h2>Diese Welt teilen</h2>
+  <div class="row"><button id="btnCopy">Seed kopieren</button><button id="btnLink">Link kopieren</button></div>
+  <div id="optNote"></div>
+  <button id="btnOptsBack" class="big">Zur&uuml;ck</button>
+</div></div>
 <div id="shop" class="page" style="display:none;z-index:5"><div class="sheet">
   <div class="kicker">Dauerhafte Verbesserungen</div>
   <h1>Kr&auml;mer</h1>
@@ -297,8 +314,10 @@ const CPAL = new Uint32Array([0xFF2B242A,0xFF8F888F,0xFFD2E6E8,0xFF243A2B,0xFF5E
 const TINT_OF_TYPE = new Uint8Array([1, 2, 3, 4, 4, 5, 6, 6, 7, 8, 9, 10, 2]);   // Reihenfolge wie T
 const COLOR = { on: false, free: false };
 const LENS = { on: true }; try { LENS.on = localStorage.getItem('loLens') !== '0'; } catch (e) {}
+const VERSION = 'V0.83';
 const ENDLESS = { on: false, free: false };
-const CHEAT = { god: false, color: false }; try { CHEAT.color = localStorage.getItem('loCheatColor') === '1'; } catch (e) {}
+const TURBO = { on: false, free: false, mul: 1.5 };   // Turbo: das ganze Spiel läuft anderthalbfach so schnell
+const CHEAT = { god: false, color: false, turbo: false }; try { CHEAT.color = localStorage.getItem('loCheatColor') === '1'; CHEAT.turbo = localStorage.getItem('loCheatTurbo') === '1'; } catch (e) {}
 // Wölbung (Versuch): leichte Fischaugen-Optik. Das fertige, scharfe Bild wird von der Grafikkarte in voller Bildschirmauflösung gewölbt –
 // jedes Spielpixel bleibt ein sauberes Kästchen, nur seine Kanten biegen sich. (In der kleinen Spielauflösung selbst gäbe es Nähte oder Matsch.)
 const LENSGL = { gl: null, cv: null, fail: false, shown: false, tw: 0, th: 0,
@@ -2281,12 +2300,14 @@ const ACH = { got: {}, q: [], busy: false, t: 0,
   unlock() {                                     // Farbdruck: wer Ebene 3 beendet hat. Endlos: wer alle Erfolge hat
     if ((this.got.fin || CHEAT.color) && !COLOR.free) { COLOR.free = true; try { COLOR.on = localStorage.getItem('loColor') !== '0'; } catch (e) { COLOR.on = true; } }
     if (this.count() >= this.list.length && !ENDLESS.free) { ENDLESS.free = true; try { ENDLESS.on = localStorage.getItem('loEndless') === '1'; } catch (e) {} }
-    const b = document.getElementById('btnColor'); if (b) { b.style.display = COLOR.free ? '' : 'none'; b.textContent = 'Farbdruck: ' + (COLOR.on ? 'an' : 'aus'); }
-    const e = document.getElementById('btnEndless'); if (e) { e.style.display = ENDLESS.free ? '' : 'none'; e.textContent = 'Endlos: ' + (ENDLESS.on ? 'an' : 'aus'); } },
+    if ((this.got.koenig || CHEAT.turbo) && !TURBO.free) { TURBO.free = true; try { TURBO.on = localStorage.getItem('loTurbo') === '1'; } catch (e) {} }
+    const set = (id, o, name, how) => { const b = document.getElementById(id); if (b) { b.disabled = !o.free; b.textContent = o.free ? name + ': ' + (o.on ? 'an' : 'aus') : name + ' – ' + how; } };
+    set('btnColor', COLOR, 'Farbdruck', 'Ebene 3 beenden'); set('btnTurbo', TURBO, 'Turbo', 'den Knochenkönig besiegen'); set('btnEndless', ENDLESS, 'Endlos', 'alle Erfolge erringen'); },
   count() { return this.list.filter(a => this.got[a[0]]).length; },
   give(id) { if (this.got[id]) return; const a = this.list.find(x => x[0] === id); if (!a) return; this.got[id] = Date.now();
     SAVE.update(pr => { (pr.achievements = pr.achievements || {})[id] = this.got[id]; });
     this.q.push(a[1]); this.next(); if (id !== 'erster') this.give('erster'); { const ab = document.getElementById('btnAch'); if (ab) ab.textContent = 'Erfolge · ' + this.count() + '/' + this.list.length; }
+    if (id === 'koenig' && !TURBO.free) { this.unlock(); this.q.push('Turbo freigeschaltet'); this.next(); }
     if (id === 'fin' && !COLOR.free) { this.unlock(); this.q.push('Farbdruck freigeschaltet'); this.next(); }
     if (!ENDLESS.free && this.count() >= this.list.length) { this.unlock(); this.q.push('Alle Erfolge – Endlosmodus freigeschaltet'); this.next(); } },
   next() { if (this.busy || !this.q.length) return; this.busy = true; const el = document.getElementById('achToast'); el.textContent = 'Erfolg · ' + this.q.shift(); el.style.opacity = 1;
@@ -2428,7 +2449,7 @@ class Game {
     if (this.stopped) return;
     requestAnimationFrame(this.loop);
     if (document.visibilityState === 'hidden') return;
-    const dt = this.last ? Math.min(.05, (now - this.last) / 1000) : 0;
+    const dt = (this.last ? Math.min(.05, (now - this.last) / 1000) : 0) * (TURBO.on && TURBO.free ? TURBO.mul : 1);
     this.last = now;
     // Input -> Update -> Kamera -> Render -> UI
     this.input.get(this.dir);
@@ -2470,9 +2491,9 @@ class Game {
   const curSeed = () => { const n = parseInt(input.value.replace(/\D/g, ''), 10); return Number.isFinite(n) ? n >>> 0 : randomSeed(); };
   const seedUrl = seed => { const u = new URL(location.href); u.searchParams.set('seed', seed); return u.toString(); };
   const copy = (text, msg) => {
-    const done = () => { note.textContent = msg; };
-    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, () => { note.textContent = text; });
-    else note.textContent = text;
+    const on = $('optNote'), done = () => { on.textContent = msg; };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, () => { on.textContent = text; });
+    else on.textContent = text;
   };
   const fmt = t => String(t / 60 | 0).padStart(2, '0') + ':' + String(t % 60 | 0).padStart(2, '0');
   // Menü-Hintergrund: die Welt des eingetragenen Seeds, vom Spiel-Renderer gezeichnet, Kamera kreist langsam über der Stadt
@@ -2549,7 +2570,7 @@ class Game {
   function toMenu() {                                   // zurück ins Menü ohne Seitenwechsel (kein Neuladen -> kein 404)
     if (window.game && window.game.stop) window.game.stop();
     window.game = null;
-    for (const id of ['over', 'fin', 'ach', 'hud', 'lvl', 'arrow', 'pause', 'pauseBtn', 'shop', 'mapBtn', 'mapPage', 'joy', 'stallPage', 'smithPage', 'wiki']) $(id).style.display = 'none';
+    for (const id of ['over', 'fin', 'ach', 'hud', 'lvl', 'arrow', 'pause', 'pauseBtn', 'shop', 'mapBtn', 'mapPage', 'joy', 'stallPage', 'smithPage', 'wiki', 'opts']) $(id).style.display = 'none';
     $('vignette').classList.remove('dread'); $('vignette').style.background = ''; $('toast').style.opacity = 0;
     try { const u = new URL(location.href); u.searchParams.delete('seed'); history.replaceState(null, '', u.toString()); } catch (e) {}
     input.value = randomSeed(); note.textContent = ''; menu.style.display = 'flex'; menuPreview(curSeed(), 200);
@@ -2582,6 +2603,7 @@ class Game {
       motherlode: async () => { await SAVE.bump({gold: 10000}); return '+10 000 Gold im Beutel.'; },
       iambabo: () => { CHEAT.god = !CHEAT.god; return CHEAT.god ? 'Unverwundbar – bis die Seite neu geladen wird.' : 'Wieder sterblich.'; },
       color: () => { CHEAT.color = true; try { localStorage.setItem('loCheatColor', '1'); } catch (e) {} ACH.unlock(); COLOR.on = true; try { localStorage.setItem('loColor', '1'); } catch (e) {} ACH.unlock(); return 'Farbdruck freigeschaltet.'; },
+      turbo: () => { CHEAT.turbo = true; try { localStorage.setItem('loCheatTurbo', '1'); localStorage.setItem('loTurbo', '1'); } catch (e) {} ACH.unlock(); TURBO.on = true; ACH.unlock(); return 'Turbo freigeschaltet und eingeschaltet.'; },
       giveall: () => { for (const a of ACH.list) ACH.give(a[0]); return 'Alle ' + ACH.list.length + ' Erfolge errungen.'; } };
     cin.addEventListener('keydown', async e => { if (e.key !== 'Enter') return; const w = cin.value.trim().toLowerCase(); cin.value = ''; const f = CHEATS[w];
       msg.textContent = f ? await f() : w ? '„' + w + '“ – nichts geschieht.' : ''; if (f) cin.blur(); }); }
@@ -2637,10 +2659,15 @@ class Game {
   $('btnHorse').addEventListener('click', () => { if (window.game && window.game.stallAnswer) window.game.stallAnswer(true); });
   $('btnNoSmith').addEventListener('click', () => { if (window.game && window.game.smithClose) window.game.smithClose(); });
   $('btnNoHorse').addEventListener('click', () => { if (window.game && window.game.stallAnswer) window.game.stallAnswer(false); });
-  const lBtn = () => { $('btnLens').textContent = 'Wölbung: ' + (LENS.on ? 'an' : 'aus'); }; lBtn();
+  $('ver').textContent = VERSION; { const v = document.createElement('p'); v.innerHTML = '<i>' + VERSION + '</i>'; $('rollIn').insertBefore(v, $('rollIn').children[2]); }
+  $('btnOpts').addEventListener('click', () => { ACH.unlock(); $('optNote').textContent = ''; $('opts').style.display = 'flex'; $('opts').scrollTop = 0; });
+  $('btnOptsBack').addEventListener('click', () => { $('opts').style.display = 'none'; });
+  $('btnTurbo').addEventListener('click', () => { TURBO.on = !TURBO.on; try { localStorage.setItem('loTurbo', TURBO.on ? '1' : '0'); } catch (e) {} ACH.unlock(); });
+  const lBtn = () => { $('btnLens').textContent = $('btnLens2').textContent = 'Wölbung: ' + (LENS.on ? 'an' : 'aus'); }; lBtn();
+  $('btnLens2').addEventListener('click', () => $('btnLens').click()); $('btnMusic2').addEventListener('click', () => $('btnMusic').click());
   $('btnLens').addEventListener('click', () => { LENS.on = !LENS.on; try { localStorage.setItem('loLens', LENS.on ? '1' : '0'); } catch (e) {} lBtn(); });
   $('btnEndless').addEventListener('click', () => { ENDLESS.on = !ENDLESS.on; try { localStorage.setItem('loEndless', ENDLESS.on ? '1' : '0'); } catch (e) {} ACH.unlock(); });
-  const mBtn = () => { $('btnMusic').textContent = 'Musik: ' + (MUSIC.on ? 'an' : 'aus'); }; mBtn();
+  const mBtn = () => { $('btnMusic').textContent = $('btnMusic2').textContent = 'Musik: ' + (MUSIC.on ? 'an' : 'aus'); }; mBtn();
   $('btnMusic').addEventListener('click', () => { MUSIC.on = !MUSIC.on; try { localStorage.setItem('loMusic', MUSIC.on ? '1' : '0'); } catch (e) {} mBtn(); });
   addEventListener('pointerdown', () => MUSIC.unlock(), true);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') MUSIC.sync(false, 0); });   // im Hintergrund läuft kein Bild, also dort auch die Musik anhalten
