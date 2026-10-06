@@ -5,13 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#2a242b">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" type="image/png" href="icon.png">
 <title>Legend of _</title>
 <meta name="apple-mobile-web-app-title" content="Lo_">
 <style>
 /* RESET */
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{width:100%;height:100%;overflow:hidden;background:#000}
+html,body{width:100%;height:100%;min-height:100vh;overflow:hidden;background:#2a242b}
 
 /* MOBILE / SAFARI */
 html,body{position:fixed;inset:0;overscroll-behavior:none;touch-action:none;
@@ -92,6 +94,7 @@ html,body{position:fixed;inset:0;overscroll-behavior:none;touch-action:none;
 #menu .seedrow input{flex:1;min-width:0;margin:0}
 #menu .seedrow button{width:auto;margin:0;padding:0 12px;flex:none}
 #menu button{margin-bottom:6px}
+#credits{display:inline-block;padding:6px 10px 0;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#2a242b}
 #menuStats:empty,#menuNote:empty,#menuWarn:empty{display:none}
 #menuNote{min-height:0}
 /* Querformat am Telefon: Kopf und Bedienfeld als Spalte rechts, Landschaft links */
@@ -169,6 +172,7 @@ html,body{position:fixed;inset:0;overscroll-behavior:none;touch-action:none;
     <div id="menuNote"></div>
     <div id="menuStats"></div>
     <div id="menuWarn"></div>
+    <a id="credits" href="https://loo-pixel.github.io/legend/" target="_blank" rel="noopener">Credits</a>
   </div></div>
 </div>
 <div id="hud"><div class="bar"><i id="hpFill"></i></div><div class="bar" id="xpBar"><i id="xpFill"></i></div><div id="hudText"></div><div id="saveWarn">Speichern gerade nicht m&ouml;glich</div><div id="hudItems"></div><div id="bossBar" class="bigbar"><span id="bossName"></span><div class="bar"><i id="bossFill"></i></div></div><div id="guardBar" class="bigbar"><span id="guardName"></span><div class="bar"><i id="guardFill"></i></div></div></div>
@@ -1261,8 +1265,11 @@ class Renderer {
     this.resize();
   }
   resize() {
-    const vw = window.innerWidth, vh = window.innerHeight;
-    this.scale = Math.min(vw, vh) < 600 ? 2 : 3;        // 1 Weltpixel = 2–3 CSS-Pixel -> Spieler ≈ 14–21 px hoch
+    let vw = window.innerWidth, vh = window.innerHeight;
+    if (navigator.standalone && window.screen) {          // iOS vom Homescreen: innerHeight ist dort oft zu klein gemeldet -> unten bliebe ein Balken; dann gilt die echte Bildschirmgröße
+      const sl = Math.max(screen.width, screen.height), ss = Math.min(screen.width, screen.height), land = vw > vh;
+      vw = Math.max(vw, land ? sl : ss); vh = Math.max(vh, land ? ss : sl); }
+    this.scale = 2;                                       // 1 Weltpixel = 2 CSS-Pixel auf jedem Gerät: iPad und PC zeigen nicht größere Pixel, sondern mehr Welt
     this.bw = Math.min(WORLD, Math.ceil(vw / this.scale));
     this.bh = Math.min(WORLD, Math.ceil(vh / this.scale));
     this.canvas.width = this.bw; this.canvas.height = this.bh;
@@ -1993,16 +2000,13 @@ class Combat {
 }
 
 // ============================================================ GAME
-// Musik: musik.mp3 liegt neben der index.html (zu groß zum Einbetten). Fehlt die Datei, bleibt es einfach still.
-// Das Stück hängt an der Ebenenuhr: es setzt so ein, dass sein letzter Ton auf 5:00 fällt (Ankunft des Bosses). Davor und danach ist Stille.
-const MUSIC = { a: null, on: true, ok: false, busy: false, END: 300,
-  init() { if (this.a) return; try { this.on = localStorage.getItem('loMusic') !== '0'; } catch (e) {} const a = this.a = new Audio('musik.mp3'); a.preload = 'auto'; a.volume = .55; },
-  unlock() { this.init(); if (this.ok || this.busy) return; const a = this.a; if (!a.paused) { this.ok = true; return; } this.busy = true; a.muted = true;   // iOS erlaubt Ton erst nach einer Berührung: stumm anspielen, dann darf später frei gestartet werden
-    a.play().then(() => { a.pause(); a.muted = false; this.ok = true; this.busy = false; }, () => { a.muted = false; this.busy = false; }); },
-  sync(run, t) { this.init(); const a = this.a; if (this.busy) return; const d = a.duration, pos = t - (this.END - d);
-    if (!(run && this.on && d > 0 && pos >= 0 && pos < d - .05)) { if (!a.paused) a.pause(); return; }
-    if (Math.abs(a.currentTime - pos) > 1.2) a.currentTime = pos;                                   // nach Pause, Laden oder Fortsetzen wieder auf die Uhr setzen
-    if (a.paused) { this.busy = true; a.play().then(() => { this.busy = false; }, () => { setTimeout(() => { this.busy = false; }, 1500); }); } } };
+// Musik: musik.mp3 liegt neben der index.html (zu groß zum Einbetten). Fehlt die Datei, bleibt es einfach still. Läuft als Schleife, solange der Lauf läuft.
+const MUSIC = { a: null, on: true, want: false, busy: false,
+  init() { if (this.a) return; try { this.on = localStorage.getItem('loMusic') !== '0'; } catch (e) {} const a = this.a = new Audio('musik.mp3'); a.loop = true; a.preload = 'auto'; a.volume = .55; },
+  unlock() { if (this.want) this.sync(true); },                                                    // iOS erlaubt Ton erst nach einer Berührung
+  sync(run) { this.init(); this.want = run; const a = this.a;
+    if (!(run && this.on)) { if (!a.paused) a.pause(); return; }
+    if (a.paused && !this.busy) { this.busy = true; a.play().then(() => { this.busy = false; }, () => { setTimeout(() => { this.busy = false; }, 1500); }); } } };
 class Game {
   constructor(seed, level = 1, save = null, meta = null, world = null) {
     this.meta = meta || {};
