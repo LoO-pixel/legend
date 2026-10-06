@@ -13,10 +13,12 @@
 <style>
 /* RESET */
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{width:100%;height:100%;min-height:100vh;overflow:hidden;background:#2a242b}
+html,body{width:100%;height:var(--vh,100%);overflow:hidden;background:#2a242b}
 
 /* MOBILE / SAFARI */
-html,body{position:fixed;inset:0;overscroll-behavior:none;touch-action:none;
+/* body ist der Bezugsrahmen aller fixierten Ebenen (transform) und bekommt die echte Bildschirmhöhe: als Homescreen-App meldet iOS die Seite sonst um die Statusleiste zu kurz -> Balken unten */
+body{position:fixed;left:0;top:0;transform:translateZ(0)}
+html,body{overscroll-behavior:none;touch-action:none;
   -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
   -webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
 
@@ -1265,10 +1267,7 @@ class Renderer {
     this.resize();
   }
   resize() {
-    let vw = window.innerWidth, vh = window.innerHeight;
-    if (navigator.standalone && window.screen) {          // iOS vom Homescreen: innerHeight ist dort oft zu klein gemeldet -> unten bliebe ein Balken; dann gilt die echte Bildschirmgröße
-      const sl = Math.max(screen.width, screen.height), ss = Math.min(screen.width, screen.height), land = vw > vh;
-      vw = Math.max(vw, land ? sl : ss); vh = Math.max(vh, land ? ss : sl); }
+    const [vw, vh] = viewSize();
     this.scale = 2;                                       // 1 Weltpixel = 2 CSS-Pixel auf jedem Gerät: iPad und PC zeigen nicht größere Pixel, sondern mehr Welt
     this.bw = Math.min(WORLD, Math.ceil(vw / this.scale));
     this.bh = Math.min(WORLD, Math.ceil(vh / this.scale));
@@ -2000,6 +1999,15 @@ class Combat {
 }
 
 // ============================================================ GAME
+// Echte Größe der Spielfläche. iOS vom Homescreen meldet innerHeight oft um die Statusleiste zu klein; dann gilt die Bildschirmgröße.
+function viewSize() {
+  let vw = window.innerWidth, vh = window.innerHeight;
+  if (navigator.standalone && window.screen) { const sl = Math.max(screen.width, screen.height), ss = Math.min(screen.width, screen.height), land = vw > vh;
+    vw = Math.max(vw, land ? sl : ss); vh = Math.max(vh, land ? ss : sl); }
+  document.documentElement.style.setProperty('--vh', vh + 'px');
+  return [vw, vh];
+}
+viewSize(); addEventListener('resize', viewSize); addEventListener('orientationchange', () => setTimeout(viewSize, 250));
 // Musik: musik.mp3 liegt neben der index.html (zu groß zum Einbetten). Fehlt die Datei, bleibt es einfach still. Läuft als Schleife, solange der Lauf läuft.
 const MUSIC = { a: null, on: true, want: false, busy: false,
   init() { if (this.a) return; try { this.on = localStorage.getItem('loMusic') !== '0'; } catch (e) {} const a = this.a = new Audio('musik.mp3'); a.loop = true; a.preload = 'auto'; a.volume = .55; },
