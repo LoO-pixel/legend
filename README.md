@@ -59,9 +59,9 @@ Zum Selberhosten genügt es, die drei Dateien in ein Verzeichnis zu legen.
 
 ## Credits
 
-- Idee und Spiel: Flo
-- Code: mit Claude (Anthropic) entstanden
+- Idee und Spiel: me
+- Code: mit Claude (Anthropic) und mir entstanden
 - Musik: „Shadow Riff“, erzeugt mit Suno
-- Boss-Figur: aus einem Skelett-Sprite-Paket (`skeleton_sword`) – Herkunft und Lizenz bitte hier nachtragen
+- Boss-Figur (Knochenkönig): [Sword Skeleton – Pixel Art Character](https://sanctumpixel.itch.io/sword-skeleton-pixel-art-character) von Sanctumpixel
 
 Projektseite: https://loo-pixel.github.io/legend/
