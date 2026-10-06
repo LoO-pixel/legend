@@ -101,6 +101,18 @@ html,body{overscroll-behavior:none;touch-action:none;
 #menu .seedrow input{flex:1;min-width:0;margin:0}
 #menu .seedrow button{width:auto;margin:0;padding:0 12px;flex:none}
 #menu button{margin-bottom:6px}
+#roll{display:none;position:fixed;inset:0;z-index:8;background:#2a242b;color:#e8e6d2;overflow:hidden;text-align:center;font-family:Georgia,serif}
+#rollIn{position:absolute;left:0;right:0;top:0;padding:0 24px;will-change:transform}
+#rollIn h1{font-size:34px;letter-spacing:.06em;margin:0 0 6px}
+#rollIn small{display:block;font-size:10px;letter-spacing:.3em;text-transform:uppercase;opacity:.7;margin:34px 0 6px}
+#rollIn p{font-size:17px;margin:0 0 4px}#rollIn p i{font-size:13px;opacity:.8}
+#rollIn a{color:#e8e6d2}
+#rollIn .gap{height:60px}
+#cheatBox{margin-top:70px;padding:16px 0 0;border-top:3px double #e8e6d2}
+#cheatBox b{display:block;font-size:20px;letter-spacing:.3em;text-transform:uppercase;margin-bottom:10px}
+#cheatIn{width:100%;max-width:260px;height:44px;border:1px solid #e8e6d2;border-radius:0;background:transparent;color:#e8e6d2;text-align:center;font:700 18px/1 Georgia,serif;letter-spacing:.14em;-webkit-user-select:text;user-select:text;-webkit-appearance:none}
+#cheatMsg{min-height:20px;font-size:13px;font-style:italic;margin-top:10px}
+#rollClose{position:absolute;right:14px;top:calc(env(safe-area-inset-top) + 12px);z-index:2;width:44px;height:44px;border:1px solid #e8e6d2;border-radius:50%;background:#2a242b;color:#e8e6d2;font:700 16px Georgia,serif}
 #credits{display:inline-block;padding:6px 10px 0;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#2a242b}
 #menuStats:empty,#menuNote:empty,#menuWarn:empty{display:none}
 #menuNote{min-height:0}
@@ -181,7 +193,7 @@ html,body{overscroll-behavior:none;touch-action:none;
     <div id="menuNote"></div>
     <div id="menuStats"></div>
     <div id="menuWarn"></div>
-    <a id="credits" href="https://loo-pixel.github.io/legend/" target="_blank" rel="noopener">Credits</a>
+    <a id="credits" href="#">Credits</a>
   </div></div>
 </div>
 <div id="hud"><div class="bar"><i id="hpFill"></i></div><div class="bar" id="xpBar"><i id="xpFill"></i></div><div id="hudText"></div><div id="saveWarn">Speichern gerade nicht m&ouml;glich</div><div id="hudItems"></div><div id="bossBar" class="bigbar"><span id="bossName"></span><div class="bar"><i id="bossFill"></i></div></div><div id="guardBar" class="bigbar"><span id="guardName"></span><div class="bar"><i id="guardFill"></i></div></div></div>
@@ -249,6 +261,18 @@ html,body{overscroll-behavior:none;touch-action:none;
   <div id="achList"></div>
   <button id="btnAchBack" class="big" style="position:sticky;bottom:0;margin-top:12px">Zur&uuml;ck</button>
 </div></div>
+<div id="roll" class="btn"><button id="rollClose">&#10005;</button><div id="rollIn">
+  <h1>Legend of _</h1><p><i>Ein Extrablatt in drei Ebenen</i></p>
+  <small>Idee, Welt und Regie</small><p>Flo</p>
+  <small>Programm</small><p>entstanden mit Claude</p>
+  <small>Musik</small><p>&bdquo;Shadow Riff&ldquo;</p><p><i>erzeugt mit Suno</i></p>
+  <small>Der Knochenk&ouml;nig</small><p>Sword Skeleton</p><p><i>Pixel Art Character von Sanctumpixel</i></p>
+  <small>In weiteren Rollen</small><p>Die Fleischkugel</p><p>Schlurfer, L&auml;ufer, Hetzer</p><p>Der Schmied</p><p>Ein Pferd (dreimal getroffen)</p>
+  <small>Gedruckt in</small><p>Schwarz, Grau, Papier</p><p><i>und ein wenig Rot</i></p>
+  <small>Zu finden unter</small><p><a href="https://loo-pixel.github.io/legend/" target="_blank" rel="noopener">loo-pixel.github.io/legend</a></p>
+  <div class="gap"></div><p><i>Kein Schlurfer kam bei den Dreharbeiten dauerhaft zu Schaden.</i></p>
+  <div id="cheatBox"><b>Cheats</b><input id="cheatIn" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="20" placeholder="Zauberwort"><div id="cheatMsg"></div></div>
+</div></div>
 <div id="shop" class="page" style="display:none;z-index:5"><div class="sheet">
   <div class="kicker">Dauerhafte Verbesserungen</div>
   <h1>Kr&auml;mer</h1>
@@ -274,6 +298,7 @@ const TINT_OF_TYPE = new Uint8Array([1, 2, 3, 4, 4, 5, 6, 6, 7, 8, 9, 10, 2]);  
 const COLOR = { on: false, free: false };
 const LENS = { on: true }; try { LENS.on = localStorage.getItem('loLens') !== '0'; } catch (e) {}
 const ENDLESS = { on: false, free: false };
+const CHEAT = { god: false, color: false }; try { CHEAT.color = localStorage.getItem('loCheatColor') === '1'; } catch (e) {}
 // Wölbung (Versuch): leichte Fischaugen-Optik. Das fertige, scharfe Bild wird von der Grafikkarte in voller Bildschirmauflösung gewölbt –
 // jedes Spielpixel bleibt ein sauberes Kästchen, nur seine Kanten biegen sich. (In der kleinen Spielauflösung selbst gäbe es Nähte oder Matsch.)
 const LENSGL = { gl: null, cv: null, fail: false, shown: false, tw: 0, th: 0,
@@ -1696,7 +1721,7 @@ class Combat {
     this.alive++; return e;
   }
   get(pool) { for (let i = 0; i < pool.length; i++) if (!pool[i].alive) return pool[i]; return null; }
-  hurt(d, src) { const p = this.g.player; if (p.inv > 0) return;
+  hurt(d, src) { const p = this.g.player; if (p.inv > 0 || CHEAT.god) return;
     if (p.shield > 0 && p.shieldT <= 0) { p.shieldT = 13.5 - 1.5 * p.shield; p.inv = .6; this.boom(p.x, p.y - 3, 9, 2); return; }   // Schutzschild fängt den Treffer ab
     if (p.horse > 0 && --p.horse === 0) this.g.toast('Dein Pferd geht durch. Du läufst wieder zu Fuß.');                          // drei Treffer, dann ist das Pferd weg
     const hitD = d * this.dmgLvl, dm = Math.max(1, hitD * .25, hitD - p.armor); p.hp -= dm; this.lastSrc = src || 'einen Feind'; if (this.onHurt) this.onHurt(dm, this.lastSrc); p.inv = .6; if (p.hp <= 0) { p.hp = 0; this.g.gameOver(); } }
@@ -1858,7 +1883,7 @@ class Combat {
     // ---- Frist zum Tor: läuft sie ab, kommt die Dunkelheit und zehrt immer schneller am Leben (kein Schild, keine Rüstung hilft)
     if (this.exitOpen && (this.gateT -= dt) <= 0) {
       if (this.dark === 0) { g.toast('Zu spät. Die Dunkelheit kommt dich holen – und mit ihr alles, was in ihr haust.'); for (let i = 0; i < 4; i++) this.wave(t + this.tOff); }
-      this.dark += dt; const rem = BAL.darkTime - this.dark;                       // das Leben rinnt so aus, dass nach genau darkTime Sekunden Schluss ist – Heilung schiebt es nicht hinaus
+      this.dark += dt; if (CHEAT.god) this.dark = Math.min(this.dark, BAL.darkTime - 1); const rem = BAL.darkTime - this.dark;                       // das Leben rinnt so aus, dass nach genau darkTime Sekunden Schluss ist – Heilung schiebt es nicht hinaus
       p.hp = rem <= 0 ? 0 : p.hp - p.hp * Math.min(1, dt / rem) * .9; this.lastSrc = 'die Dunkelheit';
       if (p.hp <= 0 || rem <= 0) { p.hp = 0; g.gameOver(); return; }
     }
@@ -2254,7 +2279,7 @@ const ACH = { got: {}, q: [], busy: false, t: 0,
     ['erster', 'Aller Anfang', 'Den ersten Erfolg erringen']],
   load(pr) { this.got = Object.assign({}, pr.achievements, this.got); this.base = pr.totalKills | 0; if (pr.totalRuns >= 10) this.give('unbelehrbar'); if (HERO.name) this.give('name'); this.unlock(); },
   unlock() {                                     // Farbdruck: wer Ebene 3 beendet hat. Endlos: wer alle Erfolge hat
-    if (this.got.fin && !COLOR.free) { COLOR.free = true; try { COLOR.on = localStorage.getItem('loColor') !== '0'; } catch (e) { COLOR.on = true; } }
+    if ((this.got.fin || CHEAT.color) && !COLOR.free) { COLOR.free = true; try { COLOR.on = localStorage.getItem('loColor') !== '0'; } catch (e) { COLOR.on = true; } }
     if (this.count() >= this.list.length && !ENDLESS.free) { ENDLESS.free = true; try { ENDLESS.on = localStorage.getItem('loEndless') === '1'; } catch (e) {} }
     const b = document.getElementById('btnColor'); if (b) { b.style.display = COLOR.free ? '' : 'none'; b.textContent = 'Farbdruck: ' + (COLOR.on ? 'an' : 'aus'); }
     const e = document.getElementById('btnEndless'); if (e) { e.style.display = ENDLESS.free ? '' : 'none'; e.textContent = 'Endlos: ' + (ENDLESS.on ? 'an' : 'aus'); } },
@@ -2544,6 +2569,22 @@ class Game {
       m.textContent = ACH.got[id] ? '✓' : '·'; b.textContent = ACH.got[id] ? name : '???'; t.append(b, ACH.got[id] ? desc : 'Noch nicht entdeckt'); d.append(m, t); box.append(d); }
     $('ach').style.display = 'flex'; $('ach').scrollTop = 0; });
   $('btnColor').addEventListener('click', () => { COLOR.on = !COLOR.on; try { localStorage.setItem('loColor', COLOR.on ? '1' : '0'); } catch (e) {} ACH.unlock(); });
+  // ---- Abspann: rollt von unten nach oben und bleibt beim letzten Eintrag (Cheats) stehen; Tippen springt ans Ende
+  { const roll = $('roll'), inn = $('rollIn'), cin = $('cheatIn'), msg = $('cheatMsg'); let raf = 0, y = 0, endY = 0, lastT = 0;
+    const place = () => { inn.style.transform = 'translateY(' + Math.round(y) + 'px)'; };
+    const step = now => { const dt = Math.min(.05, (now - lastT) / 1000); lastT = now; y = Math.max(endY, y - 42 * dt); place(); raf = y > endY ? requestAnimationFrame(step) : 0; };
+    const open = () => { roll.style.display = 'block'; msg.textContent = ''; cin.value = ''; const h = roll.clientHeight; y = h; endY = Math.min(h * .2, h * .62 - inn.offsetHeight); place(); lastT = performance.now(); cancelAnimationFrame(raf); raf = requestAnimationFrame(step); };
+    const close = () => { cancelAnimationFrame(raf); raf = 0; cin.blur(); roll.style.display = 'none'; refreshMenu(); };
+    $('credits').addEventListener('click', e => { e.preventDefault(); open(); });
+    $('rollClose').addEventListener('click', close);
+    roll.addEventListener('click', e => { if (e.target.closest('#cheatBox, a, #rollClose')) return; y = endY; place(); });
+    const CHEATS = {
+      motherlode: async () => { await SAVE.bump({gold: 10000}); return '+10 000 Gold im Beutel.'; },
+      iambabo: () => { CHEAT.god = !CHEAT.god; return CHEAT.god ? 'Unverwundbar – bis die Seite neu geladen wird.' : 'Wieder sterblich.'; },
+      color: () => { CHEAT.color = true; try { localStorage.setItem('loCheatColor', '1'); } catch (e) {} ACH.unlock(); COLOR.on = true; try { localStorage.setItem('loColor', '1'); } catch (e) {} ACH.unlock(); return 'Farbdruck freigeschaltet.'; },
+      giveall: () => { for (const a of ACH.list) ACH.give(a[0]); return 'Alle ' + ACH.list.length + ' Erfolge errungen.'; } };
+    cin.addEventListener('keydown', async e => { if (e.key !== 'Enter') return; const w = cin.value.trim().toLowerCase(); cin.value = ''; const f = CHEATS[w];
+      msg.textContent = f ? await f() : w ? '„' + w + '“ – nichts geschieht.' : ''; if (f) cin.blur(); }); }
   $('btnAchBack').addEventListener('click', () => { $('ach').style.display = 'none'; });
   $('btnShop').addEventListener('click', () => { renderShop(); $('shop').style.display = 'flex'; });
   // ---- Almanach: wird aus denselben Tabellen gebaut wie das Spiel, bleibt also von selbst aktuell
