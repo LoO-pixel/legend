@@ -11,7 +11,8 @@ Der Strich im Titel ist dein Name. Kurz: **Lo_**.
 
 Du bist eine winzige Figur in einer großen, zufällig erzeugten Landschaft. Feinde kommen von selbst, deine Waffen feuern von selbst – du läufst, sammelst und entscheidest.
 
-- Jede Ebene dauert **5 Minuten**. Dann kommt der Knochenkönig.
+- Jede Ebene dauert **5 Minuten**. Dann kommt der Boss: in Ebene 1 der Knochenkönig, in Ebene 2 der Waldgeist, in Ebene 3 der Kakodämon.
+- Mit jeder Ebene wird es dunkler; Laternen an den Straßen und dein eigener Lichtschein helfen.
 - Ist er besiegt, öffnet sich ein Tor. Du hast **25 Sekunden**, sonst holt dich die Dunkelheit.
 - Hinter dem Tor liegt die nächste Ebene: neue Karte, neue und stärkere Gegner.
 - Bei jedem Stufenaufstieg wählst du eine von drei Karten. Platz ist für höchstens 10 Waffen und Fähigkeiten.
@@ -59,9 +60,11 @@ Zum Selberhosten genügt es, die drei Dateien in ein Verzeichnis zu legen.
 
 ## Credits
 
-- Idee und Spiel: me
-- Code: mit Claude (Anthropic) und mir entstanden
+- Idee und Spiel: Flo
+- Code: mit Claude (Anthropic) entstanden
 - Musik: „Shadow Riff“, erzeugt mit Suno
 - Boss-Figur (Knochenkönig): [Sword Skeleton – Pixel Art Character](https://sanctumpixel.itch.io/sword-skeleton-pixel-art-character) von Sanctumpixel
+- Boss-Figur (Waldgeist): [The Forest Spirit](https://pidroudays.itch.io/the-forest-spirit) von pidroudays
+- Boss-Figur (Kakodämon): [2D Pixel Art Cacodaemon Sprites](https://elthen.itch.io/2d-pixel-art-cacodaemon-sprites) von Elthen
 
 Projektseite: https://loo-pixel.github.io/legend/
