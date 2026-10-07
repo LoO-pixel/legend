@@ -30,6 +30,9 @@ html,body{overscroll-behavior:none;touch-action:none;
 .tilt{position:fixed;left:0;right:0;height:41%;pointer-events:none;-webkit-backdrop-filter:blur(3.3px);backdrop-filter:blur(3.3px)}   /* Tilt-Shift-Stärke: Höhe der Bänder und Unschärfe (vorher 36 % / 2.2px) */
 #tiltTop{top:0;-webkit-mask-image:linear-gradient(#000 30%,transparent);mask-image:linear-gradient(#000 30%,transparent)}
 #tiltBot{bottom:0;-webkit-mask-image:linear-gradient(transparent,#000 70%);mask-image:linear-gradient(transparent,#000 70%)}
+#clouds{position:fixed;inset:0;pointer-events:none;overflow:hidden;display:none}
+#clouds b{position:absolute;left:0;top:0;display:block;width:260px;height:120px;will-change:transform;-webkit-filter:blur(12px);filter:blur(12px);background:radial-gradient(ellipse 46% 44% at 50% 55%,rgba(42,36,43,.42),rgba(42,36,43,0) 100%)}
+#clouds canvas{position:absolute;left:0;top:0;display:block;width:288px;height:132px;transform-origin:0 0;will-change:transform;image-rendering:pixelated;-webkit-filter:blur(1.6px);filter:blur(1.6px)}
 #vignette{position:fixed;inset:0;pointer-events:none;
   background:radial-gradient(ellipse at center,rgba(0,0,0,0) 58%,rgba(0,0,0,.5) 100%);
   box-shadow:inset 0 0 36px 8px #000}
@@ -123,6 +126,9 @@ html,body{overscroll-behavior:none;touch-action:none;
 #stats h2{font-size:10px;letter-spacing:.3em;text-transform:uppercase;margin:10px 0 2px;text-align:center}
 #lvlAuto{display:block;margin-top:10px;font-size:13px;font-style:italic;letter-spacing:.02em;text-transform:none}
 #lvlAuto input{width:20px;height:20px;margin:0 8px 0 0;vertical-align:-4px;accent-color:#2a242b}
+#testCards h2{font-size:10px;letter-spacing:.3em;text-transform:uppercase;border-bottom:1px solid #2a242b;padding:4px 0;margin:12px 0 6px}
+#testCards button{min-height:36px;margin-bottom:4px;font-size:11px;letter-spacing:.06em;text-transform:none;text-align:left;padding:4px 10px;display:flex;justify-content:space-between;gap:8px}
+#testShop h1{font-size:26px}
 #opts h1{font-size:26px}
 #opts h2{font-size:11px;letter-spacing:.3em;text-transform:uppercase;border-bottom:1px solid #2a242b;padding:4px 0;margin:14px 0 8px}
 #opts button:disabled{opacity:.45}
@@ -184,7 +190,7 @@ html,body{overscroll-behavior:none;touch-action:none;
 </style>
 </head>
 <body>
-<canvas id="game"></canvas><canvas id="gl" style="display:none"></canvas>
+<canvas id="game"></canvas><canvas id="gl" style="display:none"></canvas><div id="clouds"></div>
 <div id="tiltTop" class="tilt"></div><div id="tiltBot" class="tilt"></div>
 <div id="vignette"></div>
 <div id="joy"><div id="knob"></div></div>
@@ -224,6 +230,7 @@ html,body{overscroll-behavior:none;touch-action:none;
   <button id="btnMusic">Musik: an</button>
   <button id="btnLens">W&ouml;lbung: an</button>
   <button id="btnWiki2">Almanach</button>
+  <button id="btnTest">Testh&auml;ndler (nur zum Probieren)</button>
   <button id="btnQuit">Speichern &amp; zum Men&uuml;</button>
 </div></div>
 <div id="stallPage" class="page" style="display:none"><div class="sheet">
@@ -294,6 +301,7 @@ html,body{overscroll-behavior:none;touch-action:none;
   <h1>Einstellungen</h1>
   <h2>Bild und Ton</h2>
   <div class="row"><button id="btnMusic2"></button><button id="btnLens2"></button></div>
+  <div class="row"><button id="btnShadow"></button><button id="btnClouds"></button></div>
   <h2>Freischaltbar</h2>
   <button id="btnColor"></button>
   <button id="btnTurbo"></button>
@@ -302,6 +310,14 @@ html,body{overscroll-behavior:none;touch-action:none;
   <div class="row"><button id="btnCopy">Seed kopieren</button><button id="btnLink">Link kopieren</button></div>
   <div id="optNote"></div>
   <button id="btnOptsBack" class="big">Zur&uuml;ck</button>
+</div></div>
+<div id="testShop" class="page" style="display:none;z-index:7"><div class="sheet">
+  <div class="kicker">Nur zum Probieren &ndash; kommt wieder weg</div>
+  <h1>Testh&auml;ndler</h1>
+  <div class="sub" id="testInfo"></div>
+  <div class="row"><button id="btnTestGold">+100 Gold</button><button id="btnTestBack">Zur&uuml;ck</button></div>
+  <div id="testCards"></div>
+  <button id="btnTestBack2" class="big" style="position:sticky;bottom:0;margin-top:12px">Zur&uuml;ck</button>
 </div></div>
 <div id="shop" class="page" style="display:none;z-index:5"><div class="sheet">
   <div class="kicker">Dauerhafte Verbesserungen</div>
@@ -327,7 +343,27 @@ const CPAL = new Uint32Array([0xFF2B242A,0xFF8F888F,0xFFD2E6E8,0xFF243A2B,0xFF5E
 const TINT_OF_TYPE = new Uint8Array([1, 2, 3, 4, 4, 5, 6, 6, 7, 8, 9, 10, 2]);   // Reihenfolge wie T
 const COLOR = { on: false, free: false };
 const LENS = { on: true }; try { LENS.on = localStorage.getItem('loLens') !== '0'; } catch (e) {}
-const VERSION = 'V0.92';
+const VERSION = 'V0.97';
+const CLOUDS = { on: true, els: null, TW: 1150, TH: 1500,
+  // Kachel aus sechs Wolken, die sich endlos wiederholt; jede hat Ort, Größe und eigenes Tempo
+  defs: [[80, 140, 1.25, 1], [640, 420, .9, 1.25], [300, 760, 1.5, .85], [900, 980, 1.05, 1.1], [120, 1220, .8, 1.3], [760, 80, .7, .95]],
+  init() { if (this.els) return; const box = document.getElementById('clouds'); this.box = box; this.shs = this.defs.map(() => box.appendChild(document.createElement('b'))); this.els = this.defs.map((d, n) => { const cv = box.appendChild(document.createElement('canvas')), W = 96, H = 44; cv.width = W; cv.height = H;   // Haufenwolke im Druckstil: helle Kuppen, gerasterte graue Unterseite, dunkle Grundlinie
+        const c = cv.getContext('2d'), img = c.createImageData(W, H), R = mulberry32(900 + n * 77), bl = []; for (let i = 0; i < 5; i++) bl.push([22 + R() * 52, 14 + R() * 12, 8 + R() * 8]); bl.push([24, 30, 9], [40, 26, 13], [56, 24, 14], [72, 30, 9]);   // wenige große Kuppen übereinander: bauschig statt flach
+        for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { let ins = false, top = 99; for (const [bx, by, br] of bl) { const dx = x - bx, dy = (y - by) * 1.25; if (dx * dx + dy * dy < br * br) { ins = true; top = Math.min(top, by - br / 1.25); } } if (y > 36) ins = false; if (!ins) continue;
+          const u = (y - top) / (37 - top), k = (y * W + x) * 4, dark = y >= 35 ? 2 : u > .62 ? ((x + y) & 1 ? 1 : 0) : u > .45 && ((x + y * 2) % 5 === 0) ? 1 : 0, col = dark === 2 ? [96, 90, 98] : dark ? [150, 144, 150] : [244, 242, 230];
+          img.data[k] = col[0]; img.data[k + 1] = col[1]; img.data[k + 2] = col[2]; img.data[k + 3] = 255; }
+        c.putImageData(img, 0, 0); return cv; }); },
+  update(camX, camY, t, dark) { this.init(); if (!this.on) { this.hide(); return; } if (!this.shown) { this.shown = true; this.box.style.display = 'block'; }
+    const W = this.box.clientWidth, H = this.box.clientHeight; this.box.style.opacity = dark > 0 ? Math.max(.3, .9 - dark * .7) : .94;
+    for (let i = 0; i < this.els.length; i++) { const d = this.defs[i], sp = 1.35 * d[3];                 // 2 Bildpunkte je Weltpixel; Wolken ziehen 1,35-mal so schnell vorbei wie der Boden
+      let x = (d[0] - camX * 2 * sp + t * 9 * d[3]) % this.TW, y = (d[1] - camY * 2 * sp + t * 2.5) % this.TH; if (x < 0) x += this.TW; if (y < 0) y += this.TH;
+      x -= 330; y -= 160; { const ddx = x + 144 * d[2] - W / 2, ddy = y + 66 * d[2] - H / 2, near = Math.hypot(ddx, ddy * .8); this.els[i].style.opacity = near < 120 ? .3 : near < 230 ? (.3 + (near - 120) / 110 * .7).toFixed(2) : 1; }   // über dir wird die Wolke durchscheinend, damit sie keine Gegner verdeckt
+      this.els[i].style.transform = x > W + 20 || y > H + 20 ? 'translate3d(-999px,0,0)' : 'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,0) scale(' + d[2] + ')';
+      let sx = (d[0] + 90 - camX * 2 + t * 9 * d[3]) % this.TW, sy = (d[1] + 150 - camY * 2 + t * 2.5) % this.TH; if (sx < 0) sx += this.TW; if (sy < 0) sy += this.TH;   // Wolkenschatten liegt am Boden: wandert so schnell wie die Landschaft
+      sx -= 330; sy -= 160; this.shs[i].style.transform = sx > W + 20 || sy > H + 20 ? 'translate3d(-999px,0,0)' : 'translate3d(' + sx.toFixed(1) + 'px,' + sy.toFixed(1) + 'px,0) scale(' + d[2] * 1.1 + ')'; } },
+  hide() { if (this.shown) { this.shown = false; this.box.style.display = 'none'; } } };
+try { CLOUDS.on = localStorage.getItem('loClouds') !== '0'; } catch (e) {}
+const SHADOWS = { on: true }; try { SHADOWS.on = localStorage.getItem('loShadow') !== '0'; } catch (e) {}
 const ENDLESS = { on: false, free: false };
 const TURBO = { on: false, free: false, mul: 1.5 };   // Turbo: das ganze Spiel läuft anderthalbfach so schnell
 const CHEAT = { god: false, color: false, turbo: false }; try { CHEAT.color = localStorage.getItem('loCheatColor') === '1'; CHEAT.turbo = localStorage.getItem('loCheatTurbo') === '1'; } catch (e) {}
@@ -542,29 +578,29 @@ const Shapes = {
     s.sway = true;
     return s;
   },
-  house(r) {
-    const panels = 3 + (r() * 3 | 0), w = panels * 4 + 3, wallH = 6, roofH = 6 + (r() * 3 | 0);
-    const h = wallH + roofH + 2, s = new Sprite(w, h, w >> 1, h - 1);
-    const lit = r() < .5 ? .42 : .0;       // manche Dächer haben eine helle, schraffierte Seite
-    for (let ry = 0; ry < roofH; ry++) {
-      const inset = Math.floor((roofH - 1 - ry) * .6);
-      for (let x = inset; x < w - inset; x++) {
-        let g = 28;
-        if (ry > 0 && ry < roofH - 1 && x > inset && x < w * lit) g = ((x + ry) & 1) ? 200 : 70;
-        s.px(x, ry + 2, g);
-      }
-    }
-    const cx = Math.floor(w * .68); s.px(cx, 0, 24); s.px(cx + 1, 0, 24); s.px(cx, 1, 24); s.px(cx + 1, 1, 24);
+  house(r) {                                     // schräg von links oben gesehen: helle Fachwerkfront, dunkle Seitenwand rechts, Dach mit heller Fläche und dunklem Walm
+    const panels = 3 + (r() * 3 | 0), w = panels * 4 + 3, wallH = 6, roofH = 6 + (r() * 3 | 0), D = 5, up = 3;   // D: Tiefe nach rechts, up: wie weit die Rückseite höher liegt
+    const h = wallH + roofH + up + 2, s = new Sprite(w + D, h, (w + D) >> 1, h - 1), top = new Sprite(w + D, h, (w + D) >> 1, h - 1), ink = 24, rb = roofH + up + 1;            // rb: Zeile der Traufe vorn
+    const thatch = r() < .5;
+    // Seitenwand (Parallelogramm, im Schatten)
+    for (let i = 0; i < D; i++) { const sh = Math.round((i + 1) * up / D); for (let wy = 0; wy < wallH; wy++) { const y = rb + wy - sh, x = w + i; s.px(x, y, wy === wallH - 1 || i === D - 1 ? ink : ((x + y) & 1) ? 44 : 92); } if (i === 2) { s.px(w + i, rb + 2 - sh, 200); s.px(w + i, rb + 3 - sh, 200); } }
+    // Front: Fachwerk, Tür, Fenster
     const door = r() * panels | 0;
-    for (let wy = 0; wy < wallH; wy++) for (let x = 1; x < w - 1; x++) {
-      const p = (x - 1) >> 2, ix = (x - 1) & 3;
-      let g = 236;
-      if (ix === 0 || x === w - 2 || wy === wallH - 1) g = 26;       // Fachwerk
-      else if (p === door && wy >= 1) g = 22;                          // Tor
-      else if (p !== door && ix === 2 && (wy === 1 || wy === 2)) g = 30; // Fenster
-      s.px(x, roofH + 2 + wy, g);
-    }
-    s.solid = {hw: (w >> 1) - 1, hh: wallH + 1};
+    for (let wy = 0; wy < wallH; wy++) for (let x = 0; x < w; x++) { const pn = (x - 1) >> 2, ix = (x - 1) & 3; let g = 240;
+      if (x === 0 || x === w - 1 || wy === wallH - 1) g = ink; else if (pn === door && wy >= 2 && ix >= 1 && ix <= 2) g = 30; else if (ix === 0) g = 128; else if (pn !== door && ix === 2 && (wy === 2 || wy === 3)) g = 34;   // Balken nur noch grau: die Front bleibt hell
+      s.px(x, rb + wy, g); }
+    // Dach: vordere Fläche steigt zum First an und weicht dabei nach rechts zurück; rechts schließt der Walm im Schatten ab
+    const rx = Math.round(D * .5);                                                                // First liegt um die halbe Tiefe nach rechts versetzt
+    for (let ry = 0; ry <= roofH; ry++) { const y = rb - ry, t = ry / roofH, x0 = Math.round(-1 + t * (rx + 2)), x1 = Math.round(w + t * (rx - 2 - 0)), xe = Math.round(w + D - 1 - t * (D - rx + 1));   // x0..x1 Lichtfläche, x1..xe Walm
+      for (let x = x0; x <= xe; x++) { let g;
+        if (x <= x1) g = x === x0 || ry === 0 || ry === roofH ? ink : thatch ? (((x * 3 + ry * 5) % 7 === 0) ? 120 : 226) : ((ry & 1) && ((x + ry) % 4 === 0) ? 110 : 214);
+        else g = x === xe || ry === 0 ? ink : ((x - ry) & 1) ? 30 : 84;
+        if (x === x1 && ry > 0 && ry < roofH) g = ink;                                              // Grat zwischen Licht- und Schattenseite
+        top.px(x, y - (x >= w ? Math.round((x - w + 1) * up / D * (1 - t)) : 0), g); } }
+    // Schornstein: links hell, rechts dunkel
+    { const cx = Math.round(w * .62) + rx, cy = rb - roofH - 2; for (let y = 0; y < 3; y++) { top.px(cx, cy + y, 236); top.px(cx + 1, cy + y, ink); } top.px(cx, cy - 1, ink); top.px(cx + 1, cy - 1, ink); }
+    for (let x = 1; x < w + D - 1; x++) if (top.d[rb * (w + D) + x] >= 0 && s.d[(rb - 1) * (w + D) + x] < 0 && x < w) s.px(x, rb - 1, ink);   // dunkle Fuge unter der Traufe, falls das Dach zur Seite rückt
+    s.top = top; s.solid = {hw: ((w + D) >> 1) - 1, hh: wallH + 1};
     return s;
   },
   rock(r) {
@@ -583,6 +619,13 @@ const Shapes = {
     const a = Sprite.fromRows(top.concat(['.#.#..#.#..', '.#.#..#.#..']), m, 5, 8), b = Sprite.fromRows(top.concat(['..#.#.#.#..', '.#...#...#.']), m, 5, 8);
     return {r: [a, b], l: [a.flipped(), b.flipped()]};
   },
+  depth(s, D = 4, up = 2, y0 = 0) {              // gibt einer flachen Front Tiefe: rechts neben jeder Zeile eine schraffierte Seitenfläche, nach hinten ansteigend
+    const n = new Sprite(s.w + D, s.h + up, s.ax, s.ay + up);
+    for (let y = y0; y < s.h; y++) { let xr = -1; for (let x = s.w - 1; x >= 0; x--) if (s.d[y * s.w + x] >= 0) { xr = x; break; } if (xr < 0) continue;
+      for (let i = 0; i < D; i++) { const X = xr + 1 + i, Y = y + up - Math.round((i + 1) * up / D); n.px(X, Y, i === D - 1 || y === s.h - 1 ? 24 : ((X + Y) & 1) ? 40 : 92); } }
+    for (let y = 0; y < s.h; y++) for (let x = 0; x < s.w; x++) { const v = s.d[y * s.w + x]; if (v >= 0) n.px(x, y + up, v); }
+    n.solid = s.solid; return n;
+  },
   lantern() {                                    // Laterne: Pfahl, Querarm, Glaskasten mit roter Flamme
     const s = new Sprite(5, 12, 2, 11), D = 22;
     for (let y = 3; y < 12; y++) s.px(2, y, D); s.px(1, 11, D); s.px(3, 11, D);
@@ -590,15 +633,25 @@ const Shapes = {
     for (let y = 1; y < 4; y++) { s.px(0, y, D); s.px(4, y, D); s.px(1, y, 238); s.px(3, y, 238); s.px(2, y, y === 1 ? 238 : RED); }
     return s;
   },
-  smithy() {                                     // Schmiede: Dach mit rauchendem Schlot, offene Esse mit Glut, Amboss vor der Tür
-    const w = 25, h = 18, s = new Sprite(w, h, 12, h - 1), D = 24, L = 238;
-    for (let y = 0; y < 3; y++) for (let x = 17; x < 21; x++) s.px(x, y, D); s.px(18, 0, 110); s.px(19, 0, 110);
-    for (let y = 2; y < 8; y++) { const ins = 7 - y; for (let x = ins; x < w - ins; x++) s.px(x, y, (y > 2 && y < 7 && (x + y) % 3 === 0) ? 130 : D); }
-    for (let y = 8; y < h; y++) for (let x = 1; x < w - 1; x++) s.px(x, y, x === 1 || x === w - 2 || y === h - 1 ? D : x < 10 ? L : x === 10 ? D : 34);
-    for (let y = 11; y < h - 1; y++) { s.px(4, y, D); s.px(5, y, D); s.px(6, y, D); }      // Tür
-    for (let y = 12; y < 16; y++) for (let x = 13; x < 21; x++) s.px(x, y, y === 12 ? D : (x + y) % 2 ? RED : 60);   // Glut in der Esse
-    for (let x = 14; x < 20; x++) s.px(x, 16, L); s.px(16, 15, L); s.px(17, 15, L);                                  // Amboss
-    s.solid = {hw: 11, hh: 8}; return s;
+  smithy() {                                     // Schmiede im Stil der Häuser: helle Front mit Tür und offener, glühender Esse; dunkle Seitenwand; Dach mit Lichtfläche und Walm; gemauerter Schlot mit Rauch; Amboss davor
+    const w = 21, wallH = 8, roofH = 7, D = 6, up = 3, h = wallH + roofH + up + 6, W = w + D, s = new Sprite(W, h, W >> 1, h - 3), top = new Sprite(W, h, W >> 1, h - 3), ink = 24, rb = roofH + up + 4;
+    for (let i = 0; i < D; i++) { const sh = Math.round((i + 1) * up / D); for (let wy = 0; wy < wallH; wy++) { const y = rb + wy - sh, x = w + i; s.px(x, y, wy === wallH - 1 || i === D - 1 ? ink : ((x + y) & 1) ? 44 : 92); } }
+    for (let wy = 0; wy < wallH; wy++) for (let x = 0; x < w; x++) { let g = 240;
+      if (x === 0 || x === w - 1 || wy === wallH - 1) g = ink; else if (x >= 2 && x <= 5 && wy >= 2) g = x === 2 || x === 5 || wy === 2 ? ink : 34;                 // Tür
+      else if (x >= 8 && x <= 18 && wy >= 1 && wy <= 6) g = x === 8 || x === 18 || wy === 1 ? ink : wy >= 4 ? (((x + wy) & 1) ? RED : 60) : 30;                      // offene Esse: oben dunkel, unten Glut
+      else if (x === 7 || x === 19) g = 128;
+      s.px(x, rb + wy, g); }
+    for (let x = 10; x <= 15; x++) s.px(x, rb + wallH + 1, x === 10 || x === 15 ? ink : 236); for (let x = 11; x <= 14; x++) s.px(x, rb + wallH, ink); s.px(12, rb + wallH + 2, ink); s.px(13, rb + wallH + 2, ink);   // Amboss vor der Esse
+    const rx = Math.round(D * .5);
+    for (let ry = 0; ry <= roofH; ry++) { const y = rb - ry, t = ry / roofH, x0 = Math.round(-1 + t * (rx + 2)), x1 = Math.round(w + t * (rx - 2)), xe = Math.round(W - 1 - t * (D - rx + 1));
+      for (let x = x0; x <= xe; x++) { let g;
+        if (x <= x1) g = x === x0 || ry === 0 || ry === roofH ? ink : ((ry & 1) && ((x + ry) % 3 === 0) ? 96 : 200);
+        else g = x === xe || ry === 0 ? ink : ((x - ry) & 1) ? 30 : 84;
+        if (x === x1 && ry > 0 && ry < roofH) g = ink;
+        top.px(x, y - (x >= w ? Math.round((x - w + 1) * up / D * (1 - t)) : 0), g); } }
+    { const cx = 15 + rx, cy = rb - roofH - 4; for (let y = 0; y < 6; y++) { top.px(cx - 1, cy + y, ink); top.px(cx, cy + y, 236); top.px(cx + 1, cy + y, 150); top.px(cx + 2, cy + y, ink); } for (let x = -1; x <= 2; x++) top.px(cx + x, cy - 1, ink);
+      top.px(cx + 1, cy - 3, 110); top.px(cx + 2, cy - 3, 150); top.px(cx + 2, cy - 5, 110); top.px(cx + 3, cy - 5, 170); top.px(cx + 4, cy - 6, 150); }                    // Rauch
+    s.top = top; s.solid = {hw: (W >> 1) - 1, hh: wallH + 1}; return s;
   },
   stall() {                                      // Mietstall: Dach, offene Box mit Pferdekopf, Zaun
     const w = 25, h = 16, s = new Sprite(w, h, 12, h - 1), D = 24, L = 238;
@@ -608,7 +661,7 @@ const Shapes = {
     for (const [x, y] of [[14, 8], [15, 8], [13, 9], [14, 9], [15, 9], [16, 9], [14, 10], [15, 10], [16, 10], [17, 10], [15, 11], [16, 11], [15, 12], [16, 12], [15, 13], [16, 13]]) s.px(x, y, L);   // Pferdekopf
     s.px(14, 7, L); s.px(16, 7, L); s.px(15, 9, D);
     for (let x = 10; x < w - 2; x++) if (x % 3 === 0) { s.px(x, h - 2, L); s.px(x, h - 3, L); }
-    s.solid = {hw: 11, hh: 7}; return s;
+    s.solid = {hw: 11, hh: 7}; return Shapes.depth(s, 5, 3);
   },
   player() {
     const m = {'#': 18, 'o': 92};
@@ -618,7 +671,7 @@ const Shapes = {
   }
 };
 // Farbton je Gestalt (nur im Farbdruck sichtbar)
-{ const tag = (names, t) => { for (const k of names) { const f = Shapes[k]; if (!f) continue; Shapes[k] = function () { const sp = f.apply(Shapes, arguments); if (sp && typeof sp === 'object') sp.tint = t; return sp; }; } };
+{ const tag = (names, t) => { for (const k of names) { const f = Shapes[k]; if (!f) continue; Shapes[k] = function () { const sp = f.apply(Shapes, arguments); if (sp && typeof sp === 'object') { sp.tint = t; if (sp.top) sp.top.tint = t; } return sp; }; } };
   tag(['conifer', 'leaf', 'bigtree', 'worldtree'], 11); tag(['house', 'mill', 'stall', 'smithy'], 12); tag(['deadtree'], 5);
   tag(['rock', 'well', 'grave', 'stone', 'tower', 'castle', 'obelisk', 'church', 'chapel', 'ruin', 'peak', 'altar', 'giantCastle', 'giantPillar', 'giantStatue', 'crypt'], 6); }
 
@@ -645,7 +698,8 @@ class World {
     const t = this.typeAt(x, y);
     if (t === T.WATER || t === T.MOUNT || t === T.RAIL) return true;
     const gx = clamp(x / GRID | 0, 0, GRIDN - 1), gy = clamp(y / GRID | 0, 0, GRIDN - 1);
-    for (let i = 0; i < this.giants.length; i++) { const o = this.giants[i], s = o.spr.solid; if (s && Math.abs(x - o.x) <= s.hw + 1 && y <= o.y + 1 && y >= o.y - s.hh) return true; }
+    for (let i = 0; i < this.giants.length; i++) { const o = this.giants[i], s = o.spr.solid; if (s && Math.abs(x - o.x) <= s.hw + 1 && y <= o.y + 1 && y >= o.y - s.hh) return true;
+      const H = o.spr.hull; if (H) { const ry = (y | 0) - o.y - H.y0; if (ry >= 0 && ry < H.mn.length) { const rx = (x | 0) - o.x; if (rx >= H.mn[ry] && rx <= H.mx[ry]) return true; } } }
     for (let cy = Math.max(0, gy - 1); cy <= Math.min(GRIDN - 1, gy + 1); cy++)
       for (let cx = Math.max(0, gx - 1); cx <= Math.min(GRIDN - 1, gx + 1); cx++) {
         const cell = this.grid[cy * GRIDN + cx];
@@ -759,7 +813,7 @@ Object.assign(Shapes, {
     for (let y = 23; y < h; y++) for (let x = 10; x < w; x++) s.px(x, y, (x === w - 1 || y === h - 1) ? D : L);
     [12, 16, 20].forEach((x, i) => { const lit = i < open;                         // offenes Fenster leuchtet rot, geschlossenes ist ein dunkler Laden
       s.px(x + 1, 25, D); for (let y = 26; y < 30; y++) { s.px(x, y, D); s.px(x + 1, y, lit ? RED : D); s.px(x + 2, y, D); } if (lit) s.px(x + 1, 25, RED); });
-    s.solid = {hw: 12, hh: 9}; return s;
+    s.solid = {hw: 12, hh: 9}; return Shapes.depth(s, 5, 3, 3);
   },
   mill() {
     const w = 21, h = 28, s = new Sprite(w, h, 10, h - 1);
@@ -778,7 +832,7 @@ Object.assign(Shapes, {
     for (let y = 9; y < 12; y++) for (let x = 4; x < 12; x++) s.px(x, y, (y === 10 && (x & 1)) ? 120 : 28);
     for (let y = 12; y < 16; y++) for (let x = 4; x < 12; x++) s.px(x, y, (x === 11 || y === 15) ? D : L);
     [[2, 8], [6, 12], [9, 12]].forEach(([x, y], i) => { const c = i < open ? RED : D; s.px(x, y, c); s.px(x, y + 1, c); });
-    s.px(2, 8 + 2, 236); s.solid = {hw: 5, hh: 4}; return s;
+    s.px(2, 8 + 2, 236); s.solid = {hw: 5, hh: 4}; return Shapes.depth(s, 3, 2, 4);
   },
   ruin(r) {
     const arch = r() < .35, w = arch ? 15 : 8 + (r() * 9 | 0), h = arch ? 16 : 9 + (r() * 7 | 0), s = new Sprite(w, h, w >> 1, h - 1);
@@ -866,7 +920,11 @@ Object.assign(Shapes, {
       const h1 = hash2(bx + dx | 0, b2 + dy | 0, 5), d = Math.sqrt(dx * dx + dy * dy * 1.7) + (h1 - .5) * 5; if (d > rad) continue;
       const lit = (-dx - dy * 1.4) / rad, h2 = hash2((bx + dx) >> 1, b2 + dy | 0, 9);
       put(bx + dx, b2 + dy, d > rad - 2 ? 22 : bloom ? (h2 < .7 ? 238 : 130) : lit > .4 ? (h2 < .62 ? 238 : 140) : lit > -.15 ? (h2 < .3 ? 160 : 62) : (h2 < .08 ? 100 : 24)); }
-    s.solid = {hw: 30, hh: 12}; return s;
+    s.solid = {hw: 30, hh: 12};
+    { const y0 = s.ay - 34, y1 = Math.min(s.h - 1, s.ay + 13), mn = new Int16Array(y1 - y0 + 1), mx = new Int16Array(y1 - y0 + 1);   // Wurzelwerk: je Zeile vom ersten bis zum letzten Wurzelpixel dicht, damit man nicht hindurchläuft
+      for (let y = y0; y <= y1; y++) { let a = 1e4, b = -1e4; for (let x = 0; x < s.w; x++) if (s.d[y * s.w + x] >= 0 && s.d[y * s.w + x] < 200) { if (x < a) a = x; if (x > b) b = x; } mn[y - y0] = a + 4 - s.ax; mx[y - y0] = b - 4 - s.ax; }
+      s.hull = {y0: y0 - s.ay, mn, mx}; }
+    return s;
   },
   giantCastle(r) {                               // Höhenburg auf einer Felskuppe: Bergfried, Palas mit Fachwerk, Rundtürme, verfallene Ecke, Torhaus mit Weg
     const W = 276, H = 222, cx = 138, by = 204, s = new Sprite(W, H, cx, by), D = 24;
@@ -1194,10 +1252,10 @@ class WorldGenerator {
     const well = Shapes.well(), tower = Shapes.tower(), chapel = Shapes.chapel(), bigtree = Shapes.bigtree(rng);
     const castle = Shapes.castle(rng), obelisk = Shapes.obelisk(), church = Shapes.church(), mill = Shapes.mill(), stall = Shapes.stall();
     const pick = a => a[rng() * a.length | 0];
-    const hs = [], avoid = [];
+    const hs = [], avoid = [], kirchen = [];
     const nearHouse = (x, y, mx = 20, my = 22) => { for (let i = 0; i < hs.length; i += 2) if (Math.abs(x - hs[i]) < mx && Math.abs(y - hs[i + 1] + 8) < my) return true; return false; };
-    const blockedSite = (x, y) => { if (nearHouse(x, y)) return true; for (const a of avoid) if (Math.hypot(x - a.x, y - a.y) < a.r) return true; return false; };
-    const tryHouse = (x, y) => { x |= 0; y |= 0; if (free(x, y) && free(x - 9, y) && free(x + 9, y) && free(x, y - 7) && !nearHouse(x, y + 8, 24, 17)) { w.add(x, y, pick(houses)); hs.push(x, y); return true; } return false; };
+    const blockedSite = (x, y) => { if (nearHouse(x, y) || kirchen.some(k => Math.abs(x - k.x) < 30 && y > k.y - 6 && y < k.y + 46)) return true; for (const a of avoid) if (Math.hypot(x - a.x, y - a.y) < a.r) return true; return false; };
+    const tryHouse = (x, y) => { x |= 0; y |= 0; if (free(x, y) && free(x - 9, y) && free(x + 9, y) && free(x, y - 7) && free(x + 14, y) && !nearHouse(x, y + 8, 32, 21) && !kirchen.some(k => Math.abs(x - k.x) < 30 && y > k.y - 6 && y < k.y + 46)) { w.add(x, y, pick(houses)); hs.push(x, y); return true; } return false; };
     const poi = (kind, x, y, r) => { w.pois.push({kind, x: x | 0, y: y | 0}); avoid.push({x, y, r}); };
 
     // ---------- 10. Häuser entlang der Gassen, Brunnen auf dem Platz
@@ -1205,7 +1263,7 @@ class WorldGenerator {
       w.add(s.x + (city ? 0 : 1), s.y - 1, well);
       if (city) for (const [ox, oy] of [[24, -10], [-24, -10], [24, 30], [-24, 30], [40, -22], [-40, -22], [42, 40], [-42, 40], [0, -44], [0, 58], [60, 4], [-60, 4]]) {         // Stadtkirche am Platz, vor den Häusern
         const x = s.x + ox, y = s.y + oy;
-        if ([[0, 0], [-12, 0], [12, 0], [-12, -8], [12, -8]].every(([a, b]) => free(x + a, y + b))) { w.add(x, y, church); hs.push(x - 8, y, x + 8, y); w.pois.push({kind: 'Kirche', x, y, obj: w.lastObj}); break; }
+        if ([[0, 0], [-12, 0], [12, 0], [-12, -8], [12, -8]].every(([a, b]) => free(x + a, y + b))) { w.add(x, y, church); kirchen.push({x, y}); hs.push(x - 8, y, x + 8, y); w.pois.push({kind: 'Kirche', x, y, obj: w.lastObj}); break; }
       }
       for (const arm of s.arms) { const n = arm.pts.length / 2;
         for (let d = 16; d < n; d += 21) for (const side of [-1, 1]) { const px = arm.pts[d * 2], py = arm.pts[d * 2 + 1];
@@ -1429,7 +1487,7 @@ class Renderer {
     this.canvas.width = this.bw; this.canvas.height = this.bh;
     this.canvas.style.width = this.bw * this.scale + 'px';
     this.canvas.style.height = this.bh * this.scale + 'px';
-    this.frame = new Uint8Array(this.bw * this.bh); this.tint = new Uint8Array(this.bw * this.bh); this.tmp = this.tmp2 = null; this.lb = new Uint8Array(this.bw * this.bh);
+    this.frame = new Uint8Array(this.bw * this.bh); this.tint = new Uint8Array(this.bw * this.bh); this.tmp = this.tmp2 = null; this.lb = new Uint8Array(this.bw * this.bh); this.shm = new Uint8Array(this.bw * this.bh);
     this.img = this.ctx.createImageData(this.bw, this.bh);
     this.out = new Uint32Array(this.img.data.buffer);
   }
@@ -1464,6 +1522,16 @@ class Renderer {
     const f = this.frame, bw = this.bw, bh = this.bh, d = s.d, w = s.w;
     const x0 = Math.max(0, -sx), x1 = Math.min(w, bw - sx), y0 = Math.max(0, -sy), y1 = Math.min(s.h, bh - sy);
     for (let y = y0; y < y1; y++) { let si = y * w + x0, di = (sy + y) * bw + sx + x0; for (let x = x0; x < x1; x++, si++, di++) { const g = d[si]; if (g >= 0 && ((x + y) & 1) === 0) f[di] = g; } }
+  }
+  // Schlagschatten: die Gestalt, flach nach rechts unten auf den Boden gelegt (Licht von links oben, wie bei Bergen und Dächern). Je Gestalt einmal berechnet
+  shadow(s, X, Y) {
+    let sh = s.sh;
+    if (!sh) { const seen = new Set(), o = [], big = s.w > 100, kx = big ? .34 : .6, ky = big ? .17 : .3, st = big ? 2 : 1;      // Wahrzeichen: kürzerer Schatten, gröber abgetastet (sonst würde er das halbe Bild verdunkeln)
+      for (const q of (s.top ? [s, s.top] : [s])) for (let y = 0; y <= Math.min(q.h - 1, q.ay); y += st) for (let x = 0; x < q.w; x += st) if (q.d[y * q.w + x] >= 0) { const h = q.ay - y, px = x - q.ax + Math.round(h * kx) + 1, py = -Math.round(h * ky);
+        for (let b = 0; b < st * st; b++) { const ax2 = px + (b % st), ay2 = py + (b / st | 0), k = (ax2 + 2048) * 4096 + ay2 + 2048; if (!seen.has(k)) { seen.add(k); o.push(ax2, ay2); } } }
+      sh = s.sh = Int16Array.from(o); }
+    const f = this.frame, m = this.shm, bw = this.bw, bh = this.bh;
+    for (let i = 0; i < sh.length; i += 2) { const x = X + sh[i], y = Y + sh[i + 1]; if (x < 0 || y < 0 || x >= bw || y >= bh) continue; const k = y * bw + x; if (m[k]) continue; m[k] = 1; const v = f[k]; if (v !== RED) f[k] = v * .56 + 4; }
   }
   // Lichtfleck in den Lichtpuffer stempeln (hellster Wert gewinnt): innen voll, zum Rand weich auslaufend
   light(X, Y, R) {
@@ -1513,14 +1581,18 @@ class Renderer {
     if (!scene || scene.playerVisible) vis.push(this.pObj);
     if (scene) for (let i = 0; i < scene.dyn.length; i++) vis.push(scene.dyn[i]);
     vis.sort((a, b) => a.y - b.y);
+    this.pcx = this.pcx === undefined || Math.abs(cx - this.pcx) > 40 ? cx : this.pcx + (cx - this.pcx) * .18;   // geglättete Kamera für die Dachverschiebung: Wackeln und Ruckler schlagen nicht durch
+    if (SHADOWS.on) { this.shm.fill(0); for (let i = 0; i < vis.length; i++) { const o = vis[i]; if (o.spr && !o.spr.flat) this.shadow(o.spr, (o.x | 0) - cx, (o.y | 0) - cy); } }
     for (let i = 0; i < vis.length; i++) {
       const o = vis[i], s = o.spr;
       if (o.giant) { const px = this.pObj.x, py = this.pObj.y, bx = o.x - s.ax, by0 = o.y - s.ay, under = px > bx && px < bx + s.w && py < o.y && py > by0 - 6;   // steht der Spieler dahinter oder darunter, wird das Wahrzeichen durchscheinend
         this.blitShear(s, bx - cx, by0 - cy, clamp((o.x - (cx + bw / 2)) * PARALLAX, -.1, .1), under, px - cx, py - 4 - cy); }
       else if (s.sway) this.blitSway(s, (o.x | 0) - s.ax - cx, (o.y | 0) - s.ay - cy,
-        .5 + Math.sin(time * 1.7 + o.x * .035 + o.y * .02) * .9 + Math.sin(time * .55 - o.x * .007 + o.y * .003) * 1.1);   // Wind + wandernde Böen
+        .5 + Math.sin(time * 1.7 + o.x * .035 + o.y * .02) * .9 + Math.sin(time * .55 - o.x * .007 + o.y * .003) * 1.1 + (SHADOWS.on ? clamp((o.x - cx - bw / 2) * .012, -1.6, 1.6) : 0));   // Wind + wandernde Böen + Neigung weg von der Bildmitte
       else if (o.flash > 0) this.blitFlat(s, (o.x | 0) - s.ax - cx, (o.y | 0) - s.ay - cy, 238);
-      else this.blit(s, (o.x | 0) - s.ax - cx, (o.y | 0) - s.ay - cy);
+      else { this.blit(s, (o.x | 0) - s.ax - cx, (o.y | 0) - s.ay - cy);
+        if (s.top) { let po = 0; if (SHADOWS.on) { const want = clamp((o.x - this.pcx - bw / 2) * .018, -2, 2); po = o.po === undefined ? Math.round(want) : o.po; if (Math.abs(want - po) > .85) po += want > po ? 1 : -1; o.po = po; }
+          this.blit(s.top, (o.x | 0) - s.ax - cx + po, (o.y | 0) - s.ay - cy); } }   // Dach rückt zur Seite, je weiter das Haus von der Bildmitte steht
     }
     // verdeckter Spieler scheint als gerasterte Silhouette durch
     if (!scene || scene.playerVisible) { const s = this.pObj.spr, sx = this.pObj.x - s.ax - cx, sy = this.pObj.y - s.ay - cy;
@@ -1599,6 +1671,8 @@ const WEAPONS = {
   bombe:     {name: 'Bombe',         w: 2.4, desc: ['Bleibt liegen und explodiert', 'Mehr Schaden', 'Größere Explosion', 'Zwei Bomben', 'Mehr Schaden']},
   begleiter: {name: 'Rabe',          w: 2.4, desc: ['Kreist um dich und hackt zu', 'Mehr Schaden', 'Zwei Raben', 'Kreisen schneller', 'Drei Raben']},
   stoss:     {name: 'Erdstoß',       w: 2,   desc: ['Druckwelle wirft alle zurück', 'Mehr Schaden', 'Größere Welle', 'Schnellere Folge', 'Mehr Schaden']},
+  nekro:     {name: 'Nekromantie',   w: 2.2, desc: ['Ein Skelett erhebt sich und kämpft 10 Sekunden lang für dich', 'Stärker, hält länger', 'Zwei Skelette', 'Stärker, wird öfter beschworen', 'Drei Skelette']},
+  meteor:    {name: 'Meteor',        w: 2,   desc: ['Ein Feuerbrocken stürzt auf einen Feind in Sichtweite und reißt einen Krater', 'Mehr Schaden', 'Größerer Krater', 'Zwei Brocken', 'Mehr Schaden, schnellere Folge']},
   frost:     {name: 'Frostnova',     w: 2.4, desc: ['Kältewelle verlangsamt alle in der Nähe', 'Größere Welle', 'Hält länger an', 'Schnellere Folge', 'Friert Feinde kurz ganz ein']},
   // ---- Kräfte: gibt es nur als Lohn für einen besiegten Boss (found); danach auch beim Stufenaufstieg ausbaubar
   seuche:    {name: 'Seuche',        w: 3, found: true, desc: ['Steckt einen Feind an: er siecht dahin und steckt jeden an, den er berührt', 'Mehr Schaden, greift eine Berührung weiter um sich', 'Mehr Schaden, steckt öfter neu an', 'Mehr Schaden, greift weiter um sich', 'Mehr Schaden, steckt noch öfter an']},
@@ -1631,6 +1705,7 @@ const PASSIVES = {
   schild:  {name: 'Schutzschild',  w: 2.2, desc: 'Fängt einen Treffer ganz ab, lädt sich dann neu auf (12 s, je Stufe 1,5 s schneller)', apply: p => { p.shield = (p.shield || 0) + 1; p.shieldT = 0; }},
   doppel:  {name: 'Zwillingswurf', w: 1.6, desc: '+20 % Chance je Stufe, dass ein Wurf oder Schuss doppelt fliegt (Stufe V: immer)', apply: p => { p.twin = (p.twin || 0) + .2; }},
   goldfluss: {name: 'Goldfluss',   w: 2.2, found: true, desc: 'Nur am riesigen Wahrzeichen zu finden, bewacht vom Goldgoblin (erst beim Krämer freischalten). Je Stufe werden 15 % der gesammelten Erfahrung zu Gold (2 Erfahrung = 1 Gold) – du steigst langsamer auf, der Beutel füllt sich schneller', apply: p => { p.goldFlow = (p.goldFlow || 0) + .15; }},
+  dornen:  {name: 'Dornenpanzer',  w: 2.5, desc: 'Wer dich trifft, wird selbst getroffen: 6 Schaden je Stufe an allen Feinden dicht um dich', apply: p => { p.thorns = (p.thorns || 0) + 1; }},
   blut:    {name: 'Blutdurst',     w: 2, desc: 'Du stiehlst 1 % deines Schadens als Leben, je Stufe 1 % mehr – auch vom Boss (höchstens 2 Leben je Sekunde und Stufe)', apply: p => { p.leech = (p.leech || 0) + .01; }},
   glocke:  {name: 'Unheilsglocke', w: 0, found: true, desc: 'Lockt +20 % mehr Feinde an, Horden werden größer: mehr Beute, mehr Gefahr', apply: p => { p.lure = (p.lure || 0) + 1; }}
 };
@@ -1670,6 +1745,8 @@ const GUARD = {name: 'Die Fleischkugel', ai: 'ball', guard: true, hp: BOSS.hp / 
 // Goldgoblin: bewacht am riesigen Wahrzeichen den Goldfluss (nur wenn beim Krämer freigeschaltet)
 const GOBLIN_SPR = (() => { const a = ES(['..#...........#..', '.##...#####...##.', '.###.#######.###.', '..##o#######o##..', '...###w###w###...', '...###########...', '....##o###o##....', '....#########....', '..####ooooo####..', '.###.#######.###.', '.##..#######..##.', '.##..#######..###', '.....###.###...##', '.....###.###...##', '....####.####....']), b = ES(['.#.............#.', '.##...#####...##.', '.###.#######.###.', '..##o#######o##..', '...###w###w###...', '...###########...', '....##o###o##....', '....#########....', '..####ooooo####..', '.###.#######.###.', '###..#######..##.', '##...#######..##.', '##....##.###.....', '......##.####....', '.....###..###....']); return [a, b, a.flipped(), b.flipped()]; })();
 const GOBLIN = {name: 'Der Goldgoblin', ai: 'goblin', guard: true, hoard: true, hp: BOSS.hp * .6, sp: 28, dmg: 11, xp: 10, r: 7, spr: GOBLIN_SPR[0]};
+// beschworene Skelette (Nekromantie): zwei Schrittbilder, je nach Blickrichtung gespiegelt
+const SKEL_SPR = (() => { const a = ES(['..###..', '.#www#.', '.#w#w#.', '.#www#.', '..#w#..', '.#www#.', '#.www.#', '..w#w..', '.##.##.']), b = ES(['..###..', '.#www#.', '.#w#w#.', '.#www#.', '..#w#..', '#.www.#', '.#www#.', '..w#w..', '.#...#.']); return [a, b, a.flipped(), b.flipped()]; })();
 class Combat {
   constructor(game, allWeapons) {
     this.g = game; this.time = 0; this.spawnT = 1.5; this.alive = 0; this.kills = 0;
@@ -1685,7 +1762,7 @@ class Combat {
     const p = game.player; p.maxHp = 100; p.hp = 100; p.xp = 0; p.level = 1; p.xpNext = 5; p.inv = 0; p.pickup = 24;
     p.dmgMul = 1; p.cdMul = 1; p.area = 1; p.crit = 0; p.armor = 0; p.xpMul = 1; p.speedMul = 1; this.applyMeta();
     this.weapons = []; this.items = {}; this.aimX = 1; this.aimY = 0;
-    this.gold = 0; this.goldPending = 0; this.earnPending = 0; this.gfAcc = 0; this.rerolls = 3; this.bans = 2; this.banned = {}; this.autoPick = ''; this.ebombs = [];
+    this.gold = 0; this.goldPending = 0; this.earnPending = 0; this.gfAcc = 0; this.rerolls = 3; this.bans = 2; this.banned = {}; this.autoPick = ''; this.ebombs = []; this.allies = []; this.meteors = [];
     this.choose({id: 'messer', kind: 'w', lvl: 1});
     if ((game.meta.zweit | 0) > 0) { const ids = Object.keys(WEAPONS).filter(id => id !== 'messer' && !WEAPONS[id].found && !WEAPONS[id].forge); this.choose({id: ids[Math.random() * ids.length | 0], kind: 'w', lvl: 1}); }
     if (allWeapons) for (const id in WEAPONS) if (!this.items[id]) this.choose({id, kind: 'w', lvl: 1});
@@ -1709,7 +1786,7 @@ class Combat {
     this.altar = ap ? {x: ap.x, y: ap.y, obj: ap.obj, state: 0, taken: false} : null; this.guard = null;
     this.waveT = 25;
     const sp0 = w.pois.find(o => o.kind === 'Stall'); this.stall = sp0 && w.reachable(sp0.x, sp0.y + 6) ? {x: sp0.x, y: sp0.y, asked: false, used: false} : null;
-    const sm0 = w.pois.find(o => o.kind === 'Schmied'); this.smith = sm0 && w.reachable(sm0.x, sm0.y + 6) ? {x: sm0.x, y: sm0.y, asked: false, used: false} : null; this.pestQ.length = 0; this.ebombs.length = 0;
+    const sm0 = w.pois.find(o => o.kind === 'Schmied'); this.smith = sm0 && w.reachable(sm0.x, sm0.y + 6) ? {x: sm0.x, y: sm0.y, asked: false, used: false} : null; this.pestQ.length = 0; this.ebombs.length = 0; this.allies.length = 0; this.meteors.length = 0;
     // Unheilsglocke: liegt in jeder Ebene an einem besonderen Ort und ist nur dort zu bekommen
     const bp = w.pois.filter(o => ['Steinkreis', 'Großer Baum', 'Obelisk', 'Mühle', 'Ruine'].includes(o.kind) && o !== w.exit);
     const bo = bp.length ? bp[w.seed % bp.length] : null, bs0 = bo ? spot(bo.x - 16, bo.y - 8) : spot(w.spawn.x + 90, w.spawn.y - 70);
@@ -1804,7 +1881,9 @@ class Combat {
   hurt(d, src) { const p = this.g.player; if (p.inv > 0 || CHEAT.god) return;
     if (p.shield > 0 && p.shieldT <= 0) { p.shieldT = 13.5 - 1.5 * p.shield; p.inv = .6; this.boom(p.x, p.y - 3, 9, 2); return; }   // Schutzschild fängt den Treffer ab
     if (p.horse > 0 && --p.horse === 0) this.g.toast('Dein Pferd geht durch. Du läufst wieder zu Fuß.');                          // drei Treffer, dann ist das Pferd weg
-    const hitD = d * this.dmgLvl, dm = Math.max(1, hitD * .25, hitD - p.armor); p.hp -= dm; this.lastSrc = src || 'einen Feind'; if (this.onHurt) this.onHurt(dm, this.lastSrc); p.inv = .6; if (p.hp <= 0) { p.hp = 0; this.g.gameOver(); } }
+    const hitD = d * this.dmgLvl, dm = Math.max(1, hitD * .25, hitD - p.armor); p.hp -= dm; this.lastSrc = src || 'einen Feind'; if (this.onHurt) this.onHurt(dm, this.lastSrc); p.inv = .6;
+    if (p.thorns > 0) { this.boom(p.x, p.y - 3, 14, 0); this.aoe(p.x, p.y - 3, 17 * p.area, 6 * p.thorns, 2.5); }   // Dornenpanzer schlägt zurück
+    if (p.hp <= 0) { p.hp = 0; this.g.gameOver(); } }
   spawn(t) {
     const g = this.g, p = g.player, w = g.world, R = Math.hypot(g.renderer.bw, g.renderer.bh) / 2 + 12;
     let x = 0, y = 0, ty = T.MOUNT;
@@ -1917,6 +1996,16 @@ class Combat {
     for (let i = 0, nF = Math.round(10 * vis); i < nF; i++) { const m = this.get(this.smoke); if (!m) break; const a = Math.random() * 6.283, v = 40 + Math.random() * 50;
       m.alive = true; m.spark = true; m.x = x; m.y = y; m.vx = Math.cos(a) * v; m.vy = Math.sin(a) * v * .7 - 25; m.t = 0; m.life = .35 + Math.random() * .25; m.r = 0; }
     this.g.shakeT = .32; this.g.shakeA = Math.max(this.g.shakeT > 0 ? this.g.shakeA || 0 : 0, shake);
+  }
+  strike(x, y) {                                 // Blitzeinschlag: Bahn mit eigenem Zufall, Lichtblitz am Boden, Funken, kurzes Beben
+    const f = this.get(this.fx); if (f) { f.alive = true; f.x = x; f.y = y; f.t = 0; f.r = 0; f.kind = 1; f.x2 = Math.random() * 1e5 | 0; }
+    this.boom(x, y, 9, 4); this.boom(x, y + 1, 10);
+    for (let i = 0; i < 6; i++) { const m = this.get(this.smoke); if (!m) break; const a = Math.random() * 6.283, v = 30 + Math.random() * 45; m.alive = true; m.spark = true; m.x = x; m.y = y; m.vx = Math.cos(a) * v; m.vy = Math.sin(a) * v * .6 - 30; m.t = 0; m.life = .25 + Math.random() * .2; m.r = 0; }
+    if (!(this.g.shakeT > 0)) { this.g.shakeT = .14; this.g.shakeA = 1.3; }
+  }
+  debris(x, y, R, n) {                           // Erdbrocken fliegen vom Wellenkamm nach außen und fallen im Bogen zurück
+    for (let i = 0; i < n; i++) { const m = this.get(this.smoke); if (!m) break; const a = Math.random() * 6.283, q = R * (.45 + Math.random() * .4), v = 26 + Math.random() * 44;
+      m.alive = true; m.spark = 2; m.x = x + Math.cos(a) * q; m.y = y + Math.sin(a) * q * .8; m.vx = Math.cos(a) * v; m.vy = Math.sin(a) * v * .6 - 55 - Math.random() * 45; m.t = 0; m.life = .5 + Math.random() * .3; m.r = 0; }
   }
   line(x, y, x2, y2) { const f = this.get(this.fx); if (f) { f.alive = true; f.x = x; f.y = y; f.x2 = x2; f.y2 = y2; f.t = 0; f.r = 0; f.kind = 3; } }   // Blitzstrecke
   boom(x, y, r = 17, kind = 0) { const f = this.get(this.fx); if (f) { f.alive = true; f.x = x; f.y = y; f.t = 0; f.r = r; f.kind = kind; } }
@@ -2131,6 +2220,18 @@ class Combat {
       if (d < ty.r + 3 && ty.ai !== 'bomb' && !(e.frozT > 0) && !(ty.boss && e.state >= 3)) { this.hurt(ty.dmg, ty.boss ? ty.acc : 'einen ' + ty.name); if (ty.boss) p.inv = Math.max(p.inv, 1.1); }   // nach einem Boss-Treffer etwas länger unverwundbar
       if (Math.abs(e.x - p.x) < vx && Math.abs(e.y - p.y) < vy) this.dyn.push(e);
     }
+    // ---- Beschworene Skelette: suchen den nächsten Feind in deiner Nähe, schlagen zu, zerfallen nach ihrer Zeit
+    for (let i = this.allies.length - 1; i >= 0; i--) { const a = this.allies[i];
+      if ((a.t -= dt) <= 0) { this.boom(a.x, a.y - 3, 6); this.allies.splice(i, 1); continue; }
+      a.cd -= dt; let tg = null, bd = 95 * 95;
+      for (let j = 0; j < E.length; j++) { const e = E[j]; if (!e.alive || Math.abs(e.x - p.x) > 135 || Math.abs(e.y - p.y) > 150) continue; const q = (e.x - a.x) ** 2 + (e.y - a.y) ** 2; if (q < bd) { bd = q; tg = e; } }
+      const gx = tg ? tg.x : p.x + a.ox, gy = tg ? tg.y : p.y + a.oy, ox = gx - a.x, oy = gy - a.y, dd = Math.hypot(ox, oy) || 1, reach = tg ? tg.type.r + 5 : 6;
+      if (dd > reach) { const v = (tg ? 46 : 38) * dt; a.x += ox / dd * Math.min(v, dd); a.y += oy / dd * Math.min(v, dd); a.step += dt * 9; }
+      else if (tg && a.cd <= 0) { a.cd = .55; this.hit(tg, this.dmg(a.dmg), ox / dd, oy / dd); }
+      if (Math.abs(ox) > 1) a.face = ox > 0; a.spr = SKEL_SPR[(a.face ? 0 : 2) + ((a.step | 0) & 1)]; a.flash = a.t < 1.5 && ((a.t * 10 | 0) & 1) ? 1 : 0;   // blinkt, kurz bevor es zerfällt
+      if (Math.abs(a.x - p.x) < g.renderer.bw / 2 + 14 && Math.abs(a.y - p.y) < g.renderer.bh / 2 + 16) this.dyn.push(a); }
+    // ---- Meteore: Schatten wächst, Brocken fällt, Einschlag
+    for (let i = this.meteors.length - 1; i >= 0; i--) { const M = this.meteors[i]; if ((M.t -= dt) <= 0) { this.meteors.splice(i, 1); this.aoe(M.x, M.y, M.R, M.dmg, 2.2); this.blast(M.x, M.y, M.R, 2.8, .72); this.debris(M.x, M.y, M.R * .8, 8); } }
     // ---- Waffen feuern selbsttätig
     if (g.dir.x || g.dir.y) { const m = Math.hypot(g.dir.x, g.dir.y); this.aimX = g.dir.x / m; this.aimY = g.dir.y / m; }
     const A = p.area, px = p.x, py = p.y - 3;
@@ -2187,7 +2288,7 @@ class Combat {
           for (const [f, s] of dirs) this.shoot(5, px, py, (ax * f - ay * s) * 175, (ay * f + ax * s) * 175, 0, this.dmg(9 + (L >= 2 ? 4 : 0) + (L >= 4 ? 4 : 0)), .36 * A, 99);
           wp.cd = 1.3 * cdm; break; }
         case 'blitz': { const n = L >= 4 ? 3 : L >= 2 ? 2 : 1; let any = false;
-          for (let k = 0; k < n; k++) for (let tr = 0; tr < 14; tr++) { const e = E[Math.random() * E.length | 0]; if (e.alive && Math.abs(e.x - px) < 100 * A && Math.abs(e.y - py) < 130 * A) { this.boom(e.x, e.y - 2, 0, 1); this.hit(e, this.dmg(L >= 5 ? 28 : 18), 0, 0); any = true; break; } }
+          for (let k = 0; k < n; k++) for (let tr = 0; tr < 14; tr++) { const e = E[Math.random() * E.length | 0]; if (e.alive && Math.abs(e.x - px) < Math.min(78 * A, g.renderer.bw / 2 - 14) && Math.abs(e.y - py) < Math.min(92 * A, g.renderer.bh / 2 - 30)) { this.strike(e.x, e.y - 2); this.hit(e, this.dmg(L >= 5 ? 28 : 18), 0, 0); any = true; break; } }
           wp.cd = any ? (L >= 3 ? 1.8 : 2.4) * cdm : .2; break; }
         case 'bombe': { const n = L >= 4 ? 2 : 1; this.ptag = L;
           for (let k = 0; k < n; k++) this.shoot(6, px + (k ? (Math.random() - .5) * 40 : 0), p.y + (k ? (Math.random() - .5) * 40 : 0), 0, 0, 0, 22 + (L >= 2 ? 8 : 0) + (L >= 5 ? 10 : 0), 1.1, 0, L >= 3 ? 7 : 0);
@@ -2207,6 +2308,13 @@ class Combat {
         case 'blutpest': { let best = null, bd = (105 * A) ** 2;
           for (let i = 0; i < E.length; i++) { const e = E[i]; if (!e.alive || e.plagueT > 0) continue; const q = (e.x - px) ** 2 + (e.y - py) ** 2; if (q < bd) { bd = q; best = e; } }
           if (best) { best.plagueT = 6; best.plagueGen = L >= 5 ? -1 : 0; best.plagueTick = .3; wp.cd = (L >= 5 ? 2.2 : L >= 3 ? 2.8 : 3.6) * cdm; } else wp.cd = .4; break; }
+        case 'nekro': { const n = L >= 5 ? 3 : L >= 3 ? 2 : 1, room = 6 - this.allies.length;
+          for (let k = 0; k < Math.min(n, room); k++) { const a = Math.random() * 6.283, o = {x: px + Math.cos(a) * 14, y: p.y + Math.sin(a) * 11, t: 9 + L, cd: .5, dmg: 5 + 2 * L, ox: Math.cos(a) * 16, oy: Math.sin(a) * 13, step: 0, face: true, spr: SKEL_SPR[0], flash: 0};
+            this.allies.push(o); this.boom(o.x, o.y - 3, 8, 2); this.debris(o.x, o.y, 5, 3); }
+          wp.cd = (L >= 4 ? 8.5 : 10.5) * cdm; break; }
+        case 'meteor': { const n = L >= 4 ? 2 : 1; let any = false;
+          for (let k = 0; k < n; k++) for (let tr = 0; tr < 14; tr++) { const e = E[Math.random() * E.length | 0]; if (e.alive && Math.abs(e.x - px) < Math.min(85 * A, g.renderer.bw / 2 - 12) && Math.abs(e.y - py) < Math.min(110 * A, g.renderer.bh / 2 - 26)) { this.meteors.push({x: e.x, y: e.y - 2, t: .8, R: (22 + (L >= 3 ? 7 : 0)) * A, dmg: 34 + 10 * (L >= 2) + 14 * (L >= 5)}); any = true; break; } }
+          wp.cd = any ? (L >= 5 ? 4.2 : 5.5) * cdm : .3; break; }
         case 'pest': { let best = null, bd = (110 * A) ** 2;
           for (let i = 0; i < E.length; i++) { const e = E[i]; if (!e.alive || e.plagueT > 0) continue; const q = (e.x - px) ** 2 + (e.y - py) ** 2; if (q < bd) { bd = q; best = e; } }
           if (best) { best.plagueT = 7; best.plagueGen = 0; best.plagueTick = .3; wp.cd = (L >= 5 ? 1.8 : L >= 3 ? 2.4 : 3.2) * cdm; } else wp.cd = .4; break; }
@@ -2215,8 +2323,8 @@ class Combat {
             if (hot) this.hit(e, this.dmg((4 + L) * (e.slowT > 0 ? 2 : 1)), ox / d, oy / d); else { this.hit(e, this.dmg(2 + .5 * L), 0, 0); if (e.alive) e.slowT = 2.6; } }
           wp.cd = .5 * cdm; break; }
         case 'gewitter': { const n = 1 + (L >= 3) + (L >= 5), jumps = 3 + (L >= 2) + (L >= 4), list = this.chainHit; let any = false;
-          for (let k = 0; k < n; k++) { let cur = null; for (let tr = 0; tr < 14 && !cur; tr++) { const e = E[Math.random() * E.length | 0]; if (e.alive && Math.abs(e.x - px) < 100 * A && Math.abs(e.y - py) < 130 * A) cur = e; }
-            if (!cur) continue; any = true; list.length = 0; this.boom(cur.x, cur.y - 2, 0, 1); let dm = 24 + 4 * L;
+          for (let k = 0; k < n; k++) { let cur = null; for (let tr = 0; tr < 14 && !cur; tr++) { const e = E[Math.random() * E.length | 0]; if (e.alive && Math.abs(e.x - px) < Math.min(78 * A, g.renderer.bw / 2 - 14) && Math.abs(e.y - py) < Math.min(92 * A, g.renderer.bh / 2 - 30)) cur = e; }
+            if (!cur) continue; any = true; list.length = 0; this.strike(cur.x, cur.y - 2); let dm = 24 + 4 * L;
             for (let j = 0; j <= jumps && cur; j++) { const cx0 = cur.x, cy0 = cur.y - 3; list.push(cur); if (!cur.type.boss && !cur.type.guard) cur.frozT = Math.max(cur.frozT, .6); this.hit(cur, this.dmg(dm), 0, 0); dm *= .9;
               let nx = null, bd = (58 * A) ** 2; for (let i = 0; i < E.length; i++) { const e = E[i]; if (!e.alive || list.indexOf(e) >= 0) continue; const q = (e.x - cx0) ** 2 + (e.y - 3 - cy0) ** 2; if (q < bd) { bd = q; nx = e; } }
               if (nx) this.line(cx0, cy0, nx.x, nx.y - 3); cur = nx; } }
@@ -2233,7 +2341,7 @@ class Combat {
           wp.cd = (L >= 3 ? 1.7 : 2.1) * cdm; break; }
         case 'beben': { const R = (34 + 4 * (L >= 2) + 4 * (L >= 4)) * A; this.aoe(px, py, R, 9 + 3 * (L >= 2) + 3 * (L >= 4) + 3 * (L >= 5), 3);
           for (let i = 0; i < E.length; i++) { const e = E[i]; if (e.alive && Math.hypot(e.x - px, e.y - 2 - py) < R + e.type.r) e.slowT = Math.max(e.slowT, 2); }
-          this.boom(px, py, R, 5); g.shakeT = .2; g.shakeA = Math.max(g.shakeA || 0, 1.5);
+          this.boom(px, py, R, 5); this.debris(px, py, R, 9); g.shakeT = .2; g.shakeA = Math.max(g.shakeA || 0, 1.5);
           wp.seq = (wp.seq | 0) + 1; if (wp.seq < (L >= 3 ? 4 : 3)) wp.cd = .38; else { wp.seq = 0; wp.cd = (L >= 5 ? 3.4 : 4.2) * cdm; } break; }
         case 'eislanze': { const ax = this.aimX, ay = this.aimY; this.ptag = 'eis';
           for (const f of (L >= 3 ? [1, -1] : [1])) this.shoot(5, px, py, ax * f * 180, ay * f * 180, 0, this.dmg(11 + 3 * (L >= 2) + 3 * (L >= 4) + 3 * (L >= 5)), .4 * A, 99);
@@ -2243,7 +2351,7 @@ class Combat {
             const a = (best ? Math.atan2(best.y - 3 - py, best.x - px) : Math.atan2(this.aimY, this.aimX)) + (k ? 2.2 : 0);
             this.shoot1(7, px, py, Math.cos(a) * 26, Math.sin(a) * 26, 0, 5 + 2 * L, 4 + .5 * L, 99, 0, null); }
           wp.cd = 4.5 * cdm; break; }
-        case 'stoss': { const R = (30 + (L >= 3 ? 8 : 0)) * A; this.aoe(px, py, R, 6 + (L >= 2 ? 4 : 0) + (L >= 5 ? 5 : 0), 3.2); this.boom(px, py, R, 5); wp.cd = (L >= 4 ? 3 : 4) * cdm; break; }
+        case 'stoss': { const R = (30 + (L >= 3 ? 8 : 0)) * A; this.aoe(px, py, R, 6 + (L >= 2 ? 4 : 0) + (L >= 5 ? 5 : 0), 3.2); this.boom(px, py, R, 5); this.debris(px, py, R, 12); wp.cd = (L >= 4 ? 3 : 4) * cdm; break; }
       }
     }
     // ---- Projektile
@@ -2279,7 +2387,7 @@ class Combat {
           if (gf) { this.gfAcc += d.v * gf * .5 * this.goldMul; const n = this.gfAcc | 0; if (n) { this.gfAcc -= n; this.gold += n; this.goldPending += n; this.earnPending += n; } } } }
       else if (d.pull || dist < p.pickup) { const v = d.pull ? Math.max(240, dist * 1.6) : 85; d.x += ox / dist * v * dt; d.y += oy / dist * v * dt; }
     }
-    for (const f of this.fx) if (f.alive && (f.t += dt) > (f.kind === 1 ? .16 : f.kind === 3 ? .2 : f.kind === 4 ? .09 : f.kind === 5 ? .6 : .35)) f.alive = false;
+    for (const f of this.fx) if (f.alive && (f.t += dt) > (f.kind === 1 ? .3 : f.kind === 3 ? .2 : f.kind === 4 ? .09 : f.kind === 5 ? .6 : .35)) f.alive = false;
     if (p.xp >= p.xpNext && !g.dead && !g.paused) { p.xp -= p.xpNext; p.level++; p.xpNext = 3 + p.level * 2.5 | 0; p.hp = Math.min(p.maxHp, p.hp + BAL.lvlHeal); g.levelUp(); }   // Spiel hält an, drei Angebote
   }
   drawGround(r, cx, cy) {
@@ -2307,7 +2415,9 @@ class Combat {
     for (const s of this.shrines) if (s.left > 0) r.light(s.x - cx, s.y - 6 - cy, 30);
     if (this.exitOpen) r.light(this.exit.x - cx, this.exit.y - 6 - cy, 78 + Math.sin(this.time * 4) * 8);
     for (const f of this.flames) if (f.alive) r.light((f.x | 0) - cx, (f.y | 0) - cy, 14);
-    for (const f of this.fx) if (f.alive && (f.kind === 4 || f.kind === 1)) r.light(Math.round(f.x) - cx, Math.round(f.y) - cy, f.kind === 4 ? f.r * 2.4 : 34);
+    for (const M of this.meteors) r.light(Math.round(M.x + M.t * 150) - cx, Math.round(M.y - M.t * 330) - cy, 30);
+    for (const q of this.proj) if (q.alive && (q.kind === 4 || q.kind === 7)) r.light(Math.round(q.x) - cx, Math.round(q.y) - cy, 16);
+    for (const f of this.fx) if (f.alive && (f.kind === 4 || f.kind === 1)) r.light(Math.round(f.x) - cx, Math.round(f.y) - cy, f.kind === 4 ? f.r * 2.4 : f.t < .16 ? 60 : 30);
     { const b0 = this.boss; if (b0 && b0.alive) r.light(Math.round(b0.x) - cx, Math.round(b0.y) - b0.spr.h / 2 - cy, b0.type === BOSS3 ? 44 : 30); }   // Bosse glimmen, damit man sie auch nachts kommen sieht
     const b = this.boss; if (b && b.alive && b.beam === 2) { const f = b.face ? 1 : -1; for (let q = 0; q < 300; q += 22) r.light(Math.round(b.x) - cx + f * q, Math.round(b.y - 9) - cy, 24); }
   }
@@ -2315,6 +2425,10 @@ class Combat {
     for (const f of this.fx) if (f.alive && f.kind === 5) { const u = f.t / .6; r.ripple(Math.round(f.x) - cx, Math.round(f.y) - cy, 5 + u * f.r, 4.2 * (1 - u * .55)); }
   }
   drawOver(r, cx, cy, time) {
+    for (const M of this.meteors) { const x = Math.round(M.x) - cx, y = Math.round(M.y) - cy, k = 1 - M.t / .8, sr = 3 + (M.R * .7 - 3) * k, fx = Math.round(x + M.t * 150), fy = Math.round(y - M.t * 330);   // Meteor: Schatten am Ziel wächst, der Brocken kommt von rechts oben mit Feuerschweif
+      for (let dy = -sr | 0; dy <= sr; dy++) for (let dx = -sr | 0; dx <= sr; dx++) if (dx * dx + dy * dy * 1.6 < sr * sr && ((dx + dy) & 1)) r.dot(x + dx, y + dy, 20);
+      for (let q = 1; q < 22; q++) { const tx = fx + Math.round(q * .42), ty2 = fy - Math.round(q * .92); r.dot(tx, ty2, q < 12 || (q & 1) ? RED : 250); if (q < 12) { r.dot(tx + 1, ty2, q < 6 ? 250 : RED); r.dot(tx - 1, ty2, RED); } }
+      for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) { const q = dx * dx + dy * dy; if (q <= 10) r.dot(fx + dx, fy + dy, q <= 3 ? 96 : 20); } r.dot(fx - 1, fy + 1, RED); }
     for (const B of this.ebombs) { const x = Math.round(B.x) - cx, y = Math.round(B.y) - cy, R = 19, k = clamp(B.t / 1.2, 0, 1), rr = 3 + (R - 3) * k, n = 40, bl = (this.time * 10 | 0) & 1;   // Warnfläche über allem: gerasterte Scheibe, roter Rand, innen ein Ring, der sich zuzieht
       for (let dy = -15; dy <= 15; dy++) for (let dx = -19; dx <= 19; dx++) if (dx * dx / 361 + dy * dy / 231 < 1 && ((dx + dy) & 3) === 0) r.dot(x + dx, y + dy, bl ? RED : 20);
       for (let i = 0; i < n; i++) { const a = i * 6.283 / n; r.dot(Math.round(x + Math.cos(a) * R), Math.round(y + Math.sin(a) * R * .8), RED); r.dot(Math.round(x + Math.cos(a) * (R + 1)), Math.round(y + Math.sin(a) * (R + 1) * .8), 20); if (i % 2 === 0) r.dot(Math.round(x + Math.cos(a) * rr), Math.round(y + Math.sin(a) * rr * .8), 250); }
@@ -2351,9 +2465,10 @@ class Combat {
           for (let k = -2; k <= 2; k++) D(k, 0, 20); D(2, 1, 20); D(1, 1, 20); D(2, 2, 238); D(1, 2, 238); break; }
         case 3: { const D = (k, g, o = 0) => r.dot(Math.round(x - ux * k - uy * o), Math.round(y - uy * k + ux * o), g);   // Pfeil: Spitze, Schaft, Befiederung
           D(0, 238); for (let k = 1; k < 6; k++) D(k, 20); D(5, 20, 1); D(5, 20, -1); D(6, 110, 1); D(6, 110, -1); if ((time * 20 | 0) & 1) D(8, 238); break; }
-        case 4: { const sp = (time * 8 | 0) & 1, D = (k, g) => r.dot(Math.round(x - ux * k), Math.round(y - uy * k), g);   // Irrlicht: pulsierender Kern mit Schweif
-          r.dot(x, y, RED); if (sp) { r.dot(x - 1, y, 238); r.dot(x + 1, y, 238); r.dot(x, y - 1, 238); r.dot(x, y + 1, 238); } else { r.dot(x - 1, y - 1, 238); r.dot(x + 1, y - 1, 238); r.dot(x - 1, y + 1, 238); r.dot(x + 1, y + 1, 238); }
-          D(2.5, RED); D(4.5, sp ? 238 : 110); D(6.5, sp ? 110 : 238); break; }
+        case 4: { const ph = time * 9 + i * 1.7, fl = (time * 14 + i * 3 | 0) % 3, by = Math.round(Math.sin(ph) * 1.2), Y = y + by;   // Irrlicht: tanzt leicht auf und ab
+          for (let k = 1; k <= 7; k++) { const tx = Math.round(x - ux * k * 1.6 + Math.sin(ph - k * .9) * (k * .35)), ty2 = Math.round(Y - uy * k * 1.6 + Math.cos(ph - k * .9) * (k * .25)); if (k < 4) { r.dot(tx, ty2, RED); if (k < 3) r.dot(tx, ty2 - 1, RED); } else if ((k + fl) % 2) r.dot(tx, ty2, k < 6 ? RED : 20); }
+          for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) { const q = dx * dx + dy * dy; if (q === 0 || (q === 1 && fl === 0)) r.dot(x + dx, Y + dy, 250); else if (q <= 4) r.dot(x + dx, Y + dy, RED); else if (q <= 8 && ((dx + dy + fl) & 1)) r.dot(x + dx, Y + dy, 20); }   // heller Kern, roter Leib, flirrender dunkler Saum
+          r.dot(x, Y - 3, RED); r.dot(x + (fl === 1 ? 1 : 0), Y - 4, fl === 2 ? 20 : RED); break; }
         case 5: { const D = (k, g, o = 0) => r.dot(Math.round(x - ux * k - uy * o), Math.round(y - uy * k + ux * o), g);   // Speer: breite Spitze, langer Schaft, Fahrtstriche
           D(0, 238); D(1, 238); D(2, 20, 1); D(2, 20, -1); for (let k = 2; k < 9; k++) D(k, 20); D(4, 238, 2); D(5, 238, 2); D(6, 238, -2); D(7, 238, -2); break; }
         case 7: { const k = (time * 12 | 0);       // Kugelblitz: heller Ball mit dunklem Rand, rotem Kern und zuckenden Funken
@@ -2379,6 +2494,7 @@ class Combat {
       r.dot(x0, yT - 3, RED); r.dot(x0 - 1, yT - 2, RED); r.dot(x0 + 1, yT - 2, RED); r.dot(x0, yT - 2, 20); r.dot(x0, yT - 1, RED);
       const up = (time * 7 + i * 3) % 6 | 0; r.dot(x0 - 3 + (i & 1) * 6, yT - 1 - up, up > 3 ? 110 : RED); }
     for (const m of this.smoke) if (m.alive) { const x0 = Math.round(m.x) - cx, y0 = Math.round(m.y) - cy, u = m.t / m.life;
+      if (m.spark === 2) { r.dot(x0, y0, 20); r.dot(x0 + 1, y0, 20); r.dot(x0, y0 - 1, 96); if (u < .5) r.dot(x0 + 1, y0 - 1, 20); continue; }   // Erdbrocken
       if (m.spark) { r.dot(x0, y0, u < .5 ? RED : 20); r.dot(x0 - (m.vx > 0 ? 1 : -1), y0, 20); continue; }
       const R = m.r + u * 4.5, g = u < .25 ? 44 : u < .6 ? 96 : 150;                                       // Rauch: wird größer, heller und löchriger
       for (let dy = -R | 0; dy <= R; dy++) for (let dx = -R | 0; dx <= R; dx++) { if (dx * dx + dy * dy > R * R) continue; const X = x0 + dx, Y = y0 + dy;
@@ -2386,11 +2502,14 @@ class Combat {
     for (const f of this.fx) if (f.alive) {
       if (f.kind === 4) { const R = f.r, R2 = R * R; for (let dy = -R | 0; dy <= R; dy++) for (let dx = -R | 0; dx <= R; dx++) { const q = dx * dx + dy * dy * 1.5; if (q < R2) r.dot(Math.round(f.x) + dx - cx, Math.round(f.y) + dy - cy, q < R2 * .3 ? RED : 238); } }   // Lichtblitz
       else if (f.kind === 3) { const n = Math.max(2, Math.hypot(f.x2 - f.x, f.y2 - f.y) | 0); for (let k = 0; k <= n; k++) { const u = k / n, j = ((k * 13 + (f.x | 0)) % 5) - 2, x = Math.round(f.x + (f.x2 - f.x) * u) - cx, y = Math.round(f.y + (f.y2 - f.y) * u + (k % 4 === 0 ? j : j >> 1)) - cy; r.dot(x, y, 238); r.dot(x, y + 1, 20); } }
-      else if (f.kind === 1) {                   // Blitz: Zickzack vom Himmel, ein Seitenast, heller Einschlag mit rotem Kern
-        const xf = Math.round(f.x) - cx, y0 = Math.round(f.y) - cy, sd = f.x | 0, dir = (sd & 1) ? 1 : -1; let x = xf, xb = xf;
-        for (let k = 0; k < 70; k++) { if (k % 5 === 0) x += ((k * 7 + sd) % 5) - 2; if (k === 38) xb = x; r.dot(x, y0 - k, 238); r.dot(x + 1, y0 - k, 20); r.dot(x - 1, y0 - k, 20); }
-        for (let j = 1; j < 13; j++) { const bx = xb + dir * j + ((j * 3 + sd) % 3 === 0 ? dir : 0), by2 = y0 - 38 + Math.round(j * 1.3); r.dot(bx, by2, 238); r.dot(bx, by2 + 1, 20); }
-        for (const [dx, dy] of [[-4, 0], [4, 0], [-3, -1], [3, -1], [-2, 1], [2, 1], [0, -3], [-1, -2], [1, -2]]) r.dot(xf + dx, y0 + dy, 238); r.dot(xf, y0, RED); r.dot(xf - 1, y0, RED); r.dot(xf + 1, y0, RED); }
+      else if (f.kind === 1) {                   // Blitz: gezackte Bahn vom oberen Rand bis zum Ziel, zwei Äste; die Form springt alle paar Hundertstel um, dann glimmt nur noch eine dünne Spur nach
+        const xf = Math.round(f.x) - cx, y0 = Math.round(f.y) - cy, hot = f.t < .17, sd = (f.x2 | 0) + (hot ? (f.t / .045 | 0) * 977 : 3), top = Math.min(y0 - 40, -2);
+        let x = xf; const br = [((sd >> 3) % 30) + 14, ((sd >> 7) % 40) + 44];
+        for (let k = 0, y = y0; y > top; k++, y--) { const hsh = hash2(k >> 2, sd, 31); if ((k & 3) === 3) x += Math.round((hsh - .5) * 7) + (x > xf + 14 ? -2 : x < xf - 14 ? 2 : 0);
+          if (hot) { r.dot(x - 1, y, 20); r.dot(x + 2, y, 20); r.dot(x, y, 250); r.dot(x + 1, y, 250); if (k < 10) { r.dot(x - 1, y, 250); r.dot(x + 2, y, RED); } } else if ((k + (f.t * 60 | 0)) % 3) r.dot(x, y, 250);
+          if (hot && (k === br[0] || k === br[1])) { const dir = hash2(k, sd, 7) < .5 ? -1 : 1, len = 10 + (hash2(k, sd, 9) * 16 | 0); let bx = x, by2 = y; for (let j = 0; j < len; j++) { bx += dir; if (hash2(j, sd + k, 11) < .55) by2 += hash2(j, sd, 13) < .75 ? -1 : 1; r.dot(bx, by2, 250); r.dot(bx, by2 + 1, 20); } } }
+        if (hot) { for (let i = 0; i < 10; i++) { const a = i * .628 + sd, q = 3 + (hash2(i, sd, 17) * 6 | 0); r.dot(Math.round(xf + Math.cos(a) * q), Math.round(y0 + Math.sin(a) * q * .6), i & 1 ? 250 : RED); } for (let dx = -2; dx <= 2; dx++) r.dot(xf + dx, y0, 250); r.dot(xf, y0 - 1, 250); r.dot(xf, y0 + 1, RED); }
+        else for (let i = 0; i < 6; i++) r.dot(xf - 4 + ((i * 5 + sd) % 9), y0 + 1 - (i & 1), i & 1 ? 20 : 96); }                                             // Brandfleck
       else if (f.kind === 6) {                   // Hellebarde: die Klinge fegt einmal im Kreis, dahinter ein kurzer Schweif
         const u = f.t / .35, a0 = u * 6.283 - 1.57;
         for (let q = 4; q <= f.r; q++) r.dot(Math.round(f.x + Math.cos(a0) * q) - cx, Math.round(f.y + Math.sin(a0) * q * .8) - cy, q > f.r - 4 ? 238 : 20);
@@ -2511,7 +2630,7 @@ class Game {
     this.loop = this.loop.bind(this);
     requestAnimationFrame(this.loop);
   }
-  stop() { this.stopped = true; MUSIC.sync(false, 0); clearTimeout(this.toastT); for (const [tg, ev, fn] of this.listeners) tg.removeEventListener(ev, fn); this.listeners.length = 0; }
+  stop() { this.stopped = true; CLOUDS.hide(); MUSIC.sync(false, 0); clearTimeout(this.toastT); for (const [tg, ev, fn] of this.listeners) tg.removeEventListener(ev, fn); this.listeners.length = 0; }
   openMap() { ACH.give('karte');
     if (this.dead || this.paused || this.userPaused) return;
     this.userPaused = true; this.save();
@@ -2553,6 +2672,7 @@ class Game {
     if (I('blutpest')) row('Blutpest', Math.round((.1 + .03 * I('blutpest')) * 100) + ' % des Seuchenschadens', 'höchstens ' + (2 + I('blutpest')) + ' Leben/s');
     if (p.twin > 0) row('Zwillingswurf', Math.round(Math.min(1, p.twin) * 100) + ' %', src(['Zwillingswurf', I('doppel'), '']));
     if (p.shield > 0) row('Schutzschild', p.shieldT > 0 ? 'lädt noch ' + Math.ceil(p.shieldT) + ' s' : 'bereit', src(['Schutzschild', I('schild'), 'lädt in ' + (13.5 - 1.5 * p.shield).toFixed(1).replace('.', ',') + ' s']));
+    if (p.thorns > 0) row('Dornenpanzer', Math.round(6 * p.thorns * p.dmgMul) + ' Schaden zurück', src(['Dornenpanzer', I('dornen'), '']));
     if (p.lure > 0) row('Unheilsglocke', pc(.2 * p.lure) + ' Feinde', src(['Unheilsglocke', I('glocke'), '']));
     if (c.autoPick) { row('Beim Stufenaufstieg', 'immer ' + (c.autoPick === 'goldsack' ? 'Goldsack' : 'Proviant'), ''); const ub = document.createElement('button'); ub.textContent = 'Wieder fragen'; ub.style.margin = '6px 0'; ub.addEventListener('click', () => { c.autoPick = ''; this.showStats(); }); box.appendChild(ub); }
     h2('Waffen');
@@ -2570,12 +2690,13 @@ class Game {
       gewitter: L => [24 + 4 * L, 2.5 - .12 * L, (1 + g(L, 3) + g(L, 5)) + ' Einschläge, je Sprung 10 % weniger'], hagel: L => [8 + 2 * g(L, 2) + 3 * g(L, 4), L >= 5 ? 1.05 : L >= 3 ? 1.25 : 1.5, (5 + L) + ' Klingen'],
       hellebarde: L => [13 + 3 * (L - 1), L >= 3 ? 1.7 : 2.1, 'Rundschlag; Stoß ' + Math.round((15 + 3 * (L - 1)) * p.dmgMul)], totenvogel: L => [8 + 2 * L, 0, (2 + g(L, 3) + g(L, 5)) + ' Raben, je Hieb; Irrlicht ' + Math.round((7 + 2 * L) * p.dmgMul)],
       beben: L => [9 + 3 * g(L, 2) + 3 * g(L, 4) + 3 * g(L, 5), L >= 5 ? 3.4 : 4.2, 'je Welle, ' + (L >= 3 ? 4 : 3) + ' Wellen'], pestfeuer: L => [4 + 1.3 * L, .35, 'je Feind im Feuer; dazu Seuche'],
+      nekro: L => [5 + 2 * L, .55, (L >= 5 ? 3 : L >= 3 ? 2 : 1) + ' Skelette je Beschwörung, je Hieb, ' + (9 + L) + ' s lang'], meteor: L => [34 + 10 * g(L, 2) + 14 * g(L, 5), L >= 5 ? 4.2 : 5.5, (L >= 4 ? 2 : 1) + ' Brocken, Flächenschaden'],
       eislanze: L => [11 + 3 * g(L, 2) + 3 * g(L, 4) + 3 * g(L, 5), L >= 5 ? 1.1 : 1.4, 'Splitter ' + Math.round(8 * p.dmgMul) + ' Flächenschaden'], kugel: L => [5 + 2 * L, 4.5, 'neue Kugel; je Blitz, etwa drei Blitze je Sekunde auf bis zu 3 Feinde'],
       blutpest: L => [1.5 + pl + .5 * L, .5, 'je Angesteckten, alle halbe Sekunde'] };
     const num = v => (Math.round(v * 10) / 10).toString().replace('.', ',');
     for (const w of c.weapons) { const W = WEAPONS[w.id], f = WI[w.id], q = f ? f(w.lvl) : null, kind = W.forge ? 'Schmiedewerk' : W.found ? 'Kraft' : 'Waffe';
       if (!q) { row(W.name + ' ' + ROMAN[w.lvl], kind, ''); continue; }
-      const cont = q[1] === 0 || ['ring', 'seuche', 'flamme', 'dampf', 'pestfeuer', 'blutpest'].includes(w.id);
+      const cont = q[1] === 0 || ['ring', 'seuche', 'flamme', 'dampf', 'pestfeuer', 'blutpest', 'nekro'].includes(w.id);
       row(W.name + ' ' + ROMAN[w.lvl], num(q[0] * p.dmgMul) + ' Schaden', kind + ' · Grundwert ' + num(q[0]) + ' ' + x(p.dmgMul) + (p.crit > 0 ? ' · kritisch ' + num(q[0] * p.dmgMul * 2) : '') + (q[1] ? (cont ? ' · alle ' + num(q[1]) + ' s' : ' · alle ' + num(q[1] * p.cdMul) + ' s') : '') + ' · ' + q[2]); }
     h2('Gegner in Ebene ' + this.level);
     row('Leben', x(c.lvlMul * (1 + (c.time + c.tOff) / BAL.hpRamp)), 'wächst mit der Zeit'); row('Schaden', x(c.dmgLvl), '');
@@ -2678,6 +2799,7 @@ class Game {
     if (this.shakeT > 0) { this.shakeT -= dt; const a = (this.shakeA || 0) * Math.max(0, this.shakeT / .32), cam = this.camera;   // Bildwackeln nach einer Explosion, klingt schnell ab
       cam.x = clamp(cam.x + Math.round((Math.random() - .5) * 2 * a), 0, Math.max(0, WORLD - r.bw)); cam.y = clamp(cam.y + Math.round((Math.random() - .5) * 2 * a), 0, Math.max(0, WORLD - r.bh)); }
     r.render(this.world, this.player, this.camera, now / 1000, dt, this.combat);
+    CLOUDS.update(this.camera.x, this.camera.y, now / 1000, this.combat.darkLv);
     if (this.combat.dark > 0) { const rr = Math.max(6, 62 - this.combat.dark * 56 / BAL.darkTime); document.getElementById('vignette').style.background = `radial-gradient(ellipse at center,rgba(0,0,0,0) ${rr * .3}%,rgba(0,0,0,.97) ${rr}%)`; }   // die Dunkelheit zieht sich zu
     if ((this.hudT -= dt) <= 0) { this.hudT = .2; const p = this.player, c = this.combat, tt = c.time | 0;
       document.getElementById('hpFill').style.width = (p.hp / p.maxHp * 100) + '%';
@@ -2790,7 +2912,7 @@ class Game {
   function toMenu() {                                   // zurück ins Menü ohne Seitenwechsel (kein Neuladen -> kein 404)
     if (window.game && window.game.stop) window.game.stop();
     window.game = null;
-    for (const id of ['over', 'fin', 'ach', 'hud', 'lvl', 'arrow', 'pause', 'pauseBtn', 'shop', 'mapBtn', 'mapPage', 'joy', 'stallPage', 'smithPage', 'wiki', 'opts']) $(id).style.display = 'none';
+    for (const id of ['over', 'fin', 'ach', 'hud', 'lvl', 'arrow', 'pause', 'pauseBtn', 'shop', 'mapBtn', 'mapPage', 'joy', 'stallPage', 'smithPage', 'wiki', 'opts', 'testShop']) $(id).style.display = 'none';
     $('vignette').classList.remove('dread'); $('vignette').style.background = ''; $('toast').style.opacity = 0;
     try { const u = new URL(location.href); u.searchParams.delete('seed'); history.replaceState(null, '', u.toString()); } catch (e) {}
     input.value = randomSeed(); note.textContent = ''; menu.style.display = 'flex'; menuPreview(curSeed(), 200);
@@ -2874,6 +2996,17 @@ class Game {
     for (const id in META) { const m = META[id]; entry(m.name, 'ab ' + metaCost(id, 0) + ' Gold · ' + m.max + (m.max > 1 ? ' Stufen' : ' Stufe') + (m.need ? ' · erst ab ' + m.need + ' insgesamt verdientem Gold' : ''), m.desc); }
   }
   const openWiki = () => { renderWiki(); $('wiki').style.display = 'flex'; $('wiki').scrollTop = 0; };
+  // ---- Testhändler: jede Waffe, Kraft, jedes Schmiedewerk und jede Fähigkeit per Tipp um eine Stufe anheben (kostenlos)
+  { const draw = () => { const g = window.game, c = g.combat, box = $('testCards'); box.textContent = ''; $('testInfo').textContent = 'Tippen hebt um eine Stufe. Kostenlos, ohne Platzgrenze. Du trägst ' + c.gold + ' Gold.';
+      const sect = (title, ids, kind) => { const h = document.createElement('h2'); h.textContent = title; box.appendChild(h);
+        for (const id of ids) { const d = kind === 'w' ? WEAPONS[id] : PASSIVES[id], L = c.items[id] | 0, mx = kind === 'w' ? 5 : (d.inf && g.endless ? d.inf : d.max || 5), b = document.createElement('button'), a = document.createElement('b'), e = document.createElement('span');
+          a.textContent = d.name; e.textContent = L >= mx ? ROMAN[L] + ' (voll)' : (L ? ROMAN[L] + ' → ' : 'neu → ') + ROMAN[L + 1]; b.append(a, e); b.disabled = L >= mx;
+          b.addEventListener('click', () => { c.choose({id, kind, lvl: L + 1}); g.refreshItems(); draw(); }); box.appendChild(b); } };
+      const W = Object.keys(WEAPONS); sect('Waffen', W.filter(i => !WEAPONS[i].found && !WEAPONS[i].forge), 'w'); sect('Kräfte', W.filter(i => WEAPONS[i].found), 'w'); sect('Schmiedewerke', W.filter(i => WEAPONS[i].forge), 'w'); sect('Fähigkeiten', Object.keys(PASSIVES), 'p'); };
+    const close = () => { $('testShop').style.display = 'none'; if (window.game && window.game.showStats) window.game.showStats(); };
+    $('btnTest').addEventListener('click', () => { if (!window.game || !window.game.combat) return; draw(); $('testShop').style.display = 'flex'; $('testShop').scrollTop = 0; });
+    $('btnTestGold').addEventListener('click', () => { const c = window.game.combat; c.gold += 100; c.goldPending += 100; draw(); });
+    $('btnTestBack').addEventListener('click', close); $('btnTestBack2').addEventListener('click', close); }
   $('btnWiki').addEventListener('click', openWiki); $('btnWiki2').addEventListener('click', openWiki);
   $('btnWikiBack').addEventListener('click', () => { $('wiki').style.display = 'none'; });
   $('btnShopBack').addEventListener('click', () => { $('shop').style.display = 'none'; refreshMenu(); });
@@ -2885,6 +3018,10 @@ class Game {
   $('btnNoHorse').addEventListener('click', () => { if (window.game && window.game.stallAnswer) window.game.stallAnswer(false); });
   $('ver').textContent = VERSION; { const v = document.createElement('p'); v.innerHTML = '<i>' + VERSION + '</i>'; $('rollIn').insertBefore(v, $('rollIn').children[2]); }
   $('btnOpts').addEventListener('click', () => { ACH.unlock(); $('optNote').textContent = ''; $('opts').style.display = 'flex'; $('opts').scrollTop = 0; });
+  const cBtn = () => { $('btnClouds').textContent = 'Wolken: ' + (CLOUDS.on ? 'an' : 'aus'); }; cBtn();
+  $('btnClouds').addEventListener('click', () => { CLOUDS.on = !CLOUDS.on; try { localStorage.setItem('loClouds', CLOUDS.on ? '1' : '0'); } catch (e) {} cBtn(); });
+  const sBtn = () => { $('btnShadow').textContent = 'Schatten: ' + (SHADOWS.on ? 'an' : 'aus'); }; sBtn();
+  $('btnShadow').addEventListener('click', () => { SHADOWS.on = !SHADOWS.on; try { localStorage.setItem('loShadow', SHADOWS.on ? '1' : '0'); } catch (e) {} sBtn(); });
   $('btnOptsBack').addEventListener('click', () => { $('opts').style.display = 'none'; });
   $('btnTurbo').addEventListener('click', () => { TURBO.on = !TURBO.on; try { localStorage.setItem('loTurbo', TURBO.on ? '1' : '0'); } catch (e) {} ACH.unlock(); });
   const lBtn = () => { $('btnLens').textContent = $('btnLens2').textContent = 'Wölbung: ' + (LENS.on ? 'an' : 'aus'); }; lBtn();
