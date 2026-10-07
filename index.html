@@ -121,6 +121,8 @@ html,body{overscroll-behavior:none;touch-action:none;
 #stats div span{text-align:right}
 #stats small{display:block;font-size:10px;font-style:italic;opacity:.75}
 #stats h2{font-size:10px;letter-spacing:.3em;text-transform:uppercase;margin:10px 0 2px;text-align:center}
+#lvlAuto{display:block;margin-top:10px;font-size:13px;font-style:italic;letter-spacing:.02em;text-transform:none}
+#lvlAuto input{width:20px;height:20px;margin:0 8px 0 0;vertical-align:-4px;accent-color:#2a242b}
 #opts h1{font-size:26px}
 #opts h2{font-size:11px;letter-spacing:.3em;text-transform:uppercase;border-bottom:1px solid #2a242b;padding:4px 0;margin:14px 0 8px}
 #opts button:disabled{opacity:.45}
@@ -250,6 +252,7 @@ html,body{overscroll-behavior:none;touch-action:none;
   <h1 id="lvlTitle">W&auml;hle</h1>
   <div id="lvlCards"></div>
   <div class="row" id="lvlTools"><button id="btnReroll"></button><button id="btnBan"></button></div>
+  <label id="lvlAuto" style="display:none"><input type="checkbox" id="chkAuto"> Immer w&auml;hlen &ndash; nicht mehr fragen</label>
 </div></div>
 <div id="over" class="page" style="display:none"><div class="sheet">
   <div class="kicker">Traueranzeige</div>
@@ -324,7 +327,7 @@ const CPAL = new Uint32Array([0xFF2B242A,0xFF8F888F,0xFFD2E6E8,0xFF243A2B,0xFF5E
 const TINT_OF_TYPE = new Uint8Array([1, 2, 3, 4, 4, 5, 6, 6, 7, 8, 9, 10, 2]);   // Reihenfolge wie T
 const COLOR = { on: false, free: false };
 const LENS = { on: true }; try { LENS.on = localStorage.getItem('loLens') !== '0'; } catch (e) {}
-const VERSION = 'V0.88';
+const VERSION = 'V0.90';
 const ENDLESS = { on: false, free: false };
 const TURBO = { on: false, free: false, mul: 1.5 };   // Turbo: das ganze Spiel läuft anderthalbfach so schnell
 const CHEAT = { god: false, color: false, turbo: false }; try { CHEAT.color = localStorage.getItem('loCheatColor') === '1'; CHEAT.turbo = localStorage.getItem('loCheatTurbo') === '1'; } catch (e) {}
@@ -1627,7 +1630,7 @@ const PASSIVES = {
   // nur als Fund in der Welt zu bekommen (found); danach beim Stufenaufstieg ausbaubar
   schild:  {name: 'Schutzschild',  w: 2.2, desc: 'Fängt einen Treffer ganz ab, lädt sich dann neu auf (12 s, je Stufe 1,5 s schneller)', apply: p => { p.shield = (p.shield || 0) + 1; p.shieldT = 0; }},
   doppel:  {name: 'Zwillingswurf', w: 1.6, desc: '+20 % Chance je Stufe, dass ein Wurf oder Schuss doppelt fliegt (Stufe V: immer)', apply: p => { p.twin = (p.twin || 0) + .2; }},
-  goldfluss: {name: 'Goldfluss',   w: 2.2, meta: 'goldfluss', desc: 'Je Stufe werden 15 % der gesammelten Erfahrung zu Gold (2 Erfahrung = 1 Gold) – du steigst langsamer auf, der Beutel füllt sich schneller', apply: p => { p.goldFlow = (p.goldFlow || 0) + .15; }},
+  goldfluss: {name: 'Goldfluss',   w: 2.2, found: true, desc: 'Nur am riesigen Wahrzeichen zu finden, bewacht vom Goldgoblin (erst beim Krämer freischalten). Je Stufe werden 15 % der gesammelten Erfahrung zu Gold (2 Erfahrung = 1 Gold) – du steigst langsamer auf, der Beutel füllt sich schneller', apply: p => { p.goldFlow = (p.goldFlow || 0) + .15; }},
   blut:    {name: 'Blutdurst',     w: 2, desc: 'Du stiehlst 1 % deines Schadens als Leben, je Stufe 1 % mehr – auch vom Boss (höchstens 2 Leben je Sekunde und Stufe)', apply: p => { p.leech = (p.leech || 0) + .01; }},
   glocke:  {name: 'Unheilsglocke', w: 0, found: true, desc: 'Lockt +20 % mehr Feinde an, Horden werden größer: mehr Beute, mehr Gefahr', apply: p => { p.lure = (p.lure || 0) + 1; }}
 };
@@ -1657,13 +1660,16 @@ const META = {
   lehre:  {name: 'Lesebrille',     desc: '+5 % Erfahrung je Stufe',            max: 5, base: 30},
   gier:   {name: 'Geldkatze',      desc: '+15 % Gold je Stufe',                max: 5, base: 35},
   wams:   {name: 'Kettenhemd',     desc: 'Jeder Treffer 1 Schaden weniger je Stufe', max: 2, base: 90},
-  goldfluss: {name: 'Goldfluss', desc: 'Schaltet die Fähigkeit Goldfluss frei: Sie erscheint dann beim Stufenaufstieg und macht aus Erfahrung Gold', max: 1, base: 500, need: 3000},
+  goldfluss: {name: 'Goldfluss', desc: 'Schaltet die Fähigkeit Goldfluss frei: In Welten mit riesigem Wahrzeichen liegt sie dort als Goldsack – bewacht vom Goldgoblin. Sie macht aus Erfahrung Gold', max: 1, base: 500, need: 3000},
   zweit:  {name: 'Zweite Waffe',   desc: 'Jeder Lauf beginnt mit einer zufälligen zweiten Waffe', max: 1, base: 150}
 };
 const FORGE_COST = 60, FORGE_MIN = 3;            // Schmied: Preis je Werk, Mindeststufe beider Zutaten
 const earnedOf = pr => pr.goldEarned !== undefined ? pr.goldEarned | 0 : (pr.gold | 0) + Object.keys(pr.metaUpgrades || {}).reduce((a, id) => { if (!META[id]) return a; for (let l = 0; l < (pr.metaUpgrades[id] | 0) && l < META[id].max; l++) a += metaCost(id, l); return a; }, 0);   // insgesamt verdientes Gold; für alte Profile aus Beutel + Käufen geschätzt
 const metaCost = (id, lvl) => Math.round(META[id].base * (META[id].mul || [1, 2, 3.5, 5.5, 8])[lvl]);
 const GUARD = {name: 'Die Fleischkugel', ai: 'ball', guard: true, hp: BOSS.hp / 2, sp: 10, dmg: 8, xp: 8, r: 7, spr: BALL_SPR[0]};   // Wächter des Altars: halb so stark wie der Boss
+// Goldgoblin: bewacht am riesigen Wahrzeichen den Goldfluss (nur wenn beim Krämer freigeschaltet)
+const GOBLIN_SPR = (() => { const a = ES(['..#...........#..', '.##...#####...##.', '.###.#######.###.', '..##o#######o##..', '...###w###w###...', '...###########...', '....##o###o##....', '....#########....', '..####ooooo####..', '.###.#######.###.', '.##..#######..##.', '.##..#######..###', '.....###.###...##', '.....###.###...##', '....####.####....']), b = ES(['.#.............#.', '.##...#####...##.', '.###.#######.###.', '..##o#######o##..', '...###w###w###...', '...###########...', '....##o###o##....', '....#########....', '..####ooooo####..', '.###.#######.###.', '###..#######..##.', '##...#######..##.', '##....##.###.....', '......##.####....', '.....###..###....']); return [a, b, a.flipped(), b.flipped()]; })();
+const GOBLIN = {name: 'Der Goldgoblin', ai: 'goblin', guard: true, hoard: true, hp: BOSS.hp * .6, sp: 28, dmg: 11, xp: 10, r: 7, spr: GOBLIN_SPR[0]};
 class Combat {
   constructor(game, allWeapons) {
     this.g = game; this.time = 0; this.spawnT = 1.5; this.alive = 0; this.kills = 0;
@@ -1679,7 +1685,7 @@ class Combat {
     const p = game.player; p.maxHp = 100; p.hp = 100; p.xp = 0; p.level = 1; p.xpNext = 5; p.inv = 0; p.pickup = 24;
     p.dmgMul = 1; p.cdMul = 1; p.area = 1; p.crit = 0; p.armor = 0; p.xpMul = 1; p.speedMul = 1; this.applyMeta();
     this.weapons = []; this.items = {}; this.aimX = 1; this.aimY = 0;
-    this.gold = 0; this.goldPending = 0; this.earnPending = 0; this.gfAcc = 0; this.rerolls = 3; this.bans = 2; this.banned = {};
+    this.gold = 0; this.goldPending = 0; this.earnPending = 0; this.gfAcc = 0; this.rerolls = 3; this.bans = 2; this.banned = {}; this.autoPick = '';
     this.choose({id: 'messer', kind: 'w', lvl: 1});
     if ((game.meta.zweit | 0) > 0) { const ids = Object.keys(WEAPONS).filter(id => id !== 'messer' && !WEAPONS[id].found && !WEAPONS[id].forge); this.choose({id: ids[Math.random() * ids.length | 0], kind: 'w', lvl: 1}); }
     if (allWeapons) for (const id in WEAPONS) if (!this.items[id]) this.choose({id, kind: 'w', lvl: 1});
@@ -1711,6 +1717,8 @@ class Combat {
     if (this.altar && this.altar.obj) this.altar.obj.spr = ALTAR_SPR[1];
     // Fundstellen an besonderen Orten: Truhe mit Gegenstand oder Proviant
     const ITEM = ['Ruine', 'Burgruine', 'Turm', 'Steinkreis', 'Weltenbaum', 'Riesenburg', 'Nekropole', 'Riesensäule', 'Kolossstatue'], HEAL = ['Obelisk', 'Großer Baum', 'Mühle', 'Friedhof'];
+    { const gp = (this.g.meta.goldfluss | 0) > 0 ? w.pois.find(o => ['Weltenbaum', 'Riesenburg', 'Nekropole', 'Riesensäule', 'Kolossstatue'].includes(o.kind)) : null, hs = gp ? spot(gp.x + 16, gp.y + 6) : null;
+      this.hoard = hs && hs.ok ? {x: hs.x, y: hs.y, state: 0, place: gp.kind} : null; }   // Goldfluss liegt am Wahrzeichen: 0 unberührt, 1 Goblin da, 2 frei, 3 genommen
     this.caches = w.pois.filter(o => (ITEM.includes(o.kind) || HEAL.includes(o.kind)) && o !== w.exit).map(o => Object.assign(spot(o.x, o.y), {item: ITEM.includes(o.kind), place: o.kind, open: false})).filter(c => c.ok);
     this.boss = null; this.corpse = null; this.bossState = 0; this.bossN = 0; this.exitOpen = false; this.gateT = BAL.gateTime; this.dark = 0; document.getElementById('vignette').style.background = '';      // bossState: 0 ruhig, 1 angekündigt, 2 da, 3 besiegt
     const ex = w.exit || {x: w.spawn.x + 120, y: w.spawn.y}, bs = w.bossSpawn || ex;
@@ -1731,10 +1739,10 @@ class Combat {
   serialize() {
     const wl = {}, al = {}; for (const id in this.items) (WEAPONS[id] ? wl : al)[id] = this.items[id];
     const b = this.boss && this.boss.alive ? this.boss : null;
-    return {weapons: Object.keys(wl), weaponLevels: wl, abilities: Object.keys(al), abilityLevels: al, kills: this.kills, gold: this.gold, horse: this.g.player.horse | 0, stallUsed: this.stall && this.stall.used ? 1 : 0, smithUsed: this.smith && this.smith.used ? 1 : 0, spent: Object.keys(this.spent), rerolls: this.rerolls, bans: this.bans, banned: Object.keys(this.banned),
+    return {weapons: Object.keys(wl), weaponLevels: wl, abilities: Object.keys(al), abilityLevels: al, kills: this.kills, gold: this.gold, horse: this.g.player.horse | 0, stallUsed: this.stall && this.stall.used ? 1 : 0, smithUsed: this.smith && this.smith.used ? 1 : 0, spent: Object.keys(this.spent), rerolls: this.rerolls, bans: this.bans, banned: Object.keys(this.banned), autoPick: this.autoPick,
       bossState: this.bossState, bossHP: b ? b.hp : 0, bossX: b ? b.x : 0, bossY: b ? b.y : 0, bossRev: b ? b.revived | 0 : 0, exitState: this.exitOpen ? 1 : 0, exitX: this.exit.x, exitY: this.exit.y, gateT: this.gateT,
       bell: this.bell && this.bell.taken ? 1 : 0,
-      altar: this.altar ? (this.altar.taken ? 3 : this.altar.state === 2 ? 2 : 0) : 0,
+      altar: this.altar ? (this.altar.taken ? 3 : this.altar.state === 2 ? 2 : 0) : 0, hoard: this.hoard ? (this.hoard.state >= 2 ? this.hoard.state : 0) : 0,
       shrines: this.shrines.map(s => s.left), caches: this.caches.map(c => c.open ? 1 : 0)};
   }
   // Lauf wiederherstellen: Welt ist schon aus Seed + Ebene neu erzeugt, hier wird nur der Zustand eingesetzt
@@ -1750,8 +1758,10 @@ class Combat {
     if (Array.isArray(d.caches) && d.caches.length === this.caches.length) this.caches.forEach((c, i) => { c.open = !!d.caches[i]; });
     if (this.bell && d.bell) this.bell.taken = true;
     if (this.stall && d.stallUsed) this.stall.used = true;
+    this.autoPick = d.autoPick === 'proviant' || d.autoPick === 'goldsack' ? d.autoPick : '';
     if (Number.isFinite(d.rerolls)) this.rerolls = clamp(d.rerolls | 0, 0, 3); if (Number.isFinite(d.bans)) this.bans = clamp(d.bans | 0, 0, 2); this.banned = {}; if (Array.isArray(d.banned)) for (const id of d.banned) if (WEAPONS[id] || PASSIVES[id]) this.banned[id] = 1;
     if (this.smith && d.smithUsed) this.smith.used = true; this.spent = {}; if (Array.isArray(d.spent)) for (const id of d.spent) if (WEAPONS[id]) this.spent[id] = 1;
+    if (this.hoard && d.hoard >= 2) this.hoard.state = d.hoard === 3 ? 3 : 2;
     if (this.altar && d.altar >= 2) { this.altar.state = 2; this.altar.taken = d.altar === 3; if (this.altar.taken && this.altar.obj) this.altar.obj.spr = ALTAR_SPR[0]; }
     this.bossState = clamp(d.bossState | 0, 0, 3);
     if (this.bossState === 1) document.getElementById('vignette').classList.add('dread');
@@ -1837,6 +1847,12 @@ class Combat {
       this.boom(e.x, e.y - 6, 40); this.g.toast((e.type === BOSS ? 'Der Knochenkönig zerfällt' : e.type.name + ' vergeht') + '. Ein Tor öffnet sich – du hast ' + BAL.gateTime + ' Sekunden, dann kommt die Dunkelheit.');
       document.getElementById('vignette').classList.remove('dread'); SAVE.bump({totalBossKills: 1}); ACH.give(e.type === BOSS3 ? 'daemon' : e.type === BOSS2 ? 'waldgeist' : 'koenig'); this.g.lastBoss = e.type.name; this.g.save(); this.g.bossReward(); return;
     }
+    if (e.type.hoard) {                            // Goldgoblin besiegt: Münzregen, der Goldsack liegt frei
+      if (this.hoard) this.hoard.state = 2;
+      for (let i = 0; i < 16; i++) this.coin(e.x + (Math.random() - .5) * 34, e.y + (Math.random() - .5) * 26, 3);
+      for (let i = 0; i < 6; i++) this.xpDrop(e.x + (Math.random() - .5) * 26, e.y + (Math.random() - .5) * 20, 3);
+      this.boom(e.x, e.y - 6, 30); this.g.toast('Der Goldgoblin fällt. Sein Sack liegt herrenlos da.'); this.g.save(); return;
+    }
     if (e.type.guard) {                            // Wächter besiegt: Beute, der Magnet liegt frei
       if (this.altar) this.altar.state = 2; ACH.give('kugel');
       for (let i = 0; i < 8; i++) this.xpDrop(e.x + (Math.random() - .5) * 26, e.y + (Math.random() - .5) * 20, 3);
@@ -1855,17 +1871,17 @@ class Combat {
     for (const id in PASSIVES) { const L = it[id] || 0; if (L === 0) { if (slots < 10 && !PASSIVES[id].found && !this.spent[id] && !this.banned[id] && (!PASSIVES[id].meta || (this.g.meta[PASSIVES[id].meta] | 0) > 0)) c.push({id, kind: 'p', lvl: 1, w: PASSIVES[id].w}); } else if (L < (this.g.endless && PASSIVES[id].inf || PASSIVES[id].max || 5) && !this.banned[id]) c.push({id, kind: 'p', lvl: L + 1, w: 3.5}); }
     const out = [];
     while (out.length < 3 && c.length) { let sum = 0; for (const o of c) sum += o.w; let r = Math.random() * sum, i = 0; while (i < c.length - 1 && (r -= c[i].w) > 0) i++; out.push(c.splice(i, 1)[0]); }
-    if (!out.length) out.push({id: 'proviant', kind: 'x', lvl: 0});
+    if (!out.length) out.push({id: 'proviant', kind: 'x', lvl: 0}, {id: 'goldsack', kind: 'x', lvl: 0});   // nichts mehr auszubauen: Leben oder Gold
     return out;
   }
   describe(o) {
-    if (o.kind === 'x') return {title: 'Proviant', tag: '', text: '+30 Leben'};
+    if (o.kind === 'x') return o.id === 'goldsack' ? {title: 'Goldsack', tag: '', text: '+20 Gold'} : {title: 'Proviant', tag: '', text: '+30 Leben'};
     const d = o.kind === 'w' ? WEAPONS[o.id] : PASSIVES[o.id];
     return {title: d.name + ' ' + ROMAN[o.lvl], tag: d.forge ? 'Schmiedewerk verstärken' : d.found && o.kind === 'w' ? (o.lvl === 1 ? 'Neue Kraft' : 'Kraft verstärken') : o.lvl === 1 ? (o.kind === 'w' ? 'Neue Waffe' : 'Neue Fähigkeit') : 'Verbesserung', text: o.kind === 'w' ? d.desc[o.lvl - 1] : d.desc};
   }
   choose(o) {
     const p = this.g.player;
-    if (o.kind === 'x') { p.hp = Math.min(p.maxHp, p.hp + 30); return; }
+    if (o.kind === 'x') { if (o.id === 'goldsack') { this.gold += 20; this.goldPending += 20; this.earnPending += 20; } else p.hp = Math.min(p.maxHp, p.hp + 30); return; }
     this.items[o.id] = o.lvl;
     if (o.kind === 'p') PASSIVES[o.id].apply(p);
     else { const wp = this.weapons.find(w => w.id === o.id); if (wp) wp.lvl = o.lvl; else this.weapons.push({id: o.id, lvl: 1, cd: .4, ang: 0}); }
@@ -1925,6 +1941,14 @@ class Combat {
     for (const s of this.shrines) { if (s.cd > 0) s.cd -= dt;
       if (s.left > 0 && s.cd <= 0 && p.hp < p.maxHp && Math.abs(p.x - s.x) < 16 && p.y - s.y < 14 && p.y - s.y > -8) { s.left--; s.cd = 20; ACH.give('kirche'); p.hp = Math.min(p.maxHp, p.hp + 10); this.shrineLook(); g.toast(s.left ? 'Ein Fenster schließt sich (+10 Leben)' : 'Das letzte Fenster schließt sich (+10 Leben)'); g.save(); } }
     // ---- Opferaltar: Wächter erscheint bei Annäherung; ist er tot, zieht der Magnet alles Liegengebliebene heran
+    const HO = this.hoard;
+    if (HO && HO.state < 3) { const hd = Math.hypot(p.x - HO.x, p.y - HO.y);
+      if (HO.state === 0 && hd < 60) { const e = this.spawnAt(GOBLIN, HO.x + (p.x < HO.x ? 26 : -26), HO.y - 4, 0);
+        if (e) { HO.state = 1; e.hp = GOBLIN.hp * this.lvlMul; e.cd = 1.2; e.dashT = 0; e.dx = e.dy = 0; this.guard = e; g.toast('Etwas Großes springt hinter dem Wahrzeichen hervor – der Goldgoblin!'); } }
+      else if (HO.state === 2 && hd < 7) { HO.state = 3; const L = this.items.goldfluss | 0, full = !L && Object.keys(this.items).length >= 10;
+        if (L < 5 && !full && !this.banned.goldfluss) { this.choose({id: 'goldfluss', kind: 'p', lvl: L + 1}); g.toast('Goldfluss ' + ROMAN[L + 1] + ': Ein Teil deiner Erfahrung wird fortan zu Gold.'); }
+        else { for (let i = 0; i < 14; i++) this.coin(HO.x + (Math.random() - .5) * 20, HO.y + Math.random() * 8, 3); g.toast(full ? 'Kein Platz mehr für den Goldfluss – nur Gold.' : 'Im Sack ist nur noch Gold.'); }
+        g.refreshItems(); g.save(); } }
     const AL = this.altar;
     if (AL) { const ax = p.x - AL.x, ay = p.y - AL.y;
       if (AL.state === 0 && Math.hypot(ax, ay) < 64) { const e = this.spawnAt(GUARD, AL.x, AL.y - 12, 0);
@@ -2070,6 +2094,14 @@ class Combat {
               if (!e.struck) { e.struck = true; g.shakeT = .25; g.shakeA = Math.max(g.shakeA || 0, 2); } }
             if (e.dashT <= 0) { e.state = 0; e.cd = 2.6; e.beam = 0; } }
           if (e.state !== 2) e.beam = 0;
+          break; }
+        case 'goblin': {                           // Goldgoblin: trottet heran, setzt alle paar Sekunden zum Sprung an, wirft dazwischen Münzen; bleibt beim Hort
+          const H = this.hoard, home = H && Math.hypot(p.x - H.x, p.y - H.y) > 260; e.cd -= dt; e.buff = 0; e.face = dx >= 0;
+          if (home) { const ox = H.x - e.x, oy = H.y - e.y, m = Math.hypot(ox, oy) || 1; mx = m > 8 ? ox / m : 0; my = m > 8 ? oy / m : 0; sp = 30; }
+          else if (e.dashT > 0) { e.dashT -= dt; sp = 104; mx = e.dx; my = e.dy; }
+          else { sp = ty.sp; if (e.cd <= 0) { this.bossN++; if (this.bossN % 3 === 0 && d < 150) { const a0 = Math.atan2(p.y - 3 - (e.y - 8), p.x - e.x); for (let q = -1; q <= 1; q++) this.shoot(2, e.x, e.y - 8, Math.cos(a0 + q * .28) * 70, Math.sin(a0 + q * .28) * 70, 0, 7, 2.6); e.cd = 1.4; }
+              else if (d < 130) { e.dashT = .55; e.dx = dx; e.dy = dy; e.cd = 2.2; } else e.cd = .4; } }
+          e.spr = GOBLIN_SPR[(e.face ? 0 : 2) + (((t * (e.dashT > 0 ? 12 : 6)) | 0) & 1)];
           break; }
         case 'ball': {                             // rollt in gerader Bahn an, trudelt aus, zielt neu; verlässt den Altar nicht weit
           const A = this.altar, chase = !A || Math.hypot(p.x - A.x, p.y - A.y) < 240;
@@ -2252,6 +2284,10 @@ class Combat {
       r.dot(x, y - 6, 20); for (let dx = -1; dx <= 1; dx++) { r.dot(x + dx, y - 5, 20); r.dot(x + dx, y - 4, dx ? 20 : 238); r.dot(x + dx, y - 3, dx ? 20 : 238); }
       for (let dx = -2; dx <= 2; dx++) r.dot(x + dx, y - 2, 20); r.dot(x, y - 1, RED); r.dot(x, y, RED);
       if ((this.time * 2 | 0) & 1) { r.dot(x - 4, y - 5, RED); r.dot(x + 4, y - 5, RED); r.dot(x - 5, y - 3, RED); r.dot(x + 5, y - 3, RED); } }
+    { const H = this.hoard; if (H && H.state < 3) { const x = H.x - cx, y = H.y - cy, gl = (this.time * 5 | 0) & 3;   // Goldsack: prall, zugebunden, mit rotem Glitzern
+        for (let dy = -6; dy <= 0; dy++) { const hw = dy < -4 ? 1 : dy < -3 ? 2 : 3; for (let dx = -hw; dx <= hw; dx++) r.dot(x + dx, y + dy, Math.abs(dx) === hw || dy === 0 ? 20 : 236); }
+        r.dot(x - 1, y - 7, 20); r.dot(x + 1, y - 7, 20); r.dot(x, y - 5, 20); r.dot(x, y - 3, RED); r.dot(x - 1, y - 2, RED); r.dot(x + 1, y - 2, RED);
+        if (H.state !== 1) { r.dot(x + 4 - gl, y - 9 - (gl & 1), RED); r.dot(x - 4 + gl, y - 8, gl ? 250 : RED); } } }
     for (const c of this.caches) if (!c.open) { const x = c.x - cx, y = c.y - cy;        // Truhe mit blinkendem Zeichen
       for (let dy = -3; dy <= 0; dy++) for (let dx = -2; dx <= 2; dx++) r.dot(x + dx, y + dy, dy === -2 ? 238 : 22);
       r.dot(x, y - 1, RED); if ((this.time * 2 | 0) & 1) { r.dot(x, y - 6, RED); r.dot(x, y - 7, RED); r.dot(x, y - 9, RED); } }
@@ -2510,6 +2546,7 @@ class Game {
     if (p.twin > 0) row('Zwillingswurf', Math.round(Math.min(1, p.twin) * 100) + ' %', src(['Zwillingswurf', I('doppel'), '']));
     if (p.shield > 0) row('Schutzschild', p.shieldT > 0 ? 'lädt noch ' + Math.ceil(p.shieldT) + ' s' : 'bereit', src(['Schutzschild', I('schild'), 'lädt in ' + (13.5 - 1.5 * p.shield).toFixed(1).replace('.', ',') + ' s']));
     if (p.lure > 0) row('Unheilsglocke', pc(.2 * p.lure) + ' Feinde', src(['Unheilsglocke', I('glocke'), '']));
+    if (c.autoPick) { row('Beim Stufenaufstieg', 'immer ' + (c.autoPick === 'goldsack' ? 'Goldsack' : 'Proviant'), ''); const ub = document.createElement('button'); ub.textContent = 'Wieder fragen'; ub.style.margin = '6px 0'; ub.addEventListener('click', () => { c.autoPick = ''; this.showStats(); }); box.appendChild(ub); }
     h2('Waffen');
     // Schaden je Treffer: Grundwert der Stufe × Schadensbonus; kritische Treffer verdoppeln. Die Tabelle spiegelt die Werte der Waffenlogik (dort bei Änderungen mitziehen)
     const pl = Math.max(I('seuche'), I('pest'), I('pestfeuer'), I('blutpest')), g = (L, n) => L >= n ? 1 : 0;
@@ -2577,25 +2614,28 @@ class Game {
     const c = this.combat, box = document.getElementById('lvlCards'), tl = document.getElementById('lvlTools'), bR = document.getElementById('btnReroll'), bB = document.getElementById('btnBan'); let banMode = false;
     document.getElementById('lvlKicker').textContent = kicker;
     const done = () => { document.getElementById('lvl').style.display = 'none'; this.refreshItems(); this.paused = false; this.last = 0; this.save(); };
-    const draw = () => { box.textContent = ''; document.getElementById('lvlTitle').textContent = banMode ? 'Was soll weg?' : title;
+    const ck = document.getElementById('chkAuto'), la = document.getElementById('lvlAuto'), onlyX = () => offers.every(o => o.kind === 'x'); ck.checked = false;
+    const draw = () => { box.textContent = ''; document.getElementById('lvlTitle').textContent = banMode ? 'Was soll weg?' : title; la.style.display = tools && onlyX() ? 'block' : 'none';
       for (const o of offers) {
         const d = c.describe(o), b = document.createElement('button'); b.className = 'card';
         const tag = document.createElement('small'), t = document.createElement('b'), x = document.createElement('span');
         tag.textContent = banMode ? (o.kind === 'x' ? 'lässt sich nicht verbannen' : 'für diesen Lauf verbannen') : d.tag; t.textContent = d.title; x.textContent = d.text; b.append(tag, t, x); b.disabled = banMode && o.kind === 'x';
         b.addEventListener('click', () => {
-          if (!banMode) { c.choose(o); done(); return; }
+          if (!banMode) { if (onlyX() && tools && ck.checked) c.autoPick = o.id; c.choose(o); done(); return; }
           c.banned[o.id] = 1; c.bans--; banMode = false;                                  // verbannt: die Karte wird durch eine neue ersetzt
           const have = offers.filter(q => q !== o).map(q => q.id), rep = c.offers().find(q => !have.includes(q.id) && q.kind !== 'x'); const i = offers.indexOf(o);
           if (rep) offers[i] = rep; else offers.splice(i, 1); if (!offers.length) offers.push({id: 'proviant', kind: 'x', lvl: 0}); draw(); });
         box.appendChild(b); }
-      tl.style.display = tools ? '' : 'none';
+      tl.style.display = tools && !onlyX() ? '' : 'none';
       bR.textContent = 'Neu würfeln · ' + c.rerolls; bR.disabled = banMode || c.rerolls <= 0;
       bB.textContent = banMode ? 'Abbrechen' : 'Verbannen · ' + c.bans; bB.disabled = !banMode && (c.bans <= 0 || offers.every(o => o.kind === 'x')); };
     bR.onclick = () => { if (c.rerolls <= 0) return; c.rerolls--; offers = c.offers(); draw(); };
     bB.onclick = () => { if (!banMode && c.bans <= 0) return; banMode = !banMode; draw(); };
     draw(); document.getElementById('lvl').style.display = 'flex';
   }
-  levelUp() { this.showChoice('Stufe ' + this.player.level + ' erreicht', 'Wähle', this.combat.offers(), true); }
+  levelUp() { const c = this.combat, offs = c.offers();
+    if (c.autoPick && offs.every(o => o.kind === 'x')) { c.choose(offs.find(o => o.id === c.autoPick) || offs[0]); this.refreshItems(); return; }   // „Immer wählen“: ohne Nachfrage
+    this.showChoice('Stufe ' + this.player.level + ' erreicht', offs.every(o => o.kind === 'x') ? 'Alles ausgebaut' : 'Wähle', offs, true); }
   bossReward() {                                 // Lohn für den Boss: eine von drei Kräften, neu oder eine Stufe stärker
     const c = this.combat, offs = ['seuche', 'kette', 'flamme'].filter(id => !c.spent[id]).map(id => ({id, kind: 'w', lvl: (c.items[id] | 0) + 1})).filter(o => o.lvl <= 5);
     if (!offs.length) { for (let i = 0; i < 12; i++) c.coin(this.player.x + (Math.random() - .5) * 40, this.player.y + (Math.random() - .5) * 30, 4); return; }
@@ -2811,6 +2851,7 @@ class Game {
     entry(BOSS.name, 'erscheint nach 5 Minuten', 'Wechselt zwischen Geschosskranz, gerufenen Schlurfern und Ansturm; aus der Nähe schlägt er mit dem Schwert weit in Blickrichtung. Boss der ersten Ebene. Im Endlosmodus kehrt er wieder und steht dann zweimal auf.', BOSS_ANIM.walk[0][0]);
     entry(BOSS3.name, 'Boss der dritten Ebene', 'Schwebt über Wasser und Berge hinweg. Stürzt sich mit offenem Maul auf dich, spuckt drei schnelle Feuersalven und ruft jede vierte Aktion einen Schwarm im Feuerkranz.', CACO_ANIM.idle[0][0]);
     entry(BOSS2.name, 'Boss der zweiten Ebene', 'Wirft Geschossfächer. Jede dritte Aktion lädt er sichtbar auf, gleitet auf deine Höhe und feuert einen langen waagrechten Strahl in Blickrichtung – weiche nach oben oder unten aus, sobald die gestrichelte Linie steht.', SPIRIT_ANIM.walk[0][0]);
+    entry(GOBLIN.name, 'bewacht den Goldfluss', 'Erscheint am riesigen Wahrzeichen, sobald du dich seinem Sack näherst – aber nur, wenn der Goldfluss beim Krämer freigeschaltet ist. Springt dich an und wirft mit Münzen. Fällt er, liegt der Sack frei: Goldfluss, eine Stufe je Welt.', GOBLIN_SPR[0]);
     entry(GUARD.name, 'bewacht den Opferaltar', 'Halb so zäh wie der Boss. Rollt in gerader Bahn an und trudelt aus – weich seitlich aus.', BALL_SPR[0]);
     h2('Orte');
     entry('Kapelle und Kirche', 'drei kleine Heilungen', 'Stell dich davor: Ein rotes Fenster schließt sich und heilt 10 Leben. 20 Sekunden Pause dazwischen.', SHRINE_SPR.Kirche[3]);
