@@ -249,6 +249,7 @@ html,body{overscroll-behavior:none;touch-action:none;
   <div class="kicker" id="lvlKicker"></div>
   <h1 id="lvlTitle">W&auml;hle</h1>
   <div id="lvlCards"></div>
+  <div class="row" id="lvlTools"><button id="btnReroll"></button><button id="btnBan"></button></div>
 </div></div>
 <div id="over" class="page" style="display:none"><div class="sheet">
   <div class="kicker">Traueranzeige</div>
@@ -323,7 +324,7 @@ const CPAL = new Uint32Array([0xFF2B242A,0xFF8F888F,0xFFD2E6E8,0xFF243A2B,0xFF5E
 const TINT_OF_TYPE = new Uint8Array([1, 2, 3, 4, 4, 5, 6, 6, 7, 8, 9, 10, 2]);   // Reihenfolge wie T
 const COLOR = { on: false, free: false };
 const LENS = { on: true }; try { LENS.on = localStorage.getItem('loLens') !== '0'; } catch (e) {}
-const VERSION = 'V0.86';
+const VERSION = 'V0.87';
 const ENDLESS = { on: false, free: false };
 const TURBO = { on: false, free: false, mul: 1.5 };   // Turbo: das ganze Spiel läuft anderthalbfach so schnell
 const CHEAT = { god: false, color: false, turbo: false }; try { CHEAT.color = localStorage.getItem('loCheatColor') === '1'; CHEAT.turbo = localStorage.getItem('loCheatTurbo') === '1'; } catch (e) {}
@@ -1626,6 +1627,7 @@ const PASSIVES = {
   // nur als Fund in der Welt zu bekommen (found); danach beim Stufenaufstieg ausbaubar
   schild:  {name: 'Schutzschild',  w: 2.2, desc: 'Fängt einen Treffer ganz ab, lädt sich dann neu auf (12 s, je Stufe 1,5 s schneller)', apply: p => { p.shield = (p.shield || 0) + 1; p.shieldT = 0; }},
   doppel:  {name: 'Zwillingswurf', w: 1.6, desc: '+20 % Chance je Stufe, dass ein Wurf oder Schuss doppelt fliegt (Stufe V: immer)', apply: p => { p.twin = (p.twin || 0) + .2; }},
+  goldfluss: {name: 'Goldfluss',   w: 2.2, meta: 'goldfluss', desc: 'Je Stufe werden 15 % der gesammelten Erfahrung zu Gold (2 Erfahrung = 1 Gold) – du steigst langsamer auf, der Beutel füllt sich schneller', apply: p => { p.goldFlow = (p.goldFlow || 0) + .15; }},
   blut:    {name: 'Blutdurst',     w: 2, desc: 'Du stiehlst 1 % deines Schadens als Leben, je Stufe 1 % mehr – auch vom Boss (höchstens 2 Leben je Sekunde und Stufe)', apply: p => { p.leech = (p.leech || 0) + .01; }},
   glocke:  {name: 'Unheilsglocke', w: 0, found: true, desc: 'Lockt +20 % mehr Feinde an, Horden werden größer: mehr Beute, mehr Gefahr', apply: p => { p.lure = (p.lure || 0) + 1; }}
 };
@@ -1655,9 +1657,11 @@ const META = {
   lehre:  {name: 'Lesebrille',     desc: '+5 % Erfahrung je Stufe',            max: 5, base: 30},
   gier:   {name: 'Geldkatze',      desc: '+15 % Gold je Stufe',                max: 5, base: 35},
   wams:   {name: 'Kettenhemd',     desc: 'Jeder Treffer 1 Schaden weniger je Stufe', max: 2, base: 90},
+  goldfluss: {name: 'Goldfluss', desc: 'Schaltet die Fähigkeit Goldfluss frei: Sie erscheint dann beim Stufenaufstieg und macht aus Erfahrung Gold', max: 1, base: 500, need: 3000},
   zweit:  {name: 'Zweite Waffe',   desc: 'Jeder Lauf beginnt mit einer zufälligen zweiten Waffe', max: 1, base: 150}
 };
 const FORGE_COST = 60, FORGE_MIN = 3;            // Schmied: Preis je Werk, Mindeststufe beider Zutaten
+const earnedOf = pr => pr.goldEarned !== undefined ? pr.goldEarned | 0 : (pr.gold | 0) + Object.keys(pr.metaUpgrades || {}).reduce((a, id) => { if (!META[id]) return a; for (let l = 0; l < (pr.metaUpgrades[id] | 0) && l < META[id].max; l++) a += metaCost(id, l); return a; }, 0);   // insgesamt verdientes Gold; für alte Profile aus Beutel + Käufen geschätzt
 const metaCost = (id, lvl) => Math.round(META[id].base * (META[id].mul || [1, 2, 3.5, 5.5, 8])[lvl]);
 const GUARD = {name: 'Die Fleischkugel', ai: 'ball', guard: true, hp: BOSS.hp / 2, sp: 10, dmg: 8, xp: 8, r: 7, spr: BALL_SPR[0]};   // Wächter des Altars: halb so stark wie der Boss
 class Combat {
@@ -1675,7 +1679,7 @@ class Combat {
     const p = game.player; p.maxHp = 100; p.hp = 100; p.xp = 0; p.level = 1; p.xpNext = 5; p.inv = 0; p.pickup = 24;
     p.dmgMul = 1; p.cdMul = 1; p.area = 1; p.crit = 0; p.armor = 0; p.xpMul = 1; p.speedMul = 1; this.applyMeta();
     this.weapons = []; this.items = {}; this.aimX = 1; this.aimY = 0;
-    this.gold = 0; this.goldPending = 0;
+    this.gold = 0; this.goldPending = 0; this.earnPending = 0; this.gfAcc = 0; this.rerolls = 3; this.bans = 2; this.banned = {};
     this.choose({id: 'messer', kind: 'w', lvl: 1});
     if ((game.meta.zweit | 0) > 0) { const ids = Object.keys(WEAPONS).filter(id => id !== 'messer' && !WEAPONS[id].found && !WEAPONS[id].forge); this.choose({id: ids[Math.random() * ids.length | 0], kind: 'w', lvl: 1}); }
     if (allWeapons) for (const id in WEAPONS) if (!this.items[id]) this.choose({id, kind: 'w', lvl: 1});
@@ -1727,7 +1731,7 @@ class Combat {
   serialize() {
     const wl = {}, al = {}; for (const id in this.items) (WEAPONS[id] ? wl : al)[id] = this.items[id];
     const b = this.boss && this.boss.alive ? this.boss : null;
-    return {weapons: Object.keys(wl), weaponLevels: wl, abilities: Object.keys(al), abilityLevels: al, kills: this.kills, gold: this.gold, horse: this.g.player.horse | 0, stallUsed: this.stall && this.stall.used ? 1 : 0, smithUsed: this.smith && this.smith.used ? 1 : 0, spent: Object.keys(this.spent),
+    return {weapons: Object.keys(wl), weaponLevels: wl, abilities: Object.keys(al), abilityLevels: al, kills: this.kills, gold: this.gold, horse: this.g.player.horse | 0, stallUsed: this.stall && this.stall.used ? 1 : 0, smithUsed: this.smith && this.smith.used ? 1 : 0, spent: Object.keys(this.spent), rerolls: this.rerolls, bans: this.bans, banned: Object.keys(this.banned),
       bossState: this.bossState, bossHP: b ? b.hp : 0, bossX: b ? b.x : 0, bossY: b ? b.y : 0, bossRev: b ? b.revived | 0 : 0, exitState: this.exitOpen ? 1 : 0, exitX: this.exit.x, exitY: this.exit.y, gateT: this.gateT,
       bell: this.bell && this.bell.taken ? 1 : 0,
       altar: this.altar ? (this.altar.taken ? 3 : this.altar.state === 2 ? 2 : 0) : 0,
@@ -1746,6 +1750,7 @@ class Combat {
     if (Array.isArray(d.caches) && d.caches.length === this.caches.length) this.caches.forEach((c, i) => { c.open = !!d.caches[i]; });
     if (this.bell && d.bell) this.bell.taken = true;
     if (this.stall && d.stallUsed) this.stall.used = true;
+    if (Number.isFinite(d.rerolls)) this.rerolls = clamp(d.rerolls | 0, 0, 3); if (Number.isFinite(d.bans)) this.bans = clamp(d.bans | 0, 0, 2); this.banned = {}; if (Array.isArray(d.banned)) for (const id of d.banned) if (WEAPONS[id] || PASSIVES[id]) this.banned[id] = 1;
     if (this.smith && d.smithUsed) this.smith.used = true; this.spent = {}; if (Array.isArray(d.spent)) for (const id of d.spent) if (WEAPONS[id]) this.spent[id] = 1;
     if (this.altar && d.altar >= 2) { this.altar.state = 2; this.altar.taken = d.altar === 3; if (this.altar.taken && this.altar.obj) this.altar.obj.spr = ALTAR_SPR[0]; }
     this.bossState = clamp(d.bossState | 0, 0, 3);
@@ -1846,8 +1851,8 @@ class Combat {
   // ---- Angebote beim Stufenaufstieg: gewichtet, höchstens 10 Plätze für Waffen + Fähigkeiten zusammen
   offers() {
     const it = this.items, slots = Object.keys(it).length, c = [];
-    for (const id in WEAPONS) { const L = it[id] || 0; if (L === 0) { if (slots < 10 && !WEAPONS[id].found && !WEAPONS[id].forge && !this.spent[id]) c.push({id, kind: 'w', lvl: 1, w: WEAPONS[id].w}); } else if (L < 5) c.push({id, kind: 'w', lvl: L + 1, w: L >= 4 ? 3 : 5}); }
-    for (const id in PASSIVES) { const L = it[id] || 0; if (L === 0) { if (slots < 10 && !PASSIVES[id].found && !this.spent[id]) c.push({id, kind: 'p', lvl: 1, w: PASSIVES[id].w}); } else if (L < (this.g.endless && PASSIVES[id].inf || PASSIVES[id].max || 5)) c.push({id, kind: 'p', lvl: L + 1, w: 3.5}); }
+    for (const id in WEAPONS) { const L = it[id] || 0; if (L === 0) { if (slots < 10 && !WEAPONS[id].found && !WEAPONS[id].forge && !this.spent[id] && !this.banned[id]) c.push({id, kind: 'w', lvl: 1, w: WEAPONS[id].w}); } else if (L < 5 && !this.banned[id]) c.push({id, kind: 'w', lvl: L + 1, w: L >= 4 ? 3 : 5}); }
+    for (const id in PASSIVES) { const L = it[id] || 0; if (L === 0) { if (slots < 10 && !PASSIVES[id].found && !this.spent[id] && !this.banned[id] && (!PASSIVES[id].meta || (this.g.meta[PASSIVES[id].meta] | 0) > 0)) c.push({id, kind: 'p', lvl: 1, w: PASSIVES[id].w}); } else if (L < (this.g.endless && PASSIVES[id].inf || PASSIVES[id].max || 5) && !this.banned[id]) c.push({id, kind: 'p', lvl: L + 1, w: 3.5}); }
     const out = [];
     while (out.length < 3 && c.length) { let sum = 0; for (const o of c) sum += o.w; let r = Math.random() * sum, i = 0; while (i < c.length - 1 && (r -= c[i].w) > 0) i++; out.push(c.splice(i, 1)[0]); }
     if (!out.length) out.push({id: 'proviant', kind: 'x', lvl: 0});
@@ -2232,7 +2237,9 @@ class Combat {
     for (let i = 0; i < this.drops.length; i++) {
       const d = this.drops[i]; if (!d.alive) continue;
       const ox = p.x - d.x, oy = p.y - 3 - d.y, dist = Math.hypot(ox, oy) || 1;
-      if (dist < 4) { d.alive = false; if (d.gold) { const n = Math.max(1, Math.round(d.v * this.goldMul)); this.gold += n; this.goldPending += n; } else p.xp += d.v * p.xpMul; }
+      if (dist < 4) { d.alive = false; if (d.gold) { const n = Math.max(1, Math.round(d.v * this.goldMul)); this.gold += n; this.goldPending += n; this.earnPending += n; }
+        else { const gf = Math.min(.75, p.goldFlow || 0); p.xp += d.v * p.xpMul * (1 - gf);          // Goldfluss: ein Teil der Erfahrung wird zu Gold (2 Erfahrung = 1 Gold)
+          if (gf) { this.gfAcc += d.v * gf * .5 * this.goldMul; const n = this.gfAcc | 0; if (n) { this.gfAcc -= n; this.gold += n; this.goldPending += n; this.earnPending += n; } } } }
       else if (d.pull || dist < p.pickup) { const v = d.pull ? Math.max(240, dist * 1.6) : 85; d.x += ox / dist * v * dt; d.y += oy / dist * v * dt; }
     }
     for (const f of this.fx) if (f.alive && (f.t += dt) > (f.kind === 1 ? .16 : f.kind === 3 ? .2 : f.kind === 4 ? .09 : f.kind === 5 ? .6 : .35)) f.alive = false;
@@ -2478,7 +2485,7 @@ class Game {
     this.bank();
     return SAVE.put('runs', 'active', this.snapshot()).then(ok => { document.getElementById('saveWarn').style.display = ok ? 'none' : 'block'; return ok; });
   }
-  bank() { const c = this.combat, n = c.goldPending; if (n !== 0) { c.goldPending = 0; SAVE.bump({gold: n}); } }   // Gold wandert laufend ins Profil
+  bank() { const c = this.combat, n = c.goldPending, e = c.earnPending; if (n !== 0 || e) { c.goldPending = 0; c.earnPending = 0; SAVE.bump({gold: n, goldEarned: e}); } }   // Gold wandert laufend ins Profil
   pause() { if (this.dead) return; if (this.userPaused) { this.save(); return; } this.userPaused = true; this.showStats(); const pg = document.getElementById('pause'); pg.style.display = 'flex'; pg.scrollTop = 0; this.save(); }
   showStats() {                                  // aktuelle Werte samt Herkunft: Fähigkeiten im Lauf (Stufe) und Krämer-Käufe
     const p = this.player, c = this.combat, it = c.items, m = this.meta || {}, box = document.getElementById('stats'); box.textContent = '';
@@ -2497,6 +2504,7 @@ class Game {
     row('Erfahrung', x(p.xpMul), src(['Fibel', I('fibel'), pc(.12 * I('fibel'))], ['Lesebrille', m.lehre | 0, pc(.05 * (m.lehre | 0))]));
     row('Sammelreichweite', Math.round(p.pickup) + ' Pixel', src(['Elsternblick', I('magnet'), x(Math.pow(1.3, I('magnet')))], ['Lange Finger', m.magnet | 0, pc(.1 * (m.magnet | 0))]));
     row('Gold', x(c.goldMul || 1), src(['Geldkatze', m.gier | 0, pc(.15 * (m.gier | 0))]));
+    if (p.goldFlow > 0) row('Goldfluss', Math.round(Math.min(.75, p.goldFlow) * 100) + ' % der Erfahrung', src(['Goldfluss', I('goldfluss'), 'wird zu Gold, 2 : 1']));
     if (p.leech > 0) row('Lebensraub', Math.round(p.leech * 100) + ' % des Schadens', src(['Blutdurst', I('blut'), 'höchstens ' + 2 * I('blut') + ' Leben/s']));
     if (I('blutpest')) row('Blutpest', Math.round((.1 + .03 * I('blutpest')) * 100) + ' % des Seuchenschadens', 'höchstens ' + (2 + I('blutpest')) + ' Leben/s');
     if (p.twin > 0) row('Zwillingswurf', Math.round(Math.min(1, p.twin) * 100) + ' %', src(['Zwillingswurf', I('doppel'), '']));
@@ -2564,20 +2572,30 @@ class Game {
     if (yes && c.gold >= 25) { c.gold -= 25; c.goldPending -= 25; this.player.horse = 3; ACH.give('reiter'); if (c.stall) c.stall.used = true; this.toast('Du sitzt auf. Drei Treffer, dann ist das Pferd weg.'); }
     document.getElementById('stallPage').style.display = 'none'; this.paused = false; this.last = 0; this.save();
   }
-  showChoice(kicker, title, offers) {            // drei Karten; das Spiel hält an, bis eine gewählt ist
+  showChoice(kicker, title, offers, tools) {     // drei Karten; das Spiel hält an, bis eine gewählt ist. tools: beim Stufenaufstieg darf neu gewürfelt (3× je Lauf) und verbannt (2× je Lauf) werden
     this.paused = true;
-    const c = this.combat, box = document.getElementById('lvlCards'); box.textContent = '';
-    document.getElementById('lvlKicker').textContent = kicker; document.getElementById('lvlTitle').textContent = title;
-    for (const o of offers) {
-      const d = c.describe(o), b = document.createElement('button'); b.className = 'card';
-      const tag = document.createElement('small'), t = document.createElement('b'), x = document.createElement('span');
-      tag.textContent = d.tag; t.textContent = d.title; x.textContent = d.text; b.append(tag, t, x);
-      b.addEventListener('click', () => { c.choose(o); document.getElementById('lvl').style.display = 'none'; this.refreshItems(); this.paused = false; this.last = 0; this.save(); });
-      box.appendChild(b);
-    }
-    document.getElementById('lvl').style.display = 'flex';
+    const c = this.combat, box = document.getElementById('lvlCards'), tl = document.getElementById('lvlTools'), bR = document.getElementById('btnReroll'), bB = document.getElementById('btnBan'); let banMode = false;
+    document.getElementById('lvlKicker').textContent = kicker;
+    const done = () => { document.getElementById('lvl').style.display = 'none'; this.refreshItems(); this.paused = false; this.last = 0; this.save(); };
+    const draw = () => { box.textContent = ''; document.getElementById('lvlTitle').textContent = banMode ? 'Was soll weg?' : title;
+      for (const o of offers) {
+        const d = c.describe(o), b = document.createElement('button'); b.className = 'card';
+        const tag = document.createElement('small'), t = document.createElement('b'), x = document.createElement('span');
+        tag.textContent = banMode ? (o.kind === 'x' ? 'lässt sich nicht verbannen' : 'für diesen Lauf verbannen') : d.tag; t.textContent = d.title; x.textContent = d.text; b.append(tag, t, x); b.disabled = banMode && o.kind === 'x';
+        b.addEventListener('click', () => {
+          if (!banMode) { c.choose(o); done(); return; }
+          c.banned[o.id] = 1; c.bans--; banMode = false;                                  // verbannt: die Karte wird durch eine neue ersetzt
+          const have = offers.filter(q => q !== o).map(q => q.id), rep = c.offers().find(q => !have.includes(q.id) && q.kind !== 'x'); const i = offers.indexOf(o);
+          if (rep) offers[i] = rep; else offers.splice(i, 1); if (!offers.length) offers.push({id: 'proviant', kind: 'x', lvl: 0}); draw(); });
+        box.appendChild(b); }
+      tl.style.display = tools ? '' : 'none';
+      bR.textContent = 'Neu würfeln · ' + c.rerolls; bR.disabled = banMode || c.rerolls <= 0;
+      bB.textContent = banMode ? 'Abbrechen' : 'Verbannen · ' + c.bans; bB.disabled = !banMode && (c.bans <= 0 || offers.every(o => o.kind === 'x')); };
+    bR.onclick = () => { if (c.rerolls <= 0) return; c.rerolls--; offers = c.offers(); draw(); };
+    bB.onclick = () => { if (!banMode && c.bans <= 0) return; banMode = !banMode; draw(); };
+    draw(); document.getElementById('lvl').style.display = 'flex';
   }
-  levelUp() { this.showChoice('Stufe ' + this.player.level + ' erreicht', 'Wähle', this.combat.offers()); }
+  levelUp() { this.showChoice('Stufe ' + this.player.level + ' erreicht', 'Wähle', this.combat.offers(), true); }
   bossReward() {                                 // Lohn für den Boss: eine von drei Kräften, neu oder eine Stufe stärker
     const c = this.combat, offs = ['seuche', 'kette', 'flamme'].filter(id => !c.spent[id]).map(id => ({id, kind: 'w', lvl: (c.items[id] | 0) + 1})).filter(o => o.lvl <= 5);
     if (!offs.length) { for (let i = 0; i < 12; i++) c.coin(this.player.x + (Math.random() - .5) * 40, this.player.y + (Math.random() - .5) * 30, 4); return; }
@@ -2587,14 +2605,14 @@ class Game {
     this.dead = true; const c = this.combat, hn = heroName(), on = document.getElementById('finName'); on.textContent = hn; on.style.fontSize = hn.length > 9 ? '22px' : hn.length > 5 ? '28px' : '';
     document.getElementById('finText').textContent = `${hn} schritt durch das letzte Tor. ${LAST_LEVEL} Ebenen, ${c.kills} gefallene Feinde, Stufe ${this.player.level}, ${c.gold} Goldstücke – und der Kakodämon ist gebannt. Doch das ist noch nicht das Ende: Diese Legende wird weitergeschrieben.`;
     document.getElementById('fin').style.display = 'flex'; ACH.give('fin');
-    SAVE.del('runs', 'active'); SAVE.bump({totalKills: c.kills, highestLevel: this.level, gold: c.goldPending, totalWins: 1}); c.goldPending = 0;
+    SAVE.del('runs', 'active'); SAVE.bump({totalKills: c.kills, highestLevel: this.level, gold: c.goldPending, goldEarned: c.earnPending, totalWins: 1}); c.goldPending = 0; c.earnPending = 0;
   }
   gameOver() {
     this.dead = true; const c = this.combat, tt = c.time | 0; ACH.give('nachruf'); if (this.level === 1 && tt < 60) ACH.give('kurz'); if (c.dark > 0) ACH.give('lichtscheu');
     const hn = heroName(), on = document.getElementById('overName'); on.textContent = '† ' + hn + ' †'; on.style.fontSize = hn.length > 9 ? '22px' : hn.length > 5 ? '28px' : '';
     document.getElementById('overText').textContent = `${hn} fiel durch ${c.lastSrc || 'einen Feind'} in Ebene ${this.level} nach ${tt / 60 | 0} Min. ${tt % 60} Sek. auf Stufe ${this.player.level}. ${c.kills} Feinde fielen zuvor. Zurück bleiben ${c.gold} Goldstücke – und eine Legende.`;
     document.getElementById('over').style.display = 'flex';
-    SAVE.del('runs', 'active'); SAVE.bump({totalKills: c.kills, highestLevel: this.level, gold: c.goldPending}); c.goldPending = 0;
+    SAVE.del('runs', 'active'); SAVE.bump({totalKills: c.kills, highestLevel: this.level, gold: c.goldPending, goldEarned: c.earnPending}); c.goldPending = 0; c.earnPending = 0;
   }
   loop(now) {
     ACH.check(this); MUSIC.sync(!this.stopped && !this.dead && !this.userPaused && document.visibilityState !== 'hidden', this.combat.time);
@@ -2699,6 +2717,7 @@ class Game {
     if (activeRun) bc.textContent = `Fortsetzen · Ebene ${activeRun.level} · ${fmt(activeRun.elapsedTime || 0)}`;
     $('btnStart').className = activeRun ? '' : 'big';
     const pr = await SAVE.profile();
+    if (pr.goldEarned === undefined) { const est = earnedOf(pr); SAVE.update(cur => { if (cur.goldEarned === undefined) cur.goldEarned = est; }); }
     $('btnShop').textContent = 'Krämer · ' + pr.gold + ' Gold'; ACH.load(pr); $('btnAch').textContent = 'Erfolge · ' + ACH.count() + '/' + ACH.list.length;
     $('menuWarn').textContent = SAVE.volatile ? 'Hier lässt sich nichts dauerhaft speichern (Vorschau/privater Modus). Gold, Käufe und Spielstand gelten nur, bis die Seite geschlossen wird.' : '';
     $('menuStats').textContent = pr.totalRuns ? `Läufe ${pr.totalRuns} · Höchste Ebene ${Math.max(1, pr.highestLevel)} · Feinde ${pr.totalKills} · Bosse ${pr.totalBossKills}` : '';
@@ -2710,10 +2729,11 @@ class Game {
       const m = META[id], L = pr.metaUpgrades[id] | 0, maxed = L >= m.max, cost = maxed ? 0 : metaCost(id, L);
       const b = document.createElement('button'); b.className = 'card';
       const tag = document.createElement('small'), t = document.createElement('b'), x = document.createElement('span');
-      tag.textContent = maxed ? 'Ausgebaut' : cost + ' Gold' + (pr.gold < cost ? ' · es fehlen ' + (cost - pr.gold) : ' · kaufen'); t.textContent = m.name + (L ? ' ' + ROMAN[L] : '') + (m.max > 1 ? '  (' + L + '/' + m.max + ')' : ''); x.textContent = m.desc;
-      b.append(tag, t, x); b.disabled = maxed || pr.gold < cost;
+      const earned = earnedOf(pr), locked = !maxed && m.need && earned < m.need;
+      tag.textContent = maxed ? 'Ausgebaut' : locked ? 'Erst ab ' + m.need + ' insgesamt verdientem Gold · bisher ' + earned : cost + ' Gold' + (pr.gold < cost ? ' · es fehlen ' + (cost - pr.gold) : ' · kaufen'); t.textContent = m.name + (L ? ' ' + ROMAN[L] : '') + (m.max > 1 ? '  (' + L + '/' + m.max + ')' : ''); x.textContent = m.desc;
+      b.append(tag, t, x); b.disabled = maxed || locked || pr.gold < cost;
       b.addEventListener('click', async () => {
-        await SAVE.update(cur => { const l = cur.metaUpgrades[id] | 0; if (l >= m.max || cur.gold < metaCost(id, l)) return false; cur.gold -= metaCost(id, l); cur.metaUpgrades[id] = l + 1; ACH.give('kunde'); });
+        await SAVE.update(cur => { const l = cur.metaUpgrades[id] | 0; if (l >= m.max || cur.gold < metaCost(id, l) || (m.need && earnedOf(cur) < m.need)) return false; cur.gold -= metaCost(id, l); cur.metaUpgrades[id] = l + 1; ACH.give('kunde'); });
         renderShop();
       });
       box.appendChild(b);
@@ -2778,6 +2798,7 @@ class Game {
     h2('So wird gespielt');
     para('Du läufst mit dem Daumen, deine Waffen feuern von selbst. Besiegte Feinde lassen rote Splitter (Erfahrung) und Münzen (Gold) fallen.');
     para('Die Uhr zählt fünf Minuten herunter. Dann erwacht der Knochenkönig irgendwo in der Welt und kommt zu dir; der rote Pfeil zeigt, wo er ist. Fällt er, wählst du eine Kraft, und in der Nähe öffnet sich ein Tor – wieder zeigt der Pfeil den Weg. Du hast 25 Sekunden, um hindurchzugehen; danach kommt die Dunkelheit. Durch das Tor geht es in die nächste, härtere Ebene.');
+    para('Beim Stufenaufstieg darfst du in jedem Lauf dreimal neu würfeln und zweimal eine Karte verbannen – die verbannte Waffe oder Fähigkeit taucht in diesem Lauf nicht mehr auf.');
     para('Höchstens zehn Waffen und Fähigkeiten zusammen. Flüsse kannst du mit halbem Tempo durchwaten, Seen und Berge nicht. Auf Straßen und Brücken bist du schneller. Die Karte hält das Spiel an.');
     h2('Waffen'); for (const id in WEAPONS) { const w = WEAPONS[id]; if (!w.found && !w.forge) entry(w.name, 'Stufe I bis V', w.desc.map((d, i) => ROMAN[i + 1] + ' ' + d).join(' · ')); }
     h2('Schmiedewerke'); for (const id in WEAPONS) { const w = WEAPONS[id]; if (w.forge) entry(w.name, w.forge.map(q => (WEAPONS[q] || PASSIVES[q]).name).join(' + '), w.desc.map((d, i) => ROMAN[i + 1] + ' ' + d).join(' · ')); }
@@ -2801,7 +2822,7 @@ class Game {
     entry('Wahrzeichen', 'nicht in jeder Welt', 'Manche Welten tragen ein riesiges Wahrzeichen: Weltenbaum, Riesenburg, Nekropole, Riesensäule oder Kolossstatue. Dort liegt eine Truhe; stehst du dahinter, öffnet sich um dich ein kleines Guckloch.', null);
     entry('Mühle, Obelisk, Burg …', '', 'Alle Orte stehen auf der Karte. Das Tor öffnet sich nach dem Boss in Laufweite, wenn möglich an einem von ihnen.', Shapes.mill());
     h2('Krämer'); para('Gold bleibt über den Tod hinaus erhalten. Der Krämer im Menü verkauft dafür dauerhafte Verbesserungen:');
-    for (const id in META) { const m = META[id]; entry(m.name, 'ab ' + metaCost(id, 0) + ' Gold · ' + m.max + (m.max > 1 ? ' Stufen' : ' Stufe'), m.desc); }
+    for (const id in META) { const m = META[id]; entry(m.name, 'ab ' + metaCost(id, 0) + ' Gold · ' + m.max + (m.max > 1 ? ' Stufen' : ' Stufe') + (m.need ? ' · erst ab ' + m.need + ' insgesamt verdientem Gold' : ''), m.desc); }
   }
   const openWiki = () => { renderWiki(); $('wiki').style.display = 'flex'; $('wiki').scrollTop = 0; };
   $('btnWiki').addEventListener('click', openWiki); $('btnWiki2').addEventListener('click', openWiki);
