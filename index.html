@@ -327,7 +327,7 @@ const CPAL = new Uint32Array([0xFF2B242A,0xFF8F888F,0xFFD2E6E8,0xFF243A2B,0xFF5E
 const TINT_OF_TYPE = new Uint8Array([1, 2, 3, 4, 4, 5, 6, 6, 7, 8, 9, 10, 2]);   // Reihenfolge wie T
 const COLOR = { on: false, free: false };
 const LENS = { on: true }; try { LENS.on = localStorage.getItem('loLens') !== '0'; } catch (e) {}
-const VERSION = 'V0.91';
+const VERSION = 'V0.92';
 const ENDLESS = { on: false, free: false };
 const TURBO = { on: false, free: false, mul: 1.5 };   // Turbo: das ganze Spiel läuft anderthalbfach so schnell
 const CHEAT = { god: false, color: false, turbo: false }; try { CHEAT.color = localStorage.getItem('loCheatColor') === '1'; CHEAT.turbo = localStorage.getItem('loCheatTurbo') === '1'; } catch (e) {}
@@ -1685,7 +1685,7 @@ class Combat {
     const p = game.player; p.maxHp = 100; p.hp = 100; p.xp = 0; p.level = 1; p.xpNext = 5; p.inv = 0; p.pickup = 24;
     p.dmgMul = 1; p.cdMul = 1; p.area = 1; p.crit = 0; p.armor = 0; p.xpMul = 1; p.speedMul = 1; this.applyMeta();
     this.weapons = []; this.items = {}; this.aimX = 1; this.aimY = 0;
-    this.gold = 0; this.goldPending = 0; this.earnPending = 0; this.gfAcc = 0; this.rerolls = 3; this.bans = 2; this.banned = {}; this.autoPick = '';
+    this.gold = 0; this.goldPending = 0; this.earnPending = 0; this.gfAcc = 0; this.rerolls = 3; this.bans = 2; this.banned = {}; this.autoPick = ''; this.ebombs = [];
     this.choose({id: 'messer', kind: 'w', lvl: 1});
     if ((game.meta.zweit | 0) > 0) { const ids = Object.keys(WEAPONS).filter(id => id !== 'messer' && !WEAPONS[id].found && !WEAPONS[id].forge); this.choose({id: ids[Math.random() * ids.length | 0], kind: 'w', lvl: 1}); }
     if (allWeapons) for (const id in WEAPONS) if (!this.items[id]) this.choose({id, kind: 'w', lvl: 1});
@@ -1709,7 +1709,7 @@ class Combat {
     this.altar = ap ? {x: ap.x, y: ap.y, obj: ap.obj, state: 0, taken: false} : null; this.guard = null;
     this.waveT = 25;
     const sp0 = w.pois.find(o => o.kind === 'Stall'); this.stall = sp0 && w.reachable(sp0.x, sp0.y + 6) ? {x: sp0.x, y: sp0.y, asked: false, used: false} : null;
-    const sm0 = w.pois.find(o => o.kind === 'Schmied'); this.smith = sm0 && w.reachable(sm0.x, sm0.y + 6) ? {x: sm0.x, y: sm0.y, asked: false, used: false} : null; this.pestQ.length = 0;
+    const sm0 = w.pois.find(o => o.kind === 'Schmied'); this.smith = sm0 && w.reachable(sm0.x, sm0.y + 6) ? {x: sm0.x, y: sm0.y, asked: false, used: false} : null; this.pestQ.length = 0; this.ebombs.length = 0;
     // Unheilsglocke: liegt in jeder Ebene an einem besonderen Ort und ist nur dort zu bekommen
     const bp = w.pois.filter(o => ['Steinkreis', 'Großer Baum', 'Obelisk', 'Mühle', 'Ruine'].includes(o.kind) && o !== w.exit);
     const bo = bp.length ? bp[w.seed % bp.length] : null, bs0 = bo ? spot(bo.x - 16, bo.y - 8) : spot(w.spawn.x + 90, w.spawn.y - 70);
@@ -2003,6 +2003,8 @@ class Combat {
     // ---- Gegner
     const farR = Math.hypot(g.renderer.bw, g.renderer.bh) * .9 + 40, vx = g.renderer.bw / 2 + 14, vy = g.renderer.bh / 2 + 16;
     this.dyn.length = 0; if (this.corpse) this.dyn.push(this.corpse);
+    for (let i = this.ebombs.length - 1; i >= 0; i--) { const B = this.ebombs[i];      // Bomben des Dämons: angekündigt durch einen sich schließenden Kreis, dann Explosion
+      if ((B.t -= dt) <= 0) { this.ebombs.splice(i, 1); this.blast(B.x, B.y, 19, 2.2, .8); if (Math.hypot(p.x - B.x, p.y - 2 - B.y) < 20) { this.hurt(18, 'eine Bombe des Kakodämons'); } } }
     const plagueL = Math.max(this.items.seuche | 0, this.items.pest | 0, this.items.pestfeuer | 0, this.items.blutpest | 0), BP = this.items.blutpest | 0;
     if (BP && this.bpPool > 0) { const h = Math.min(this.bpPool, (2 + BP) * dt); this.bpPool -= h; if (this.bpPool > 12) this.bpPool = 12; if (p.hp < p.maxHp) { p.hp = Math.min(p.maxHp, p.hp + h); this.leechT = .25; } }   // Blutpest: gezehrtes Leben fließt gedeckelt zu
     if (this.pestQ.length) { const PL = this.items.pest | 0, R = (15 + 2 * (PL >= 2) + 3 * (PL >= 4)) * p.area, Q = this.pestQ.splice(0, 12);
@@ -2064,6 +2066,9 @@ class Combat {
           if (e.state >= 3) { sp = 0; e.dashT -= dt; e.spr = CACO_ANIM.dead[k][clamp((1 - e.dashT / 1.2) * 8 | 0, 0, 7)];
             if (e.dashT <= 0) { e.dying = true; this.corpse = null; this.kill(e); continue; } break; }
           e.cd -= dt; e.buff = 0;
+          if (e.hp < ty.hp * this.lvlMul * .5) {     // ab der Hälfte seines Lebens: alle paar Sekunden regnet es Bomben – eine auf dich, drei ringsum
+            if (!e.rage) { e.rage = true; e.bombT = .6; g.toast('Der Kakodämon rast – es regnet Feuer!'); }
+            if ((e.bombT -= dt) <= 0) { e.bombT = 3.1; for (let q = 0; q < 4; q++) { const a = Math.random() * 6.283, rr = q ? 22 + Math.random() * 30 : 0; if (this.ebombs.length < 24) this.ebombs.push({x: p.x + Math.cos(a) * rr, y: p.y + Math.sin(a) * rr, t: 1.15 + q * .12}); } } }
           if (e.state === 1) { sp = 96; mx = e.dx; my = e.dy; e.spr = CACO_ANIM.atk[k][(t * 12 | 0) % 6]; if ((e.dashT -= dt) <= 0) { e.state = 0; e.cd = 1.5; } }
           else if (e.state === 2) { sp = 0; e.face = dx >= 0; e.dashT -= dt; e.spr = CACO_ANIM.atk[e.face ? 0 : 1][(t * 10 | 0) % 6];
             if (e.dashT < e.next) { e.next -= .32; const a0 = Math.atan2(p.y - 3 - (e.y - 18), p.x - e.x); for (let q = -1; q <= 1; q++) this.shoot(2, e.x + (e.face ? 16 : -16), e.y - 16, Math.cos(a0 + q * .2) * 78, Math.sin(a0 + q * .2) * 78, 0, 9, 3); }
@@ -2310,6 +2315,10 @@ class Combat {
     for (const f of this.fx) if (f.alive && f.kind === 5) { const u = f.t / .6; r.ripple(Math.round(f.x) - cx, Math.round(f.y) - cy, 5 + u * f.r, 4.2 * (1 - u * .55)); }
   }
   drawOver(r, cx, cy, time) {
+    for (const B of this.ebombs) { const x = Math.round(B.x) - cx, y = Math.round(B.y) - cy, R = 19, k = clamp(B.t / 1.2, 0, 1), rr = 3 + (R - 3) * k, n = 40, bl = (this.time * 10 | 0) & 1;   // Warnfläche über allem: gerasterte Scheibe, roter Rand, innen ein Ring, der sich zuzieht
+      for (let dy = -15; dy <= 15; dy++) for (let dx = -19; dx <= 19; dx++) if (dx * dx / 361 + dy * dy / 231 < 1 && ((dx + dy) & 3) === 0) r.dot(x + dx, y + dy, bl ? RED : 20);
+      for (let i = 0; i < n; i++) { const a = i * 6.283 / n; r.dot(Math.round(x + Math.cos(a) * R), Math.round(y + Math.sin(a) * R * .8), RED); r.dot(Math.round(x + Math.cos(a) * (R + 1)), Math.round(y + Math.sin(a) * (R + 1) * .8), 20); if (i % 2 === 0) r.dot(Math.round(x + Math.cos(a) * rr), Math.round(y + Math.sin(a) * rr * .8), 250); }
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) r.dot(x + dx, y + dy, 20); r.dot(x + 1, y - 2, bl ? RED : 250); }
     const p = this.g.player, A = p.area, px = p.x, py = p.y - 3;
     if (this.leechT > 0) { const k = (time * 10 | 0) & 3; r.dot(Math.round(p.x) - 1 - cx, Math.round(p.y) - 9 - k - cy, RED); r.dot(Math.round(p.x) + 2 - cx, Math.round(p.y) - 8 - ((k + 2) & 3) - cy, RED); }   // rote Tropfen steigen auf, solange Leben zufließt
     if (p.shield > 0 && p.shieldT <= 0) for (let i = 0; i < 14; i++) { if ((i + (time * 5 | 0)) % 7 === 0) continue; const a = i * .4488; r.dot(Math.round(p.x + Math.cos(a) * 7) - cx, Math.round(py - 1 + Math.sin(a) * 7) - cy, (i % 3) ? 238 : 20); }   // bereiter Schild: geschlossene Blase, durch die eine Lücke wandert
@@ -2447,17 +2456,16 @@ const ACH = { got: {}, q: [], busy: false, t: 0,
   load(pr) { this.got = Object.assign({}, pr.achievements, this.got); this.base = pr.totalKills | 0; if (pr.totalRuns >= 10) this.give('unbelehrbar'); if (HERO.name) this.give('name'); this.unlock(); },
   unlock() {                                     // Farbdruck: wer Ebene 3 beendet hat. Endlos: wer alle Erfolge hat
     if ((this.got.fin || CHEAT.color) && !COLOR.free) { COLOR.free = true; try { COLOR.on = localStorage.getItem('loColor') !== '0'; } catch (e) { COLOR.on = true; } }
-    if (this.count() >= this.list.length && !ENDLESS.free) { ENDLESS.free = true; try { ENDLESS.on = localStorage.getItem('loEndless') === '1'; } catch (e) {} }
+    if (this.got.fin && !ENDLESS.free) { ENDLESS.free = true; try { ENDLESS.on = localStorage.getItem('loEndless') === '1'; } catch (e) {} }
     if ((this.got.koenig || CHEAT.turbo) && !TURBO.free) { TURBO.free = true; try { TURBO.on = localStorage.getItem('loTurbo') === '1'; } catch (e) {} }
     const set = (id, o, name, how) => { const b = document.getElementById(id); if (b) { b.disabled = !o.free; b.textContent = o.free ? name + ': ' + (o.on ? 'an' : 'aus') : name + ' – ' + how; } };
-    set('btnColor', COLOR, 'Farbdruck', 'Ebene 3 beenden'); set('btnTurbo', TURBO, 'Turbo', 'den Knochenkönig besiegen'); set('btnEndless', ENDLESS, 'Endlos', 'alle Erfolge erringen'); },
+    set('btnColor', COLOR, 'Farbdruck', 'Ebene 3 beenden'); set('btnTurbo', TURBO, 'Turbo', 'den Knochenkönig besiegen'); set('btnEndless', ENDLESS, 'Endlos', 'Ebene 3 beenden'); },
   count() { return this.list.filter(a => this.got[a[0]]).length; },
   give(id) { if (this.got[id]) return; const a = this.list.find(x => x[0] === id); if (!a) return; this.got[id] = Date.now();
     SAVE.update(pr => { (pr.achievements = pr.achievements || {})[id] = this.got[id]; });
     this.q.push(a[1]); this.next(); if (id !== 'erster') this.give('erster'); { const ab = document.getElementById('btnAch'); if (ab) ab.textContent = 'Erfolge · ' + this.count() + '/' + this.list.length; }
     if (id === 'koenig' && !TURBO.free) { this.unlock(); this.q.push('Turbo freigeschaltet'); this.next(); }
-    if (id === 'fin' && !COLOR.free) { this.unlock(); this.q.push('Farbdruck freigeschaltet'); this.next(); }
-    if (!ENDLESS.free && this.count() >= this.list.length) { this.unlock(); this.q.push('Alle Erfolge – Endlosmodus freigeschaltet'); this.next(); } },
+    if (id === 'fin' && (!COLOR.free || !ENDLESS.free)) { this.unlock(); this.q.push('Farbdruck und Endlosmodus freigeschaltet'); this.next(); } },
   next() { if (this.busy || !this.q.length) return; this.busy = true; const el = document.getElementById('achToast'); el.textContent = 'Erfolg · ' + this.q.shift(); el.style.opacity = 1;
     setTimeout(() => { el.style.opacity = 0; setTimeout(() => { this.busy = false; this.next(); }, 350); }, 2600); },
   check(g) { if (g.stopped || g.dead || performance.now() - this.t < 500) return; this.t = performance.now(); const c = g.combat, it = c.items;
@@ -2849,7 +2857,7 @@ class Game {
     para('Werte gelten für Ebene 1 zu Beginn. Mit der Zeit und mit jeder Ebene werden alle zäher und schlagen härter zu. Ab Ebene 2 brechen zusätzlich alle 38 Sekunden Horden hervor.');
     h2('Große Gegner');
     entry(BOSS.name, 'erscheint nach 5 Minuten', 'Wechselt zwischen Geschosskranz, gerufenen Schlurfern und Ansturm; aus der Nähe schlägt er mit dem Schwert weit in Blickrichtung. Boss der ersten Ebene. Im Endlosmodus kehrt er wieder und steht dann zweimal auf.', BOSS_ANIM.walk[0][0]);
-    entry(BOSS3.name, 'Boss der dritten Ebene', 'Schwebt über Wasser und Berge hinweg. Stürzt sich mit offenem Maul auf dich, spuckt drei schnelle Feuersalven und ruft jede vierte Aktion einen Schwarm im Feuerkranz.', CACO_ANIM.idle[0][0]);
+    entry(BOSS3.name, 'Boss der dritten Ebene', 'Schwebt über Wasser und Berge hinweg. Stürzt sich mit offenem Maul auf dich, spuckt drei schnelle Feuersalven und ruft jede vierte Aktion einen Schwarm im Feuerkranz. Ab der Hälfte seines Lebens regnet es zusätzlich Bomben: Lauf aus den roten Kreisen, bevor sie sich schließen.', CACO_ANIM.idle[0][0]);
     entry(BOSS2.name, 'Boss der zweiten Ebene', 'Wirft Geschossfächer. Jede dritte Aktion lädt er sichtbar auf, gleitet auf deine Höhe und feuert einen langen waagrechten Strahl in Blickrichtung – weiche nach oben oder unten aus, sobald die gestrichelte Linie steht.', SPIRIT_ANIM.walk[0][0]);
     entry(GOBLIN.name, 'bewacht den Goldfluss', 'Erscheint am riesigen Wahrzeichen, sobald du dich seinem Sack näherst – aber nur, wenn der Goldfluss beim Krämer freigeschaltet ist. Springt dich an und wirft mit Münzen. Fällt er, liegt der Sack frei: Goldfluss, eine Stufe je Welt.', GOBLIN_SPR[0]);
     entry(GUARD.name, 'bewacht den Opferaltar', 'Halb so zäh wie der Boss. Rollt in gerader Bahn an und trudelt aus – weich seitlich aus.', BALL_SPR[0]);
