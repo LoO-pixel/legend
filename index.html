@@ -147,7 +147,14 @@ html,body{overscroll-behavior:none;touch-action:none;
 #opts h1{font-size:26px}
 #opts h2{font-size:11px;letter-spacing:.3em;text-transform:uppercase;border-bottom:1px solid #2a242b;padding:4px 0;margin:14px 0 8px}
 #opts button:disabled{opacity:.45}
-#langRow button{letter-spacing:.12em}#langRow button.on{background:#2a242b;color:#e8e6d2}
+#langRow button{letter-spacing:.12em}
+#a2hs .sheet{max-width:340px;text-align:left}#a2hs .kicker,#a2hs h1,#a2hs .sub{text-align:center}#a2hs h1{font-size:27px}
+#a2hsSteps h2{font-size:10px;letter-spacing:.3em;text-transform:uppercase;text-align:center;margin:12px 0 2px}
+#a2hsSteps .st{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid rgba(42,36,43,.3);font-size:13px;line-height:1.35}
+#a2hsSteps .st>i{flex:none;width:26px;height:26px;border:1px solid #2a242b;border-radius:50%;font:700 13px/24px Georgia,serif;font-style:normal;text-align:center}
+#a2hsSteps .st b{display:block}#a2hsSteps .st small{display:block;font-size:11px;font-style:italic;opacity:.8;margin-top:2px}
+#a2hsSteps svg{width:20px;height:20px;vertical-align:-5px;margin:0 1px}
+#a2hs .hint{font-size:11px;font-style:italic;line-height:1.4;margin:10px 0 12px}#langRow button.on{background:#2a242b;color:#e8e6d2}
 #btnReset.warn{background:#cf2a2a;border-color:#cf2a2a;color:#e8e6d2;letter-spacing:.08em}
 #optNote{min-height:16px;font-size:11px;font-style:italic;overflow-wrap:anywhere;margin-bottom:6px}
 #menuStats:empty,#menuNote:empty,#menuWarn:empty{display:none}
@@ -369,6 +376,8 @@ html,body{overscroll-behavior:none;touch-action:none;
   <div class="row" id="lvlPick"></div></div>
   <h2 data-en="Share this world">Diese Welt teilen</h2>
   <div class="row"><button id="btnCopy" data-en="Copy seed">Seed kopieren</button><button id="btnLink" data-en="Copy link">Link kopieren</button></div>
+  <div id="a2hsBox"><h2 data-en="Home screen">Home-Bildschirm</h2>
+  <button id="btnA2hs" data-en="Play in fullscreen &ndash; how?">Im Vollbild spielen &ndash; so geht&rsquo;s</button></div>
   <h2 data-en="Progress">Spielstand</h2>
   <button id="btnReset" data-en="Reset progress">Fortschritt zur&uuml;cksetzen</button>
   <div id="optNote"></div>
@@ -397,6 +406,16 @@ html,body{overscroll-behavior:none;touch-action:none;
   <p class="hint" id="petHint"></p>
   <div id="petCards"></div>
   <button id="btnPetsBack" class="big" data-en="Back">Zur&uuml;ck</button>
+</div></div>
+<div id="a2hs" class="page" style="display:none;z-index:7"><div class="sheet">
+  <div class="kicker" data-en="A tip before your first run">Ein Tipp vor dem ersten Lauf</div>
+  <h1 data-en="Play in fullscreen">Im Vollbild spielen</h1>
+  <div class="sub" data-en="Put Legend of _ on your home screen: it then starts like an app &ndash; fullscreen, without browser bars.">Leg Legend of _ auf deinen Home-Bildschirm: Dann startet es wie eine App &ndash; im Vollbild, ohne Browserleisten.</div>
+  <div id="a2hsSteps"></div>
+  <p class="hint" id="a2hsNote"></p>
+  <button id="btnA2hsInstall" class="big" style="display:none" data-en="Install now">Jetzt installieren</button>
+  <button id="btnA2hsOk" class="big" data-en="Got it">Verstanden</button>
+  <button id="btnA2hsLater" data-en="Remind me later">Sp&auml;ter erinnern</button>
 </div></div>
 <div id="loading"><span data-en="The world<br>takes shape">Die Welt<br>entsteht</span></div>
 
@@ -2005,7 +2024,7 @@ const META = {
   zweit:  {name: TR('Zweite Waffe', 'Second Weapon'),   desc: TR('Jeder Lauf beginnt mit einer zufälligen zweiten Waffe aus deiner Waffenkammer – in den Einstellungen abschaltbar', 'Every run starts with a random second weapon from your armory – can be turned off in the settings'), max: 1, base: 150}
 };
 const CHANGELOG = [                                // neueste Version oben; n = neu, g = geändert, e = entfernt
-  ['V0.999', {n: [TR('Bloom: helle Stellen strahlen weich in die dunklen hinein, in den Einstellungen an- und abschaltbar.', 'Bloom: bright areas glow softly into the dark ones, can be turned on and off in the settings.'), TR('Die zweite Startwaffe vom Krämer lässt sich in den Einstellungen abschalten.', 'The second starting weapon from the merchant can be turned off in the settings.'), TR('Fortschritt zurücksetzen in den Einstellungen – Einstellungen und Name bleiben.', 'Reset progress in the settings – settings and name are kept.'), TR('Nach dem Tod gibt es eine Übersicht über den Lauf und gleich einen neuen Lauf.', 'After dying you get a summary of the run and can start a new run right away.'), TR('Das Spiel gibt es jetzt auf Englisch und Deutsch – ab Werk Englisch, umstellbar in den Einstellungen.', 'The game is now available in English and German – English by default, switchable in the settings.')],
+  ['V0.999', {n: [TR('Bloom: helle Stellen strahlen weich in die dunklen hinein, in den Einstellungen an- und abschaltbar.', 'Bloom: bright areas glow softly into the dark ones, can be turned on and off in the settings.'), TR('Die zweite Startwaffe vom Krämer lässt sich in den Einstellungen abschalten.', 'The second starting weapon from the merchant can be turned off in the settings.'), TR('Fortschritt zurücksetzen in den Einstellungen – Einstellungen und Name bleiben.', 'Reset progress in the settings – settings and name are kept.'), TR('Nach dem Tod gibt es eine Übersicht über den Lauf und gleich einen neuen Lauf.', 'After dying you get a summary of the run and can start a new run right away.'), TR('Beim ersten Start am Handy erklärt eine kurze Anleitung, wie man das Spiel auf den Home-Bildschirm legt; in den Einstellungen jederzeit wieder abrufbar.', 'On the first start on a phone, a short guide explains how to put the game on the home screen; available again any time in the settings.'), TR('Das Spiel gibt es jetzt auf Englisch und Deutsch – ab Werk Englisch, umstellbar in den Einstellungen.', 'The game is now available in English and German – English by default, switchable in the settings.')],
              g: [TR('Der Farbmodus wird erst nach Ebene 6 freigeschaltet.', 'Color mode is now unlocked only after stage 6.'), TR('Im Pausemenü sind die Werte eingeklappt und lassen sich aufklappen.', 'In the pause menu the stats are collapsed and can be expanded.'), TR('Die Werte im Pausemenü zeigen aktive Schrein-Gaben und rechnen sie mit ein: doppelter Schaden (auch beim Waffenschaden), doppelte Erfahrung, doppeltes Gold und den Fluch.', 'The stats in the pause menu show active shrine blessings and include them: double damage (weapon damage too), double XP, double gold and the curse.'), TR('Todesbildschirm, Pause, Ladebild und Abspann haben neue Texte; zwei Erfolge heißen anders.', 'Death screen, pause, loading screen and credits have new texts; two achievements were renamed.'), TR('Im Abspann stehen die Wüstenmusik „Descent of the Sands“ und alle Bosse einzeln.', 'The credits list the desert music “Descent of the Sands” and every boss individually.')]}],
   ['V0.998', {g: [TR('Die Gaben der Schreine sind gleichmäßig verteilt – vorher kam der Rüstungsfluch fast auf jeder Ebene.', 'Shrine blessings are now evenly distributed – before, the armor curse showed up on almost every stage.'), TR('Alles durchgesehen, kleinere Fehler behoben.', 'Everything reviewed, minor bugs fixed.')]}],
   ['V0.997', {n: [TR('Die Schreine sind auf der Karte eingetragen (rotes Kreuz), solange sie noch etwas bergen.', 'Shrines are marked on the map (red cross) as long as they still hold something.')],
@@ -3650,12 +3669,40 @@ class Game {
   $('btnResume').addEventListener('click', () => { if (window.game && window.game.resume) window.game.resume(); });
   $('btnStats').addEventListener('click', () => { const st = $('stats'), open = st.style.display === 'none'; st.style.display = open ? '' : 'none'; $('btnStats').className = open ? 'fold on' : 'fold'; $('btnStats').textContent = open ? TR('Werte & Waffen ▴', 'Stats & weapons ▴') : TR('Werte & Waffen ▾', 'Stats & weapons ▾'); });   // Werte nur auf Wunsch aufklappen
   $('btnQuit').addEventListener('click', async () => { if (window.game && window.game.save) await window.game.save(); toMenu(); });
+  // ---- Zum Home-Bildschirm: beim ersten Start auf Handy und Tablet eine kurze Anleitung (nicht, wenn das Spiel schon als App läuft)
+  const A2HS = { ev: null,
+    standalone() { try { return navigator.standalone === true || matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches; } catch (e) { return false; } },
+    ios() { const u = navigator.userAgent; return /iPhone|iPad|iPod/.test(u) || (/Macintosh/.test(u) && navigator.maxTouchPoints > 1); },
+    android() { return /Android/.test(navigator.userAgent); },
+    seen() { try { return localStorage.getItem('loA2hs') === 'ok'; } catch (e) { return true; } } };
+  addEventListener('beforeinstallprompt', e => { e.preventDefault(); A2HS.ev = e; $('btnA2hsInstall').style.display = ''; });   // Android/Chrome: echter Installieren-Knopf
+  const SVG_SHARE = '<svg viewBox="0 0 24 24" fill="none" stroke="#2a242b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 9H6v12h12V9h-2"/><path d="M12 15V3"/><path d="M8 7l4-4 4 4"/></svg>';
+  const SVG_ADD = '<svg viewBox="0 0 24 24" fill="none" stroke="#2a242b" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/></svg>';
+  function showA2hs() {
+    const box = $('a2hsSteps'), ios = A2HS.ios(), and = A2HS.android(), both = !ios && !and; box.textContent = '';
+    const step = (n, title, small) => { const d = document.createElement('div'); d.className = 'st'; d.innerHTML = '<i>' + n + '</i><span><b>' + title + '</b><small>' + small + '</small></span>'; box.appendChild(d); };
+    const head = t => { const h = document.createElement('h2'); h.textContent = t; box.appendChild(h); };
+    if (ios || both) { if (both) head('iPhone · iPad');
+      step(1, TR('Tippe auf Teilen ', 'Tap Share ') + SVG_SHARE, TR('Das Symbol mit dem Pfeil nach oben – in Safari unten oder neben der Adresse. Auf neueren iPhones steckt es im Menü ···', 'The icon with the arrow pointing up – in Safari at the bottom or next to the address. On newer iPhones it sits in the ··· menu'));
+      step(2, TR('Wähle „Zum Home-Bildschirm“ ', 'Choose “Add to Home Screen” ') + SVG_ADD, TR('Dafür etwas nach unten scrollen, manchmal steht es unter „Mehr“', 'Scroll down a little; sometimes it is under “More”'));
+      step(3, TR('Tippe auf „Hinzufügen“', 'Tap “Add”'), TR('Ab jetzt startest du das Spiel über das neue Symbol „Lo_“', 'From now on, start the game from the new “Lo_” icon')); }
+    if (and || both) { if (both) head('Android');
+      step(1, TR('Öffne das Browsermenü ⋮', 'Open the browser menu ⋮'), TR('In Chrome oben rechts', 'Top right in Chrome'));
+      step(2, TR('Wähle „Zum Startbildschirm hinzufügen“ oder „App installieren“', 'Choose “Add to Home screen” or “Install app”'), TR('Je nach Browser heißt es etwas anders', 'The wording differs a little between browsers'));
+      step(3, TR('Bestätigen', 'Confirm'), TR('Ab jetzt startest du das Spiel über das neue Symbol „Lo_“', 'From now on, start the game from the new “Lo_” icon')); }
+    $('a2hsNote').textContent = ios || both ? TR('Gut zu wissen: Auf dem iPhone hat die App vom Home-Bildschirm ihren eigenen Spielstand – Gold und Käufe aus dem Browser ziehen nicht mit um. Am besten also gleich am Anfang wechseln.', 'Good to know: on iPhone the home screen app keeps its own save – gold and purchases from the browser don\'t move over. So it\'s best to switch right at the start.') : TR('Dein Spielstand bleibt dabei erhalten.', 'Your progress is kept.');
+    const pg = $('a2hs'); pg.style.display = 'flex'; pg.scrollTop = 0; }
+  $('btnA2hsOk').addEventListener('click', () => { try { localStorage.setItem('loA2hs', 'ok'); } catch (e) {} $('a2hs').style.display = 'none'; });
+  $('btnA2hsLater').addEventListener('click', () => { $('a2hs').style.display = 'none'; });   // beim nächsten Start wieder
+  $('btnA2hsInstall').addEventListener('click', async () => { const ev = A2HS.ev; if (!ev) return; A2HS.ev = null; $('btnA2hsInstall').style.display = 'none'; try { ev.prompt(); const r = await ev.userChoice; if (r && r.outcome === 'accepted') { try { localStorage.setItem('loA2hs', 'ok'); } catch (e) {} $('a2hs').style.display = 'none'; } } catch (e) {} });
+  $('btnA2hs').addEventListener('click', showA2hs);
+  if (A2HS.standalone()) $('a2hsBox').style.display = 'none';
   // Start: IndexedDB öffnen -> Profil/Lauf laden -> Fortsetzen anbieten. Seed in der URL wird automatisch verwendet.
   SAVE.open().then(async () => {
     const st0 = await SAVE.get('settings', 'main'); if (st0 && typeof st0.name === 'string') { HERO.name = st0.name.slice(0, 12); nameInput.value = HERO.name; } fitName();
     await refreshMenu();
     const urlSeed = parseInt(q.get('seed'), 10);
-    if (!Number.isFinite(urlSeed)) { menuPreview(curSeed(), 50); return; }
+    if (!Number.isFinite(urlSeed)) { menuPreview(curSeed(), 50); if (!A2HS.standalone() && (A2HS.ios() || A2HS.android()) && !A2HS.seen()) setTimeout(() => { if (menu.style.display !== 'none' && !(window.game && window.game.combat)) showA2hs(); }, 700); return; }   // erster Besuch am Handy: Anleitung zeigen
     if (q.get('map') === '1' || !activeRun) start(urlSeed >>> 0, null);
     else if (activeRun.worldSeed === (urlSeed >>> 0)) start(activeRun.worldSeed, activeRun);     // z. B. Safari hat den Tab neu geladen
     else { input.value = urlSeed >>> 0; menuPreview(curSeed(), 50); }                    // anderer Seed als der gespeicherte Lauf: Menü entscheidet
