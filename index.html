@@ -398,7 +398,7 @@ const TINT_OF_TYPE = new Uint8Array([1, 2, 3, 4, 4, 5, 6, 6, 7, 8, 9, 10, 2, 19]
 const TINT_DESERT = new Uint8Array([14, 2, 1, 15, 15, 5, 6, 16, 17, 18, 9, 9, 2, 19]);   // Sand, Oase, grüner Uferrand, helle Piste, roter Fels, Ocker-Geröll, Dünen, Lehm   // Reihenfolge wie T
 const COLOR = { on: false, free: false };
 const LENS = { on: true }; try { LENS.on = localStorage.getItem('loLens') !== '0'; } catch (e) {}
-const VERSION = 'V0.994';
+const VERSION = 'V0.995';
 const START_LVL = { v: 1 }; try { START_LVL.v = Math.max(1, Math.min(6, parseInt(localStorage.getItem('loStartLvl'), 10) || 1)); } catch (e) {}   // nur zum Testen: auf welcher Ebene ein neues Spiel beginnt
 const SANDFX = { on: true }; try { SANDFX.on = localStorage.getItem('loSand') !== '0'; } catch (e) {}
 const CLOUDS = { on: true, els: null, TW: 1150, TH: 1500,
@@ -797,6 +797,22 @@ Object.assign(Shapes, {
       for (let y = top; y < H; y++) { let g = x < ax ? ((x + 2 * y) % 9 === 0 ? 196 : 240) : (((x - y) & 3) === 0 ? 128 : 34); if (y === top || y === top + 1 && x >= ax) g = 26; if (Math.abs(x - ax) < 1 && y < top + H * .7) g = 26; s.px(x, y, g); } }
     return s;
   },
+  wayCross(used) {                               // Wegkreuz: Holzkreuz mit kleinem Dach auf Steinsockel; rotes Licht, solange es seine Gabe noch hat
+    const s = new Sprite(9, 16, 4, 15), D = 24, L = 220;
+    for (let x = 1; x <= 7; x++) s.px(x, 1, D); for (let x = 2; x <= 6; x++) s.px(x, 0, D);
+    for (let y = 2; y <= 12; y++) { s.px(3, y, L); s.px(4, y, 110); s.px(5, y, D); }
+    for (let x = 0; x <= 8; x++) { s.px(x, 5, x === 0 || x === 8 ? D : L); s.px(x, 6, D); }
+    for (let y = 13; y <= 15; y++) for (let x = 1; x <= 7; x++) s.px(x, y, x === 1 || x === 7 || y === 15 ? D : 170);
+    if (!used) { s.px(4, 3, RED); s.px(4, 4, RED); s.px(3, 3, 250); } else s.px(4, 3, 60);
+    s.solid = {hw: 2, hh: 1}; return s;
+  },
+  miniObelisk(used) {                            // kleiner Obelisk der Wüste: spitz, links hell, rechts im Schatten, rote Glyphe
+    const s = new Sprite(7, 17, 3, 16), D = 24;
+    for (let y = 0; y <= 13; y++) { const hw = y < 2 ? y : 1 + Math.round((y - 2) / 11 * 1.4); for (let x = 3 - hw; x <= 3 + hw; x++) s.px(x, y, x === 3 - hw || x === 3 + hw ? D : x < 3 ? 236 : x === 3 ? 170 : 70); }
+    for (let y = 14; y <= 16; y++) for (let x = 0; x <= 6; x++) s.px(x, y, x === 0 || x === 6 || y === 16 ? D : 196);
+    if (!used) { s.px(3, 5, RED); s.px(2, 7, RED); s.px(3, 8, RED); s.px(3, 6, 250); } else { s.px(3, 6, 60); s.px(3, 8, 60); }
+    s.solid = {hw: 2, hh: 1}; return s;
+  },
   pyramid(r) {                                   // Pyramide: Lichtseite links, Schattenseite rechts, Stufenbänder, dunkler Eingang
     const W = 212, H = 124, cx = 106, by = 118, ap = 8, s = new Sprite(W, H, cx, by), ink = 24;
     for (let y = ap; y <= by; y++) { const u = (y - ap) / (by - ap), hw = Math.round(2 + u * 98), xd = Math.round(cx + u * 20), band = (by - y) % 7 === 0;
@@ -808,7 +824,7 @@ Object.assign(Shapes, {
   }
 });
 { const tag = (names, t) => { for (const k of names) { const f = Shapes[k]; if (!f) continue; Shapes[k] = function () { const sp = f.apply(Shapes, arguments); if (sp && typeof sp === 'object') { sp.tint = t; if (sp.top) sp.top.tint = t; } return sp; }; } };
-  tag(['conifer', 'leaf', 'bigtree', 'worldtree', 'palm', 'cactus', 'bush'], 11); tag(['adobe', 'tent', 'cistern'], 4); tag(['pyramid', 'mausoleum', 'smallPillar', 'desertGrave'], 17); tag(['bigdune'], 18); tag(['house', 'mill', 'stall', 'smithy'], 12); tag(['deadtree'], 5);
+  tag(['conifer', 'leaf', 'bigtree', 'worldtree', 'palm', 'cactus', 'bush'], 11); tag(['adobe', 'tent', 'cistern'], 4); tag(['pyramid', 'mausoleum', 'smallPillar', 'desertGrave', 'miniObelisk'], 17); tag(['wayCross'], 12); tag(['bigdune'], 18); tag(['house', 'mill', 'stall', 'smithy'], 12); tag(['deadtree'], 5);
   tag(['rock', 'well', 'grave', 'stone', 'tower', 'castle', 'obelisk', 'church', 'chapel', 'ruin', 'peak', 'altar', 'giantCastle', 'giantPillar', 'giantStatue', 'crypt'], 6); }
 
 // ============================================================ WORLD
@@ -1149,6 +1165,9 @@ Object.assign(Shapes, {
   }
 });
 
+const WAYSHRINE = {gruen: [Shapes.wayCross(false), Shapes.wayCross(true)], wueste: [Shapes.miniObelisk(false), Shapes.miniObelisk(true)]};
+const BLESS = {                                   // Gaben der Schreine (je Ebene drei, zufällig, ohne Wiederholung)
+  xp: {name: 'Doppelte Erfahrung', t: 20}, inv: {name: 'Unverwundbar', t: 10}, gold: {name: 'Doppeltes Gold', t: 20}, wave: {name: 'Eine Welle von 25 Feinden', t: 0}, dmg: {name: 'Doppelter Schaden', t: 30}, curse: {name: 'Rüstung −25 %', t: 30} };
 const SHRINE_SPR = {Kirche: [0, 1, 2, 3].map(n => Shapes.church(n)), Kapelle: [0, 1, 2, 3].map(n => Shapes.chapel(n)), 'Grabstätte': [0, 1, 2, 3].map(n => Shapes.mausoleum(n)), Nomadenzelt: [0, 1, 2, 3].map(n => Shapes.tent(n))};
 const ALTAR_SPR = [Shapes.altar(false), Shapes.altar(true)], BALL_SPR = [0, 1, 2, 3].map(n => Shapes.ball(n));
 
@@ -1923,6 +1942,7 @@ const META = {
   zweit:  {name: 'Zweite Waffe',   desc: 'Jeder Lauf beginnt mit einer zufälligen zweiten Waffe aus deiner Waffenkammer', max: 1, base: 150}
 };
 const CHANGELOG = [                                // neueste Version oben; n = neu, g = geändert, e = entfernt
+  ['V0.995', {n: ['Drei Schreine je Ebene – Wegkreuz im Grünland, kleiner Obelisk in der Wüste – mit zufälliger Gabe: doppelte Erfahrung, Unverwundbarkeit, doppeltes Gold, doppelter Schaden, eine Feindeswelle oder ein Rüstungsfluch.', 'Erfolg „Wegzehrung“.']}],
   ['V0.994', {n: ['Im Endlosmodus beginnt mit jedem Wechsel der Landschaft ein neuer Tag.', 'Sandverwehungen in der Wüste, in den Einstellungen abschaltbar.', 'Zum Testen: In den Einstellungen lässt sich die Startebene wählen.'],
              g: ['Die Randdünen sind steile, dunkel umrandete Wände – erkennbar unbegehbar.', 'Die Wüstenmusik liegt jetzt bei.']}],
   ['V0.993', {n: ['Eigene Musik für die Wüste (Ebene 4 bis 6).', 'Eigene Wüstenbauten: Grabstätte mit kleinen Säulen statt Kirche, Nomadenzelt statt Kapelle, Wüstengrab statt Friedhof, Zisterne statt Mühle.', 'Ruinen und Nekropolen der Wüste mit kleinen, oft abgebrochenen Säulen.'],
@@ -2042,6 +2062,7 @@ class Combat {
     this.graves = w.pois.filter(o => o.kind === 'Friedhof' || o.kind === 'Nekropole'); this.ruins = w.pois.filter(o => o.kind === 'Ruine' || o.kind === 'Burgruine');
     const spot = this.spot = (x, y) => { for (let r = 0; r < 70; r += 3) for (let a = 0; a < 6.28; a += .7) { const px = x + Math.cos(a) * r, py = y + 10 + Math.sin(a) * r; if (!w.blocked(px, py) && !w.blocked(px + 2, py) && !w.blocked(px - 2, py) && w.reachable(px | 0, py | 0)) return {x: px | 0, y: py | 0, ok: true}; } return {x, y: y + 10, ok: false}; };
     // Kapellen und Kirche: je drei Kerzen = drei kleine Heilungen
+    this.placeWayShrines();
     this.shrines = w.pois.filter(o => o.kind === 'Kapelle' || o.kind === 'Kirche').map(o => ({x: o.x, y: o.y, kind: o.name || o.kind, obj: o.obj, left: 3, cd: 0}));
     this.shrineLook();
     // Opferaltar: state 0 ruht · 1 Wächter lebt · 2 Wächter tot, Magnet frei · taken = Magnet benutzt
@@ -2084,6 +2105,16 @@ class Combat {
       case 'pilz0': if (once(.6)) { const ox = p.x - e.x; if ((e.face ? ox > -6 && ox < ty.reach : ox < 6 && ox > -ty.reach) && Math.abs(p.y - e.y) < 16) { this.hurt(ty.hitDmg, ty.acc); p.inv = Math.max(p.inv, 1.1); } } break;
     }
   }
+  placeWayShrines() {                            // drei Schreine (Wegkreuz bzw. kleiner Obelisk) an zufälligen, erreichbaren Stellen; die Gabe zeigt sich erst beim Berühren
+    const g = this.g, w = g.world, R = mulberry32((Math.imul(levelSeed(g.seed, g.level), 2654435761) ^ 0xC5A1E) >>> 0), keys = Object.keys(BLESS); for (let i = 0; i < 7; i++) R(); this.wsh = []; this.buf = this.buf || {xp: 0, inv: 0, gold: 0, dmg: 0, curse: 0};
+    for (let i = keys.length - 1; i > 0; i--) { const j = R() * (i + 1) | 0; [keys[i], keys[j]] = [keys[j], keys[i]]; }
+    const spr = WAYSHRINE[w.biome] || WAYSHRINE.gruen;
+    for (let tries = 0; tries < 900 && this.wsh.length < 3; tries++) { const x = 160 + R() * (WORLD - 320) | 0, y = 160 + R() * (WORLD - 320) | 0, t = w.typeAt(x, y);
+      if (!(t === T.GRASS || (t === T.FOREST && w.biome === 'wueste') || t === T.FIELD_A || t === T.FIELD_B) || w.objAt && false || w.blocked(x, y) || w.blocked(x, y - 6) || !w.reachable(x, y + 3)) continue;
+      if (Math.hypot(x - w.spawn.x, y - w.spawn.y) < 160 || this.wsh.some(o => Math.hypot(o.x - x, o.y - y) < 320) || w.pois.some(o => Math.hypot(o.x - x, o.y - y) < 50)) continue;
+      this.wsh.push({x, y, eff: keys[this.wsh.length], used: false, spr: spr[0], sprU: spr[1], flash: 0}); }
+  }
+  buffText() { const b = this.buf; if (!b) return ''; const out = []; for (const k of ['xp', 'gold', 'dmg', 'inv', 'curse']) if (b[k] > 0) out.push(BLESS[k].name + ' ' + Math.ceil(b[k]) + ' s'); return out.join(' · '); }
   petLearn(a) { const P = this.pet; this.petGain += a; this.petPending += a; const nl = petLevel(P.base + this.petGain); if (nl > P.lvl) { P.lvl = nl; this.g.toast(PETS[P.id].name + ' erreicht Stufe ' + ROMAN[nl] + '.'); this.g.refreshItems(); this.boom(P.x, P.y - 3, 8, 2); if (nl >= 10) ACH.give('treue'); } }
   petUpdate(dt) {                                // Haustier: folgt dir, holt Splitter oder Münzen, stellt Feinde – je nach Art
     const P = this.pet, p = this.g.player, E = this.enemies, D = PETS[P.id], L = P.lvl, g = this.g;
@@ -2118,7 +2149,7 @@ class Combat {
       bossState: this.bossState, bossHP: b ? b.hp : 0, bossX: b ? b.x : 0, bossY: b ? b.y : 0, bossRev: b ? b.revived | 0 : 0, exitState: this.exitOpen ? 1 : 0, exitX: this.exit.x, exitY: this.exit.y, gateT: this.gateT,
       bell: this.bell && this.bell.taken ? 1 : 0,
       altar: this.altar ? (this.altar.taken ? 3 : this.altar.state === 2 ? 2 : 0) : 0, hoard: this.hoard ? (this.hoard.state >= 2 ? this.hoard.state : 0) : 0,
-      shrines: this.shrines.map(s => s.left), caches: this.caches.map(c => c.open ? 1 : 0)};
+      wsh: (this.wsh || []).map(S => S.used ? 1 : 0), buf: this.buf, shrines: this.shrines.map(s => s.left), caches: this.caches.map(c => c.open ? 1 : 0)};
   }
   // Lauf wiederherstellen: Welt ist schon aus Seed + Ebene neu erzeugt, hier wird nur der Zustand eingesetzt
   restore(d) {
@@ -2130,6 +2161,8 @@ class Combat {
     for (const id in all) { const kind = WEAPONS[id] ? 'w' : PASSIVES[id] ? 'p' : null; if (!kind) continue; const L = clamp(all[id] | 0, 1, (WEAPONS[id] || PASSIVES[id]).inf || (WEAPONS[id] || PASSIVES[id]).max || 5); for (let l = 1; l <= L; l++) this.choose({id, kind, lvl: l}); }
     if (!this.weapons.length) this.choose({id: 'messer', kind: 'w', lvl: 1});
     this.time = Math.max(0, +d.elapsedTime || 0); this.kills = d.kills | 0; this.gold = d.gold | 0; p.horse = clamp(d.horse | 0, 0, 3);
+    if (Array.isArray(d.wsh) && this.wsh && d.wsh.length === this.wsh.length) this.wsh.forEach((S, i) => { if (d.wsh[i]) { S.used = true; S.spr = S.sprU; } });
+    if (d.buf && typeof d.buf === 'object') for (const k in this.buf) this.buf[k] = Math.max(0, +d.buf[k] || 0);
     if (Array.isArray(d.shrines) && d.shrines.length === this.shrines.length) { this.shrines.forEach((s, i) => { s.left = clamp(d.shrines[i] | 0, 0, 3); }); this.shrineLook(); }
     if (Array.isArray(d.caches) && d.caches.length === this.caches.length) this.caches.forEach((c, i) => { c.open = !!d.caches[i]; });
     if (this.bell && d.bell) this.bell.taken = true;
@@ -2180,7 +2213,7 @@ class Combat {
   hurt(d, src) { const p = this.g.player; if (p.inv > 0 || CHEAT.god) return;
     if (p.shield > 0 && p.shieldT <= 0) { p.shieldT = 13.5 - 1.5 * p.shield; p.inv = .6; this.boom(p.x, p.y - 3, 9, 2); return; }   // Schutzschild fängt den Treffer ab
     if (p.horse > 0 && --p.horse === 0) this.g.toast('Dein Pferd geht durch. Du läufst wieder zu Fuß.');                          // drei Treffer, dann ist das Pferd weg
-    const hitD = d * this.dmgLvl, dm = Math.max(1, hitD * .25, hitD - p.armor); p.hp -= dm; this.lastSrc = src || 'einen Feind'; if (this.onHurt) this.onHurt(dm, this.lastSrc); p.inv = .6;
+    const hitD = d * this.dmgLvl * (this.buf && this.buf.curse > 0 ? 1.25 : 1), dm = Math.max(1, hitD * .25, hitD - p.armor); p.hp -= dm; this.lastSrc = src || 'einen Feind'; if (this.onHurt) this.onHurt(dm, this.lastSrc); p.inv = .6;
     if (p.thorns > 0) { this.boom(p.x, p.y - 3, 14, 0); this.aoe(p.x, p.y - 3, 17 * p.area, 6 * p.thorns, 2.5); }   // Dornenpanzer schlägt zurück
     if (p.hp <= 0) { p.hp = 0; this.g.gameOver(); } }
   spawn(t) {
@@ -2242,7 +2275,7 @@ class Combat {
     if (e.type.split) { const st = ENEMY_TYPES.find(o => o.name === e.type.split); for (let i = 0; i < 4; i++) this.spawnAt(st, e.x + (Math.random() - .5) * 14, e.y + (Math.random() - .5) * 14, this.time + this.tOff); }   // platzt auf
     if (Math.random() < .13) this.coin(e.x + 3, e.y + 1, e.type.xp >= 4 ? 3 : 1);                       // ab und zu eine Münze
   }
-  dmg(b) { const p = this.g.player; return b * p.dmgMul * (Math.random() < p.crit ? 2 : 1); }
+  dmg(b) { const p = this.g.player; return b * p.dmgMul * (Math.random() < p.crit ? 2 : 1) * (this.buf && this.buf.dmg > 0 ? 2 : 1); }
   // ---- Angebote beim Stufenaufstieg: gewichtet, höchstens 10 Plätze für Waffen + Fähigkeiten zusammen
   offers() {
     const it = this.items, slots = Object.keys(it).length - (it.goldfluss ? 1 : 0), c = [];   // der Goldfluss zählt nicht zu den zehn Plätzen
@@ -2329,6 +2362,11 @@ class Combat {
     // ---- Kapellen: begrenzte, kleine Heilung
     for (const s of this.shrines) { if (s.cd > 0) s.cd -= dt;
       if (s.left > 0 && s.cd <= 0 && p.hp < p.maxHp && Math.abs(p.x - s.x) < 16 && p.y - s.y < 14 && p.y - s.y > -8) { s.left--; s.cd = 20; ACH.give('kirche'); p.hp = Math.min(p.maxHp, p.hp + 10); this.shrineLook(); { const lamp = s.kind === 'Grabstätte' || s.kind === 'Nomadenzelt'; g.toast(s.left ? (lamp ? 'Ein Licht erlischt (+10 Leben)' : 'Ein Fenster schließt sich (+10 Leben)') : (lamp ? 'Das letzte Licht erlischt (+10 Leben)' : 'Das letzte Fenster schließt sich (+10 Leben)')); } g.save(); } }
+    if (this.buf) for (const k in this.buf) if (this.buf[k] > 0) this.buf[k] -= dt;
+    for (const S of this.wsh || []) { if (!S.used && Math.abs(p.x - S.x) < 7 && p.y - S.y > -4 && p.y - S.y < 9) { S.used = true; S.spr = S.sprU; const B = BLESS[S.eff];   // Schrein berührt: Gabe (oder Fluch) tritt sofort ein
+        if (S.eff === 'wave') { for (let q = 0; q < 25; q++) this.spawn(this.time); g.toast('Der Schrein ruft: eine Welle von 25 Feinden!'); }
+        else { this.buf[S.eff] = B.t; if (S.eff === 'inv') p.inv = Math.max(p.inv, B.t); g.toast('Schrein: ' + B.name + ' für ' + B.t + ' Sekunden' + (S.eff === 'curse' ? ' – Vorsicht!' : '.')); }
+        this.boom(S.x, S.y - 8, 16, S.eff === 'wave' || S.eff === 'curse' ? 4 : 2); this.boom(S.x, S.y - 8, 26, 0); ACH.give('schrein'); g.save(); }}
     // ---- Opferaltar: Wächter erscheint bei Annäherung; ist er tot, zieht der Magnet alles Liegengebliebene heran
     const HO = this.hoard;
     if (HO && HO.state < 3) { const hd = Math.hypot(p.x - HO.x, p.y - HO.y);
@@ -2556,6 +2594,7 @@ class Combat {
       if (Math.abs(ox) > 1) a.face = ox > 0; a.spr = (a.plague ? SKEL2_SPR : SKEL_SPR)[(a.face ? 0 : 2) + ((a.step | 0) & 1)]; a.flash = a.t < 1.5 && ((a.t * 10 | 0) & 1) ? 1 : 0;   // blinkt, kurz bevor es zerfällt
       if (Math.abs(a.x - p.x) < g.renderer.bw / 2 + 14 && Math.abs(a.y - p.y) < g.renderer.bh / 2 + 16) this.dyn.push(a); }
     if (this.pet) this.petUpdate(dt);
+    for (const S of this.wsh || []) if (Math.abs(S.x - p.x) < g.renderer.bw / 2 + 14 && Math.abs(S.y - p.y) < g.renderer.bh / 2 + 20) this.dyn.push(S);   // Schreine in die Zeichenliste
     // ---- Meteore: Schatten wächst, Brocken fällt, Einschlag
     for (let i = this.meteors.length - 1; i >= 0; i--) { const M = this.meteors[i]; if ((M.t -= dt) <= 0) { this.meteors.splice(i, 1); const kd = M.kind | 0;
         if (kd === 1) { this.aoe(M.x, M.y, M.R, M.dmg, 1.2); this.boom(M.x, M.y, M.R); this.boom(M.x, M.y, M.R * .6, 4); this.debris(M.x, M.y, M.R * .7, 2); for (let j = 0; j < 4; j++) { const f = this.get(this.flames); if (!f) break; f.alive = true; f.x = M.x + (j ? Math.cos(j * 2.1) * 5 : 0); f.y = M.y + (j ? Math.sin(j * 2.1) * 4 : 0); f.t = 1.5 + j * .15; } }
@@ -2736,8 +2775,8 @@ class Combat {
     for (let i = 0; i < this.drops.length; i++) {
       const d = this.drops[i]; if (!d.alive) continue;
       const ox = p.x - d.x, oy = p.y - 3 - d.y, dist = Math.hypot(ox, oy) || 1;
-      if (dist < 4) { d.alive = false; if (d.gold) { const n = Math.max(1, Math.round(d.v * this.goldMul)); this.gold += n; this.goldPending += n; this.earnPending += n; }
-        else { const gf = Math.min(.75, p.goldFlow || 0); p.xp += d.v * p.xpMul * (1 - gf); if (this.pet) this.petLearn(d.v * p.xpMul * PET_SHARE);          // Goldfluss: ein Teil der Erfahrung wird zu Gold (2 Erfahrung = 1 Gold)
+      if (dist < 4) { d.alive = false; if (d.gold) { const n = Math.max(1, Math.round(d.v * this.goldMul)) * (this.buf && this.buf.gold > 0 ? 2 : 1); this.gold += n; this.goldPending += n; this.earnPending += n; }
+        else { const gf = Math.min(.75, p.goldFlow || 0); p.xp += d.v * p.xpMul * (1 - gf) * (this.buf && this.buf.xp > 0 ? 2 : 1); if (this.pet) this.petLearn(d.v * p.xpMul * PET_SHARE);          // Goldfluss: ein Teil der Erfahrung wird zu Gold (2 Erfahrung = 1 Gold)
           if (gf) { this.gfAcc += d.v * gf * .5 * this.goldMul; const n = this.gfAcc | 0; if (n) { this.gfAcc -= n; this.gold += n; this.goldPending += n; this.earnPending += n; } } } }
       else if (d.pull || dist < p.pickup) { const v = d.pull ? Math.max(240, dist * 1.6) : 85; d.x += ox / dist * v * dt; d.y += oy / dist * v * dt; }
     }
@@ -2766,6 +2805,7 @@ class Combat {
     const p = this.g.player, w = this.g.world, bw = r.bw, bh = r.bh;
     r.light(Math.round(p.x) - cx, Math.round(p.y) - 4 - cy, 52 + (this.items.ring || this.items.dampf ? 10 : 0));
     for (const L of w.lights) { const x = L.x - cx, y = L.y - cy; if (x > -44 && y > -44 && x < bw + 44 && y < bh + 44) r.light(x, y, 40); }
+    for (const S of this.wsh || []) if (!S.used) r.light(S.x - cx, S.y - 8 - cy, 18);
     for (const s of this.shrines) if (s.left > 0) r.light(s.x - cx, s.y - 6 - cy, 30);
     if (this.exitOpen) r.light(this.exit.x - cx, this.exit.y - 6 - cy, 78 + Math.sin(this.time * 4) * 8);
     for (const f of this.flames) if (f.alive) r.light((f.x | 0) - cx, (f.y | 0) - cy, 14);
@@ -2962,6 +3002,7 @@ const ACH = { got: {}, q: [], busy: false, t: 0,
     ['kunde', 'Stammkunde in spe', 'Beim Krämer etwas kaufen'],
     ['kammer', 'Volle Waffenkammer', 'Alles in der Waffenkammer kaufen'],
     ['tier', 'Bester Freund', 'Ein Haustier kaufen'],
+    ['schrein', 'Wegzehrung', 'Einen Schrein am Wegesrand berühren'],
     ['treue', 'Treue bis X', 'Ein Haustier auf Stufe X bringen'],
     ['faden', 'Am seidenen Faden', 'Das Tor mit weniger als einem Fünftel des Lebens erreichen'],
     ['unbelehrbar', 'Unbelehrbar', 'Zehn Läufe beginnen'],
@@ -3223,7 +3264,7 @@ class Game {
         const bb = document.getElementById(id + 'Bar');
         if (big && big.alive) { bb.style.display = 'block'; document.getElementById(id + 'Name').textContent = big.type.name; document.getElementById(id + 'Fill').style.width = clamp(big.hp / (big.type.hp * c.lvlMul) * 100, 0, 100) + '%'; } else bb.style.display = 'none'; }
       const left = Math.ceil(Math.max(0, 300 - c.time)), clock = c.bossState === 3 ? (c.gateT > 0 ? 'Tor: ' + Math.ceil(c.gateT) + ' s' : 'Dunkelheit: ' + Math.max(0, Math.ceil(BAL.darkTime - c.dark)) + ' s') : c.bossState === 2 ? 'Boss!' : String(left / 60 | 0).padStart(2, '0') + ':' + String(left % 60).padStart(2, '0');   // läuft rückwärts bis zum Boss
-      document.getElementById('hudText').textContent = `Ebene ${this.level} · Stufe ${p.level} · ${clock} · ${c.kills} † · ${c.gold} Gold${p.horse > 0 ? ' · Pferd ' + '♞'.repeat(p.horse) : ''}`; }
+      document.getElementById('hudText').textContent = `Ebene ${this.level} · Stufe ${p.level} · ${clock} · ${c.kills} † · ${c.gold} Gold${p.horse > 0 ? ' · Pferd ' + '♞'.repeat(p.horse) : ''}${c.buffText() ? ' · ' + c.buffText() : ''}`; }
     if (this.debug && dt) {
       this.fps += (1 / dt - this.fps) * .05;
       if ((this.dbgT += dt) > .25) {
@@ -3449,6 +3490,7 @@ class Game {
     entry(GOBLIN.name, 'bewacht den Goldfluss', 'Erscheint am riesigen Wahrzeichen, sobald du dich seinem Sack näherst – aber nur, wenn der Goldfluss beim Krämer freigeschaltet ist. Springt dich an und wirft mit Münzen. Fällt er, liegt der Sack frei: Goldfluss, eine Stufe je Welt.', GOBLIN_SPR[0]);
     entry(GUARD.name, 'bewacht den Opferaltar', 'Halb so zäh wie der Boss. Rollt in gerader Bahn an und trudelt aus – weich seitlich aus.', BALL_SPR[0]);
     h2('Orte');
+    entry('Schreine', 'drei je Ebene, Wegkreuz oder kleiner Obelisk', 'Ein rotes Licht zeigt, dass der Schrein noch etwas birgt – was, zeigt sich erst beim Berühren: doppelte Erfahrung (20 s), Unverwundbarkeit (10 s), doppeltes Gold (20 s), doppelter Schaden (30 s), eine Welle von 25 Feinden oder ein Fluch: 30 s lang 25 % weniger Rüstung, jeder Treffer wiegt schwerer.', WAYSHRINE.gruen[0]);
     entry('Kapelle und Kirche', 'drei kleine Heilungen', 'Stell dich davor: Ein rotes Fenster schließt sich und heilt 10 Leben. 20 Sekunden Pause dazwischen.', SHRINE_SPR.Kirche[3]);
     entry('Truhen', 'blinken rot', 'An Ruine, Burgruine, Turm und Steinkreis liegt ein Gegenstand. An Obelisk, Großem Baum, Mühlen und Friedhöfen liegt Proviant (+25 Leben). Immer mit etwas Gold.', Shapes.tower());
     entry('Opferaltar', 'einmal je Ebene', 'Nähert man sich, erscheint die Fleischkugel. Ist sie besiegt, zieht der Magnet alles heran, was irgendwo liegen geblieben ist.', ALTAR_SPR[1]);
