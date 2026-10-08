@@ -181,6 +181,24 @@ html,body{overscroll-behavior:none;touch-action:none;
 .page{align-items:flex-start}.page .sheet{margin:auto}
 .page button:disabled{opacity:.38}
 #shop .card{min-height:52px;padding:6px 12px}
+#shopTabs button{font-size:11px;letter-spacing:.12em}
+#shopTabs button.on{background:#2a242b;color:#e8e6d2}
+#shop h2{font-size:11px;letter-spacing:.3em;text-transform:uppercase;border-bottom:1px solid #2a242b;padding:4px 0;margin:14px 0 8px}
+#shop .hint{font-size:12px;font-style:italic;margin:0 0 10px;line-height:1.35}
+#shop .card.own{opacity:.55;border-style:dashed}
+#pets .hint{font-size:12px;font-style:italic;margin:0 0 10px;line-height:1.35}
+#pets h1{font-size:30px}
+.pcard{border:1px solid #2a242b;padding:8px 10px 2px;margin-bottom:10px;text-align:left}
+.pcard.on{outline:2px solid #2a242b;outline-offset:2px}
+.pcard .top{display:flex;gap:10px;align-items:center}
+.pcard .pic{flex:none;width:52px;height:44px;display:flex;align-items:flex-end;justify-content:center;border-bottom:1px solid rgba(42,36,43,.35)}
+.pcard b{display:block;font-size:14px;letter-spacing:.1em;text-transform:uppercase}
+.pcard small{display:block;font-size:9px;letter-spacing:.2em;text-transform:uppercase;opacity:.75}
+.pcard p{font-size:12px;font-style:italic;line-height:1.35;margin:6px 0}
+.pcard .bar{height:5px;border:1px solid #2a242b;margin:4px 0 2px}.pcard .bar i{display:block;height:100%;background:#2a242b}
+.pcard .xpl{font-size:10px;letter-spacing:.06em;margin-bottom:6px}
+.pcard .row button{font-size:11px;letter-spacing:.1em;min-height:40px}
+.pcard .row button.on{background:#2a242b;color:#e8e6d2}
 #pause,#over,#lvl,#mapPage,#stallPage,#smithPage{background:rgba(42,36,43,.55);background-image:none}
 #hudItems{margin-top:4px;font-size:8px;line-height:1.5;letter-spacing:.08em;opacity:.9}
 .page button.card{text-align:left;text-transform:none;letter-spacing:.02em;font-size:13px;line-height:1.35;padding:9px 12px;min-height:62px}
@@ -218,9 +236,11 @@ html,body{overscroll-behavior:none;touch-action:none;
     <div class="seedrow"><label for="seedInput">Seed</label><input id="seedInput" type="text" inputmode="numeric" maxlength="10" autocomplete="off"><button id="btnRandom">W&uuml;rfeln</button></div>
     <button id="btnContinue" class="big" style="display:none">Fortsetzen</button>
     <button id="btnStart" class="big">Neues Spiel</button>
-    <div class="row"><button id="btnShop">Kr&auml;mer</button><button id="btnWiki">Almanach</button></div>
-    <div class="row"><button id="btnAch">Erfolge</button><button id="btnOpts">Einstellungen</button></div>
+    <div class="row"><button id="btnShop">Kr&auml;mer</button><button id="btnPets">Tierhandlung</button></div>
+    <div class="row"><button id="btnWiki">Almanach</button><button id="btnAch">Erfolge</button></div>
+    <button id="btnOpts">Einstellungen</button>
     <div id="menuNote"></div>
+    <div id="lvlNote" style="font-size:11px;font-style:italic;color:#cf2a2a;text-align:center"></div>
     <div id="menuStats"></div>
     <div id="menuWarn"></div>
     <div id="foot"><a id="credits" href="#">Credits</a> &middot; <a id="changes" href="#">Changelog</a> &middot; <span id="ver"></span></div>
@@ -231,7 +251,7 @@ html,body{overscroll-behavior:none;touch-action:none;
 <div id="mapPage" class="page" style="display:none"><div class="sheet">
   <div class="kicker" id="mapKicker"></div>
   <canvas id="mapCv"></canvas>
-  <div class="sub">&#9679; du &nbsp;&middot;&nbsp; &#10005; Knochenk&ouml;nig &nbsp;&middot;&nbsp; &#9678; Tor</div>
+  <div class="sub">&#9679; du &nbsp;&middot;&nbsp; &#10005; Boss &nbsp;&middot;&nbsp; &#9678; Tor</div>
   <button id="btnMapBack" class="big">Zur&uuml;ck</button>
 </div></div>
 <div id="pause" class="page" style="display:none"><div class="sheet">
@@ -296,13 +316,14 @@ html,body{overscroll-behavior:none;touch-action:none;
   <button id="btnAchBack" class="big" style="position:sticky;bottom:0;margin-top:12px">Zur&uuml;ck</button>
 </div></div>
 <div id="roll" class="btn"><button id="rollClose">&#10005;</button><div id="rollIn">
-  <h1>Legend of _</h1><p><i>Ein Extrablatt in drei Ebenen</i></p>
+  <h1>Legend of _</h1><p><i>Ein Extrablatt in sechs Ebenen</i></p>
   <small>Idee, Welt und Regie</small><p>Flo</p>
   <small>Programm</small><p>entstanden mit Claude</p>
   <small>Musik</small><p>&bdquo;Shadow Riff&ldquo;</p><p><i>erzeugt mit Suno</i></p>
   <small>Der Knochenk&ouml;nig</small><p>Sword Skeleton</p><p><i>Pixel Art Character von Sanctumpixel</i></p>
   <small>Der Waldgeist</small><p>The Forest Spirit</p><p><i>von pidroudays</i></p>
   <small>Der Kakod&auml;mon</small><p>Cacodaemon Sprites</p><p><i>von Elthen</i></p>
+  <small>Grabw&auml;chter, Sandgoblin, W&uuml;stenauge, Pilzf&uuml;rst</small><p>Monsters Creatures Fantasy</p><p><i>von Luiz Melo</i></p>
   <small>In weiteren Rollen</small><p>Die Fleischkugel</p><p>Schlurfer, L&auml;ufer, Hetzer</p><p>Der Schmied</p><p>Ein Pferd (dreimal getroffen)</p>
   <small>Gedruckt in</small><p>Schwarz, Grau, Papier</p><p><i>und ein wenig Rot</i></p>
   <small>Zu finden unter</small><p><a href="https://loo-pixel.github.io/legend/" target="_blank" rel="noopener">loo-pixel.github.io/legend</a></p>
@@ -322,10 +343,14 @@ html,body{overscroll-behavior:none;touch-action:none;
   <h2>Bild und Ton</h2>
   <div class="row"><button id="btnMusic2"></button><button id="btnLens2"></button></div>
   <div class="row"><button id="btnShadow"></button><button id="btnClouds"></button></div>
+  <button id="btnSand"></button>
   <h2>Freischaltbar</h2>
   <button id="btnColor"></button>
   <button id="btnTurbo"></button>
   <button id="btnEndless"></button>
+  <h2>Zum Testen</h2>
+  <div class="sub" id="lvlPickNote" style="margin-bottom:6px">Neues Spiel beginnt auf Ebene</div>
+  <div class="row" id="lvlPick"></div>
   <h2>Diese Welt teilen</h2>
   <div class="row"><button id="btnCopy">Seed kopieren</button><button id="btnLink">Link kopieren</button></div>
   <div id="optNote"></div>
@@ -340,11 +365,20 @@ html,body{overscroll-behavior:none;touch-action:none;
   <button id="btnTestBack2" class="big" style="position:sticky;bottom:0;margin-top:12px">Zur&uuml;ck</button>
 </div></div>
 <div id="shop" class="page" style="display:none;z-index:5"><div class="sheet">
-  <div class="kicker">Dauerhafte Verbesserungen</div>
+  <div class="kicker">Dauerhaft &middot; f&uuml;r alle L&auml;ufe</div>
   <h1>Kr&auml;mer</h1>
   <div class="sub" id="shopGold"></div>
+  <div class="row" id="shopTabs"><button id="tabMeta">Verbesserungen</button><button id="tabArm">Waffenkammer</button></div>
   <div id="shopCards"></div>
   <button id="btnShopBack" class="big">Zur&uuml;ck</button>
+</div></div>
+<div id="pets" class="page" style="display:none;z-index:5"><div class="sheet">
+  <div class="kicker">Treue Gef&auml;hrten &middot; f&uuml;r alle L&auml;ufe</div>
+  <h1>Tierhandlung</h1>
+  <div class="sub" id="petGold"></div>
+  <p class="hint" id="petHint"></p>
+  <div id="petCards"></div>
+  <button id="btnPetsBack" class="big">Zur&uuml;ck</button>
 </div></div>
 <div id="loading"><span>Die Druckplatte<br>wird gesetzt</span></div>
 
@@ -354,16 +388,19 @@ html,body{overscroll-behavior:none;touch-action:none;
 const WORLD = 2048;                 // Weltgröße in Weltpixeln (quadratisch)
 const FCELL = 4, FRES = WORLD / FCELL + 1; // niedrig aufgelöste Rauschfelder
 const GRID = 64, GRIDN = WORLD / GRID;     // räumliches Raster für Objekte
-const T = {GRASS:0,WATER:1,SHORE:2,ROAD:3,ROADEDGE:4,BRIDGE:5,RAIL:6,MOUNT:7,FOOT:8,FOREST:9,FIELD_A:10,FIELD_B:11,RIVER:12};
+const T = {GRASS:0,WATER:1,SHORE:2,ROAD:3,ROADEDGE:4,BRIDGE:5,RAIL:6,MOUNT:7,FOOT:8,FOREST:9,FIELD_A:10,FIELD_B:11,RIVER:12,WADI:13};   // Wüste: GRASS = Sand, FOREST = Dünen, MOUNT/FOOT = Felsplateau und Geröll, WADI = ausgetrocknetes Flussbett
 const TNAME = ['Wiese','Wasser','Ufer','Straße','Straßenrand','Brücke','Geländer','Berg','Geröll','Wald','Acker','Acker','Fluss (Furt)'];
 // Druckfarben: Tinte, Mittelton, Papier (ABGR für Uint32-ImageData)
 const PAL = new Uint32Array([0xFF2B242A, 0xFF8F888F, 0xFFD2E6E8, 0xFF2A2ACF]);
 // Farbdruck (Belohnung für alle Erfolge): je Farbton drei Druckfarben (dunkel, mittel, hell). 0 neutral, 1 Wiese, 2 Wasser, 3 Ufer, 4 Weg, 5 Holz, 6 Stein, 7 Geröll, 8 Waldboden, 9/10 Felder, 11 Laub, 12 Haus, 13 Dämon
-const CPAL = new Uint32Array([0xFF2B242A,0xFF8F888F,0xFFD2E6E8,0xFF243A2B,0xFF5EA37F,0xFFA8E3CF,0xFF58351F,0xFFC6864F,0xFFF2E0BF,0xFF2A4A5A,0xFF6AA8C9,0xFFB8E2F0,0xFF2A3A4A,0xFF729AB8,0xFFBCDCEC,0xFF1A263A,0xFF345A8A,0xFF8AB9D9,0xFF332E2E,0xFF948D8B,0xFFE0DDDC,0xFF30343A,0xFF7A868F,0xFFC2D0D8,0xFF20331F,0xFF487A4F,0xFF8CCCA9,0xFF184A5A,0xFF4AB2D2,0xFFA6E6F3,0xFF204A3F,0xFF58AE9C,0xFFB0E8E2,0xFF1C3016,0xFF447A3F,0xFF8AD09F,0xFF18203B,0xFF3A55A8,0xFFC4DFF0,0xFF221E2F,0xFF3A2496,0xFFBED6F0]);
-const TINT_OF_TYPE = new Uint8Array([1, 2, 3, 4, 4, 5, 6, 6, 7, 8, 9, 10, 2]);   // Reihenfolge wie T
+const CPAL = new Uint32Array([0xFF2B242A,0xFF8F888F,0xFFD2E6E8,0xFF243A2B,0xFF5EA37F,0xFFA8E3CF,0xFF58351F,0xFFC6864F,0xFFF2E0BF,0xFF2A4A5A,0xFF6AA8C9,0xFFB8E2F0,0xFF2A3A4A,0xFF729AB8,0xFFBCDCEC,0xFF1A263A,0xFF345A8A,0xFF8AB9D9,0xFF332E2E,0xFF948D8B,0xFFE0DDDC,0xFF30343A,0xFF7A868F,0xFFC2D0D8,0xFF20331F,0xFF487A4F,0xFF8CCCA9,0xFF184A5A,0xFF4AB2D2,0xFFA6E6F3,0xFF204A3F,0xFF58AE9C,0xFFB0E8E2,0xFF1C3016,0xFF447A3F,0xFF8AD09F,0xFF18203B,0xFF3A55A8,0xFFC4DFF0,0xFF221E2F,0xFF3A2496,0xFFBED6F0,0xFF345C78,0xFF78B4D6,0xFFBAE2F4,0xFF3C5A6E,0xFF82AFC8,0xFFD2EEFA,0xFF161E46,0xFF3755AA,0xFF78A0E6,0xFF233C5A,0xFF5A8CBE,0xFFA0CDEB,0xFF285582,0xFF5FAAE1,0xFFA0DCFA,0xFF233246,0xFF507396,0xFF96B9D2]);
+const TINT_OF_TYPE = new Uint8Array([1, 2, 3, 4, 4, 5, 6, 6, 7, 8, 9, 10, 2, 19]);
+const TINT_DESERT = new Uint8Array([14, 2, 1, 15, 15, 5, 6, 16, 17, 18, 9, 9, 2, 19]);   // Sand, Oase, grüner Uferrand, helle Piste, roter Fels, Ocker-Geröll, Dünen, Lehm   // Reihenfolge wie T
 const COLOR = { on: false, free: false };
 const LENS = { on: true }; try { LENS.on = localStorage.getItem('loLens') !== '0'; } catch (e) {}
-const VERSION = 'V0.98';
+const VERSION = 'V0.994';
+const START_LVL = { v: 1 }; try { START_LVL.v = clamp(parseInt(localStorage.getItem('loStartLvl'), 10) || 1, 1, 6); } catch (e) {}   // nur zum Testen: auf welcher Ebene ein neues Spiel beginnt
+const SANDFX = { on: true }; try { SANDFX.on = localStorage.getItem('loSand') !== '0'; } catch (e) {}
 const CLOUDS = { on: true, els: null, TW: 1150, TH: 1500,
   // Kachel aus sechs Wolken, die sich endlos wiederholt; jede hat Ort, Größe und eigenes Tempo
   defs: [[80, 140, 1.25, 1], [640, 420, .9, 1.25], [300, 760, 1.5, .85], [900, 980, 1.05, 1.1], [120, 1220, .8, 1.3], [760, 80, .7, .95]],
@@ -691,8 +728,87 @@ const Shapes = {
   }
 };
 // Farbton je Gestalt (nur im Farbdruck sichtbar)
+Object.assign(Shapes, {
+  palm(r) {                                      // Dattelpalme: gebogener, geringelter Stamm, hängende Wedel
+    const h = 15 + (r() * 6 | 0), lean = r() < .5 ? -1 : 1, s = new Sprite(21, h, 10, h - 1); let cx = 10;
+    for (let y = h - 1; y >= 5; y--) { const k = (h - 1 - y) / (h - 6), x = 10 + Math.round(lean * k * k * 3); s.px(x, y, (y & 1) ? 26 : 100); s.px(x + 1, y, 24); cx = x; }
+    const fr = (dx, up, len) => { for (let i = 0; i <= len; i++) { const x = cx + (dx < 0 ? 0 : 1) + dx * i, y = Math.round(5 - up * i + i * i * .2); s.px(x, y, 22); if (i > 1 && i < len) s.px(x, y + 1, (i & 1) ? 120 : 22); } };
+    fr(-1, .55, 7); fr(1, .55, 7); fr(-1, 1.2, 4); fr(1, 1.2, 4); for (let i = 0; i < 4; i++) s.px(cx + (i & 1), 5 - i, 22);
+    s.px(cx, 6, 60); s.px(cx + 1, 7, 60); s.px(cx + 2, h - 1, 110); s.px(cx + 3, h - 1, 140);
+    s.sway = true; return s;
+  },
+  cactus(r) {                                    // Säulenkaktus mit Armen: links Licht, rechts Schatten
+    const h = 9 + (r() * 6 | 0), s = new Sprite(11, h, 5, h - 1), col = (x, y0, y1) => { for (let y = y0; y <= y1; y++) { s.px(x - 1, y, 206); s.px(x, y, 116); s.px(x + 1, y, 28); } s.px(x, y0 - 1, 116); };
+    col(5, 1, h - 1);
+    if (r() < .85) { const ay = 4 + (r() * Math.max(1, h - 8) | 0); for (let x = 2; x <= 4; x++) { s.px(x, ay, 116); s.px(x, ay + 1, 28); } col(2, ay - 3, ay); }
+    if (r() < .6) { const ay = 3 + (r() * Math.max(1, h - 7) | 0); for (let x = 6; x <= 8; x++) { s.px(x, ay, 116); s.px(x, ay + 1, 28); } col(8, ay - 2, ay); }
+    s.px(6, h - 1, 120); s.px(7, h - 1, 150); s.solid = {hw: 1, hh: 1}; return s;
+  },
+  bush(r) {                                      // dürrer Busch / Steppenläufer
+    const s = new Sprite(7, 4, 3, 3); for (let y = 0; y < 4; y++) for (let x = 0; x < 7; x++) { const dx = (x - 3) / 3.4, dy = (y - 2) / 2; if (dx * dx + dy * dy < 1 && r() < .6) s.px(x, y, r() < .5 ? 30 : 110); } return s;
+  },
+  adobe(r) {                                     // Lehmhaus: helle Front, Tür und kleine Fenster, Seitenwand im Schatten, flaches Dach (eigene Ebene), manchmal eine Kuppel
+    const w = 11 + (r() * 3 | 0) * 3, wallH = 7 + (r() * 3 | 0), D = 5, up = 3, dome = r() < .3, extra = dome ? 5 : 0;
+    const h = wallH + up + 2 + extra, s = new Sprite(w + D, h, (w + D) >> 1, h - 1), top = new Sprite(w + D, h, (w + D) >> 1, h - 1), ink = 24, y0 = h - wallH;
+    for (let i = 0; i < D; i++) { const sh = Math.round((i + 1) * up / D); for (let y = y0 - sh; y < h - sh; y++) { const x = w + i; s.px(x, y, y === h - 1 - sh || i === D - 1 ? ink : ((x + y) & 1) ? 52 : 100); } }
+    const door = 2 + (r() * (w - 6) | 0);
+    for (let y = y0; y < h; y++) for (let x = 0; x < w; x++) { let g = hash2(x, y, w * 7 + h) < .08 ? 200 : 234;
+      if (x === 0 || x === w - 1 || y === h - 1) g = ink; else if (x >= door && x <= door + 2 && y >= h - 5 && !(y === h - 5 && (x === door || x === door + 2))) g = 30; else if (y === y0 + 2 && x % 5 === 2 && Math.abs(x - door - 1) > 2) g = 36;
+      s.px(x, y, g); }
+    for (let t = 0; t <= up; t++) { const yy = y0 - 1 - t, xo = Math.round(t * D / up); for (let x = xo; x < w + xo; x++) top.px(x, yy, t === 0 || t === up || x === xo || x === w + xo - 1 ? (t === 0 ? 70 : ink) : 238); }
+    if (dome) { const dc = (w >> 1) + 2, dr = 4; for (let dy = -dr; dy <= 0; dy++) for (let dx = -dr; dx <= dr; dx++) { const q = dx * dx + dy * dy * 1.6; if (q > dr * dr + 1) continue; top.px(dc + dx, y0 - 2 + dy - 1, q > dr * dr - 4 ? ink : dx < -1 ? 238 : dx < 2 ? 170 : 80); } top.px(dc, y0 - 2 - dr - 1, ink); }
+    s.top = top; s.solid = {hw: ((w + D) >> 1) - 1, hh: wallH + 1}; return s;
+  },
+  tent(open = 3) {                               // Nomadenzelt: dunkles, gestreiftes Ziegenhaartuch auf Stangen, offener Eingang; rote Lichter = übrige Heilungen
+    const s = new Sprite(19, 13, 9, 12), D = 22;
+    s.px(4, 0, D); s.px(14, 0, D); s.px(4, 1, D); s.px(14, 1, D);
+    for (let y = 2; y <= 11; y++) { const xl = y <= 6 ? Math.max(0, 4 - (y - 2)) : 0, xr = y <= 6 ? Math.min(18, 14 + (y - 2)) : 18;
+      for (let x = xl; x <= xr; x++) { let g = (y & 1) ? 58 : 104; if (x === xl || x === xr || y === 2 || y === 11) g = D; if (y >= 6 && x >= 8 && x <= 10) g = y === 6 ? D : 16; s.px(x, y, g); } }
+    for (let x = 5; x <= 13; x++) if (x % 3 === 0) s.px(x, 3, 200);
+    [[2, 7], [16, 7], [9, 12]].forEach(([x, y], i) => { const c = i < open ? RED : D; s.px(x, y, c); if (i < 2) s.px(x, y + 1, c); else s.px(x - 1, y, c); });
+    s.solid = {hw: 7, hh: 3}; return s;
+  },
+  mausoleum(open = 3) {                          // Grabstätte: Stufensockel, vier kleine Säulen, Giebel, dunkler Eingang; rote Lampen = übrige Heilungen
+    const s = new Sprite(28, 22, 14, 21), D = 24, L = 236;
+    for (let y = 19; y <= 21; y++) { const i = y - 19, x0 = 2 - i, x1 = 25 + i; for (let x = x0; x <= x1; x++) s.px(x, y, x === x0 || x === x1 || y === 21 ? D : y === 19 ? L : 196); }
+    for (const cx of [4, 10, 17, 23]) for (let y = 9; y <= 18; y++) { s.px(cx, y, y === 9 || y === 18 ? D : L); s.px(cx + 1, y, y === 9 || y === 18 ? D : 90); }
+    for (let y = 10; y <= 18; y++) for (let x = 12; x <= 15; x++) s.px(x, y, y === 10 ? D : 18);
+    for (let y = 6; y <= 8; y++) for (let x = 2; x <= 25; x++) s.px(x, y, y === 6 || y === 8 || x === 2 || x === 25 ? D : (x % 4 === 0 ? 150 : L));
+    for (let y = 1; y <= 5; y++) { const hw = Math.round((y - 1) * 2.9) + 1; for (let x = 14 - hw; x <= 13 + hw; x++) s.px(x, y, x === 14 - hw || x === 13 + hw || y === 5 ? D : x < 14 ? L : 150); }
+    [[7, 14], [20, 14], [13, 15]].forEach(([x, y], i) => { const c = i < open ? RED : D; s.px(x, y, c); s.px(x + 1, y, c); s.px(x, y - 1, i < open ? 236 : D); });
+    s.solid = {hw: 12, hh: 5}; return Shapes.depth(s, 4, 2, 6);
+  },
+  smallPillar(r) {                               // kleine Säule, oft abgebrochen
+    const h = 9 + (r() * 7 | 0), s = new Sprite(7, h, 3, h - 1), broken = r() < .5;
+    for (let y = 0; y < h; y++) { const cap = y < 2 && !broken, base = y >= h - 2; for (let x = cap || base ? 0 : 1; x <= (cap || base ? 6 : 5); x++) { if (broken && y === 0 && (x & 1)) continue;
+      s.px(x, y, x === 0 || x === 6 || y === h - 1 || (cap && y === 0) ? 24 : x <= 2 ? 236 : x === 3 ? 160 : 70); } }
+    s.solid = {hw: 2, hh: 1}; return s;
+  },
+  desertGrave(r) { return Sprite.fromRows(r() < .5 ? ['.##.', '#ww#', '#ww#', '####'] : ['.###.', '#www#', '#####'], {'#': 26, 'w': 228}, 1, r() < .5 ? 3 : 2); },   // Steinhügel und Sarkophag
+  cistern() {                                    // Zisterne: runde Mauer mit Kuppel und dunkler Öffnung
+    const s = new Sprite(17, 15, 8, 14), D = 24;
+    for (let y = 0; y <= 6; y++) for (let x = 0; x < 17; x++) { const dx = (x - 8) / 6.5, dy = (6 - y) / 6.5; const q = dx * dx + dy * dy; if (q > 1) continue; s.px(x, y, q > .78 ? D : dx < -.2 ? 236 : dx < .35 ? 170 : 80); }
+    for (let y = 7; y <= 14; y++) for (let x = 1; x <= 15; x++) s.px(x, y, x === 1 || x === 15 || y === 7 || y === 14 ? D : (x >= 7 && x <= 9 && y >= 10) ? 18 : ((x + (y >> 1) * 3) % 5 === 0 ? 150 : 228));
+    s.solid = {hw: 6, hh: 4}; return s;
+  },
+  bigdune(r, H) {                                // hohe Randdüne: Lichtseite links, Schattenseite rechts, dunkler Kamm
+    const W = Math.round(H * 3.4) | 1, s = new Sprite(W, H, W >> 1, H - 1), ax = Math.round(W * (.55 + r() * .15));
+    for (let x = 0; x < W; x++) { const u = x < ax ? x / ax : (W - 1 - x) / (W - 1 - ax), top = Math.round((H - 1) - (H - 1) * (x < ax ? Math.pow(Math.sin(u * Math.PI / 2), .7) : Math.pow(u, .45)));   // flache Luvseite links, steiler Leehang rechts
+      for (let y = top; y < H; y++) { let g = x < ax ? ((x + 2 * y) % 9 === 0 ? 196 : 240) : (((x - y) & 3) === 0 ? 128 : 34); if (y === top || y === top + 1 && x >= ax) g = 26; if (Math.abs(x - ax) < 1 && y < top + H * .7) g = 26; s.px(x, y, g); } }
+    return s;
+  },
+  pyramid(r) {                                   // Pyramide: Lichtseite links, Schattenseite rechts, Stufenbänder, dunkler Eingang
+    const W = 212, H = 124, cx = 106, by = 118, ap = 8, s = new Sprite(W, H, cx, by), ink = 24;
+    for (let y = ap; y <= by; y++) { const u = (y - ap) / (by - ap), hw = Math.round(2 + u * 98), xd = Math.round(cx + u * 20), band = (by - y) % 7 === 0;
+      for (let x = cx - hw; x <= cx + hw; x++) { let g = x < xd ? (band ? 168 : 226) : (band ? 30 : 74);
+        if (x === cx - hw || x === cx + hw || y === by) g = ink; else if (x === xd) g = 120; else if (!band && hash2(x >> 2, y, 91) < .05) g = x < xd ? 196 : 52;
+        s.px(x, y, g); } }
+    for (let y = by - 14; y < by; y++) for (let x = cx - 10; x <= cx - 4; x++) s.px(x, y, y === by - 14 || x === cx - 10 || x === cx - 4 ? ink : 34);
+    groundSkirt(s, r, cx - 99, cx + 99, by); s.solid = {hw: 92, hh: 12}; return s;
+  }
+});
 { const tag = (names, t) => { for (const k of names) { const f = Shapes[k]; if (!f) continue; Shapes[k] = function () { const sp = f.apply(Shapes, arguments); if (sp && typeof sp === 'object') { sp.tint = t; if (sp.top) sp.top.tint = t; } return sp; }; } };
-  tag(['conifer', 'leaf', 'bigtree', 'worldtree'], 11); tag(['house', 'mill', 'stall', 'smithy'], 12); tag(['deadtree'], 5);
+  tag(['conifer', 'leaf', 'bigtree', 'worldtree', 'palm', 'cactus', 'bush'], 11); tag(['adobe', 'tent', 'cistern'], 4); tag(['pyramid', 'mausoleum', 'smallPillar', 'desertGrave'], 17); tag(['bigdune'], 18); tag(['house', 'mill', 'stall', 'smithy'], 12); tag(['deadtree'], 5);
   tag(['rock', 'well', 'grave', 'stone', 'tower', 'castle', 'obelisk', 'church', 'chapel', 'ruin', 'peak', 'altar', 'giantCastle', 'giantPillar', 'giantStatue', 'crypt'], 6); }
 
 // ============================================================ WORLD
@@ -734,6 +850,7 @@ class World {
 
 // ============================================================ WORLD GENERATOR (prozedural, deterministisch aus WorldSeed + Ebene)
 const CG = 16, CN = WORLD / CG;     // grobes Raster für Wegsuche und Standortwahl
+const biomeOf = (seed, level, endless) => endless ? (level > 1 && hash2(level, seed | 0, 4242) < .5 ? 1 : 0) : (level >= 4 && level <= 6 ? 1 : 0);   // 0 Grünland, 1 Wüste; Endlos: ab Ebene 2 zufällig
 function levelSeed(worldSeed, level) {
   let h = Math.imul(worldSeed ^ 0x9E3779B9, 2654435761) ^ Math.imul(level + 0x7F4A7C15, 2246822519);
   h = Math.imul(h ^ h >>> 15, 2246822507); h = Math.imul(h ^ h >>> 13, 3266489909);
@@ -1032,14 +1149,14 @@ Object.assign(Shapes, {
   }
 });
 
-const SHRINE_SPR = {Kirche: [0, 1, 2, 3].map(n => Shapes.church(n)), Kapelle: [0, 1, 2, 3].map(n => Shapes.chapel(n))};
+const SHRINE_SPR = {Kirche: [0, 1, 2, 3].map(n => Shapes.church(n)), Kapelle: [0, 1, 2, 3].map(n => Shapes.chapel(n)), 'Grabstätte': [0, 1, 2, 3].map(n => Shapes.mausoleum(n)), Nomadenzelt: [0, 1, 2, 3].map(n => Shapes.tent(n))};
 const ALTAR_SPR = [Shapes.altar(false), Shapes.altar(true)], BALL_SPR = [0, 1, 2, 3].map(n => Shapes.ball(n));
 
 class WorldGenerator {
-  static generate(worldSeed, level = 1) {
-    const seed = levelSeed(worldSeed, level);
-    const w = new World(seed), rng = mulberry32(seed), S = seed | 0;
-    w.worldSeed = worldSeed; w.level = level; w.pois = []; w.settlements = []; w.waterRow = new Uint8Array(WORLD);
+  static generate(worldSeed, level = 1, biome = 0) {
+    const seed = levelSeed(worldSeed, level) ^ (biome ? 0x5A11D : 0);
+    const w = new World(seed), rng = mulberry32(seed), S = seed | 0, DES = biome === 1;
+    w.worldSeed = worldSeed; w.level = level; w.biome = DES ? 'wueste' : 'gruen'; w.tints = DES ? TINT_DESERT : TINT_OF_TYPE; w.pois = []; w.settlements = []; w.waterRow = new Uint8Array(WORLD);
     const type = w.type, ground = w.ground, W = WORLD;
 
     // ---------- 1. Heightmap (niedrig aufgelöst) + Waldfeuchte + Bodenton
@@ -1061,7 +1178,7 @@ class WorldGenerator {
       return a + (b - a) * tx + (c - a) * ty + (a - b - c + d) * tx * ty;
     };
     const sorted = Float32Array.from(fH).sort(), pct = p => sorted[sorted.length * p | 0];
-    const waterT = pct(.055), footT = pct(.76), mountT = pct(.82);
+    const waterT = pct(DES ? .03 : .055), footT = pct(.76), mountT = pct(.82);
 
     // ---------- 2. Seen (tiefste Lagen), Berge (höchste Lagen), Wälder, Wiesen
     const det = new Float32Array(65536); for (let i = 0; i < 65536; i++) det[i] = (vnoise((i & 255) / 18, (i >> 8) / 18, S + 31) - .5) * .018;   // feines Rauschen für ausgefranste Ufer, als Kachel vorberechnet
@@ -1094,8 +1211,8 @@ class WorldGenerator {
       pts = resample(chaikin(chaikin(pts)));
       const n = pts.length / 2;
       for (let i = 0; i < n; i++) disc(pts[i * 2], pts[i * 2 + 1], 6 + i / n * 4, k => { if (type[k] === T.MOUNT) type[k] = T.FOOT; });   // Tal
-      for (let i = 0; i < n; i++) disc(pts[i * 2], pts[i * 2 + 1], 1.6 + i / n * 3.6, k => { if (type[k] !== T.WATER) type[k] = T.RIVER; });                      // wird breiter
-      for (const c of path) cWater[c] = 1;
+      for (let i = 0; i < n; i++) disc(pts[i * 2], pts[i * 2 + 1], 1.6 + i / n * 3.6, k => { if (type[k] !== T.WATER) type[k] = DES ? T.WADI : T.RIVER; });                      // wird breiter (in der Wüste: trockenes Bett)
+      if (!DES) for (const c of path) cWater[c] = 1;
     }
     // Uferlinie
     const isWet = new Uint8Array(16); isWet[T.WATER] = isWet[T.RIVER] = 1;
@@ -1214,7 +1331,7 @@ class WorldGenerator {
     { let b = -1, bs = -1; for (let c = 0; c < CN * CN; c++) if (score[c] > -1e8 && !roadCell[c] && creach(c) && settDist(c) > 15 && [sites.ruin, sites.circle, sites.bigtree].every(o => o === undefined || cdist(o, c) > 14)) { const h = hash2(c, 11, S); if (h > bs) { bs = h; b = c; } }
       if (b >= 0) { sites.altar = b; clearForest(cpx(b), cpy(b), 30); } }
     // Riesiges Wahrzeichen: je Welt höchstens eines, nicht in jeder Welt. Braucht weites, freies Land abseits der Orte.
-    { const kind = ['Weltenbaum', 'Riesenburg', 'Nekropole', 'Riesensäule', 'Kolossstatue', null][rng() * 6 | 0];
+    { const kind = (DES ? ['Pyramide', 'Nekropole', 'Riesensäule', 'Kolossstatue', 'Pyramide', null] : ['Weltenbaum', 'Riesenburg', 'Nekropole', 'Riesensäule', 'Kolossstatue', null])[rng() * 6 | 0];
       if (kind) { let b = -1, bs = -1;
         for (let cy = 14; cy < CN - 14; cy++) for (let cx = 14; cx < CN - 14; cx++) { const c = cy * CN + cx; if (!creach(c) || settDist(c) < 16) continue;
           if ([sites.ruin, sites.circle, sites.bigtree, sites.altar].some(o => o !== undefined && cdist(o, c) < 13)) continue;
@@ -1224,7 +1341,7 @@ class WorldGenerator {
 
     // ---------- 7. Äcker rund um die Orte
     let fieldN = 0;
-    for (const s of setts) { const city = s.kind === 'Stadt'; let made = 0;
+    if (!DES) for (const s of setts) { const city = s.kind === 'Stadt'; let made = 0;
       for (let tries = 0; tries < 10 && made < (city ? 3 : 2); tries++) {
         const ang = rng() * 6.283, d = (city ? 120 : 62) + rng() * 40, fw = 50 + rng() * 60 | 0, fh = 36 + rng() * 36 | 0;
         const x0 = s.x + Math.cos(ang) * d - fw / 2 | 0, y0 = s.y + Math.sin(ang) * d - fh / 2 | 0;
@@ -1234,11 +1351,27 @@ class WorldGenerator {
         made++;
       } }
 
-    // ---------- 8. Boden "vordrucken": jeder Geländetyp bekommt seine eigene Druckstruktur
+    // ---------- 7b. Wüste: Gebirge, das mit dem Weltrand zusammenhängt, wird zur hohen Dünenwand (1), sein Fuß zum Dünenhang (2); Inneres bleibt Fels
+    const RN2 = W >> 2, rim = new Uint8Array(RN2 * RN2); w.rim = rim;
+    if (DES) { const isM = (cx, cy) => type[(cy * 4 + 2) * W + cx * 4 + 2] === T.MOUNT, D4 = [[1, 0], [-1, 0], [0, 1], [0, -1]], q = [];
+      for (let i = 0; i < RN2; i++) for (const [cx, cy] of [[i, 0], [i, RN2 - 1], [0, i], [RN2 - 1, i]]) { const c = cy * RN2 + cx; if (!rim[c] && isM(cx, cy)) { rim[c] = 1; q.push(c); } }
+      for (let h = 0; h < q.length; h++) { const c = q[h], cx = c % RN2, cy = c / RN2 | 0; for (const [dx, dy] of D4) { const nx = cx + dx, ny = cy + dy; if (nx < 0 || ny < 0 || nx >= RN2 || ny >= RN2) continue; const n = ny * RN2 + nx; if (!rim[n] && isM(nx, ny)) { rim[n] = 1; q.push(n); } } }
+      let pass = q; for (let r = 0; r < 4; r++) { const nx2 = []; for (const c of pass) { const cx = c % RN2, cy = c / RN2 | 0; for (const [dx, dy] of D4) { const nx = cx + dx, ny = cy + dy; if (nx < 0 || ny < 0 || nx >= RN2 || ny >= RN2) continue; const n = ny * RN2 + nx; if (!rim[n]) { rim[n] = 2; nx2.push(n); } } } pass = nx2; } }
+    const rimAt = (x, y) => rim[clamp(y >> 2, 0, RN2 - 1) * RN2 + clamp(x >> 2, 0, RN2 - 1)];
+    // ---------- 8. Boden "vordrucken\": jeder Geländetyp bekommt seine eigene Druckstruktur
     const dt = (x, y) => vnoise(x / 26, y / 26, S + 201) + .5 * vnoise(x / 10, y / 10, S + 207);
     for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) {
       const k = y * W + x, t = type[k];
       let g;
+      if (DES && (t === T.GRASS || t === T.FOREST || t === T.WADI || t === T.MOUNT || (t === T.FOOT && rimAt(x, y)))) {          // Wüste: Sand mit Windrippeln, Dünen mit Licht- und Schattenhang, rissiger Lehm, geschichteter Fels
+        if (t === T.GRASS) { g = 222 + samp(fG, x, y) * .5; if (Math.sin(x * .32 + y * .95 + vnoise(x / 30, y / 30, S + 501) * 9) > .94) g = 170; else if (hash2(x, y, S + 3) < .004) g = 80; }
+        else if (t === T.FOREST) { const du = q => Math.sin(q * .09 + vnoise(x / 60, y / 60, S + 503) * 5), sl = du(x + y * .4 + 2) - du(x + y * .4 - 2); g = sl > .05 ? 244 : sl < -.05 ? 184 : 220; if (Math.abs(sl) < .012 && du(x + y * .4) > .6) g = 120; else if (sl < -.05 && hash2(x, y, S + 509) < .05) g = 150; }
+        else if (t === T.WADI) { g = Math.abs(vnoise(x / 5, y / 5, S + 505) - .5) < .035 || Math.abs(vnoise(x / 9, y / 9, S + 507) - .5) < .025 ? 64 : 176; }
+        else if (rimAt(x, y)) { const du = q => Math.sin(q * .07 + vnoise(x / 50, y / 50, S + 511) * 4), sl = du(x * .8 + y + 2) - du(x * .8 + y - 2);   // hohe Randdünen: steile Schattenhänge, scharfe Kämme, dunkle Kante zum begehbaren Sand
+          if (t === T.MOUNT) { g = sl > .03 ? (((x + 2 * y) % 11 === 0) ? 200 : 240) : sl < -.03 ? (((x - y) & 3) === 0 ? 132 : 46) : 150; if (Math.abs(sl) < .012) g = 28; if ((y + 1 < W && type[k + W] !== T.MOUNT) || (y > 0 && type[k - W] !== T.MOUNT) || type[k + 1] !== T.MOUNT || type[k - 1] !== T.MOUNT) g = 22; }
+          else { g = sl > .04 ? 246 : sl < -.04 ? 200 : 228; if (Math.abs(sl) < .01) g = 150; } }
+        else { const lit = dt(x + 2, y + 2) - dt(x - 2, y - 2); g = lit > .05 ? 176 : lit < -.05 ? 58 : 122; if (y % 6 === 0 && lit > -.08) g = 92; if (y + 1 < W && type[k + W] !== T.MOUNT) g = 22; }
+        ground[k] = clamp(g, 0, 255); continue; }
       switch (t) {
         case T.GRASS: case T.FOREST:
           g = (t === T.FOREST ? 168 : 212) + samp(fG, x, y);
@@ -1267,23 +1400,26 @@ class WorldGenerator {
 
     // ---------- 9. Druckformen
     const mk = (fn, n) => Array.from({length: n}, () => fn(rng));
-    const conifers = mk(Shapes.conifer, 8), leaves = mk(Shapes.leaf, 6), houses = mk(Shapes.house, 8), rocks = mk(Shapes.rock, 5);
-    const graves = mk(Shapes.grave, 4), stones = mk(Shapes.stone, 5), ruins = mk(Shapes.ruin, 6);
-    const well = Shapes.well(), tower = Shapes.tower(), chapel = Shapes.chapel(), bigtree = Shapes.bigtree(rng);
-    const castle = Shapes.castle(rng), obelisk = Shapes.obelisk(), church = Shapes.church(), mill = Shapes.mill(), stall = Shapes.stall();
+    const conifers = mk(Shapes.conifer, 8), leaves = mk(Shapes.leaf, 6), houses = DES ? mk(Shapes.adobe, 8) : mk(Shapes.house, 8), rocks = mk(Shapes.rock, 5);
+    const palms = DES ? mk(Shapes.palm, 6) : [], cacti = DES ? mk(Shapes.cactus, 6) : [], bushes = DES ? mk(Shapes.bush, 5) : [];
+    if (DES) for (const q of rocks) q.tint = 17;
+    const graves = DES ? mk(Shapes.desertGrave, 5) : mk(Shapes.grave, 4), stones = mk(Shapes.stone, 5), ruins = mk(Shapes.ruin, 6);
+    const well = Shapes.well(), tower = Shapes.tower(), chapel = DES ? Shapes.tent() : Shapes.chapel(), bigtree = Shapes.bigtree(rng);
+    const castle = Shapes.castle(rng), obelisk = Shapes.obelisk(), church = DES ? Shapes.mausoleum() : Shapes.church(), mill = DES ? Shapes.cistern() : Shapes.mill(), stall = Shapes.stall();
+    const NAME = DES ? {Kirche: 'Grabstätte', Kapelle: 'Nomadenzelt', Friedhof: 'Wüstengrab', 'Mühle': 'Zisterne'} : {}, pillars = DES ? mk(Shapes.smallPillar, 6) : [];
     const pick = a => a[rng() * a.length | 0];
     const hs = [], avoid = [], kirchen = [];
     const nearHouse = (x, y, mx = 20, my = 22) => { for (let i = 0; i < hs.length; i += 2) if (Math.abs(x - hs[i]) < mx && Math.abs(y - hs[i + 1] + 8) < my) return true; return false; };
     const blockedSite = (x, y) => { if (nearHouse(x, y) || kirchen.some(k => Math.abs(x - k.x) < 30 && y > k.y - 6 && y < k.y + 46)) return true; for (const a of avoid) if (Math.hypot(x - a.x, y - a.y) < a.r) return true; return false; };
     const tryHouse = (x, y) => { x |= 0; y |= 0; if (free(x, y) && free(x - 9, y) && free(x + 9, y) && free(x, y - 7) && free(x + 14, y) && !nearHouse(x, y + 8, 32, 21) && !kirchen.some(k => Math.abs(x - k.x) < 30 && y > k.y - 6 && y < k.y + 46)) { w.add(x, y, pick(houses)); hs.push(x, y); return true; } return false; };
-    const poi = (kind, x, y, r) => { w.pois.push({kind, x: x | 0, y: y | 0}); avoid.push({x, y, r}); };
+    const poi = (kind, x, y, r) => { w.pois.push({kind, name: NAME[kind], x: x | 0, y: y | 0}); avoid.push({x, y, r}); };
 
     // ---------- 10. Häuser entlang der Gassen, Brunnen auf dem Platz
     for (const s of setts) { const city = s.kind === 'Stadt';
       w.add(s.x + (city ? 0 : 1), s.y - 1, well);
       if (city) for (const [ox, oy] of [[24, -10], [-24, -10], [24, 30], [-24, 30], [40, -22], [-40, -22], [42, 40], [-42, 40], [0, -44], [0, 58], [60, 4], [-60, 4]]) {         // Stadtkirche am Platz, vor den Häusern
         const x = s.x + ox, y = s.y + oy;
-        if ([[0, 0], [-12, 0], [12, 0], [-12, -8], [12, -8]].every(([a, b]) => free(x + a, y + b))) { w.add(x, y, church); kirchen.push({x, y}); hs.push(x - 8, y, x + 8, y); w.pois.push({kind: 'Kirche', x, y, obj: w.lastObj}); break; }
+        if ([[0, 0], [-12, 0], [12, 0], [-12, -8], [12, -8]].every(([a, b]) => free(x + a, y + b))) { w.add(x, y, church); const chO = w.lastObj; kirchen.push({x, y}); hs.push(x - 8, y, x + 8, y); if (DES) for (const sx of [-21, 21]) if (free(x + sx, y + 3)) w.add(x + sx, y + 3, pillars[(sx + 21) / 42 + 2 | 0]); w.lastObj = chO; w.pois.push({name: NAME.Kirche, kind: 'Kirche', x, y, obj: w.lastObj}); break; }
       }
       for (const arm of s.arms) { const n = arm.pts.length / 2;
         for (let d = 16; d < n; d += 21) for (const side of [-1, 1]) { const px = arm.pts[d * 2], py = arm.pts[d * 2 + 1];
@@ -1341,7 +1477,7 @@ class WorldGenerator {
     if (sites.tower !== undefined) { const x = cpx(sites.tower), y = cpy(sites.tower); w.add(x, y, tower); poi('Turm', x, y, 18); }
     // Ruine: der abgelegenste Fleck der Karte
     if (sites.ruin !== undefined) { const x = cpx(sites.ruin), y = cpy(sites.ruin);
-      for (let i = 0; i < 9; i++) { const a = i / 9 * 6.283 + rng() * .4, rx = x + Math.cos(a) * (20 + rng() * 6), ry = y + Math.sin(a) * (13 + rng() * 4); if (free(rx, ry)) w.add(rx, ry, pick(ruins)); }
+      for (let i = 0; i < 9; i++) { const a = i / 9 * 6.283 + rng() * .4, rx = x + Math.cos(a) * (20 + rng() * 6), ry = y + Math.sin(a) * (13 + rng() * 4); if (free(rx, ry)) w.add(rx, ry, DES && rng() < .6 ? pick(pillars) : pick(ruins)); }
       poi('Ruine', x, y, 26); }
     // Steinkreis: auf einer Lichtung tief im Wald
     if (sites.circle !== undefined) { const x = cpx(sites.circle), y = cpy(sites.circle);
@@ -1349,13 +1485,13 @@ class WorldGenerator {
       poi('Steinkreis', x, y, 20); }
     if (sites.giant !== undefined) { const x = cpx(sites.giant), y = cpy(sites.giant), kind = sites.giantKind;
       if (kind === 'Nekropole') {                // riesiger Friedhof: Hunderte Gräber um eine Gruft, kahle Bäume
-        const dead = mk(Shapes.deadtree, 4);
+        const dead = DES ? pillars : mk(Shapes.deadtree, 4);
         w.add(x, y, Shapes.crypt());
         for (let gy = -78; gy <= 84; gy += 9) for (let gx = -132; gx <= 132; gx += 9) { const q = (gx / 134) ** 2 + (gy / 82) ** 2, r1 = rng(), r2 = rng(); if (q > 1 || (Math.abs(gx) < 34 && gy > -34 && gy < 14) || r1 > .8) continue;
           const px = x + gx + (r2 * 3 | 0), py = y + gy + ((r1 * 40 | 0) % 3); if (free(px, py)) w.add(px, py, r1 < .035 ? pick(dead) : pick(graves)); }
         poi(kind, x, y, 30); avoid.push({x, y, r: 128});
-      } else { w.addGiant(x, y, kind === 'Weltenbaum' ? Shapes.worldtree(rng) : kind === 'Riesenburg' ? Shapes.giantCastle(rng) : kind === 'Riesensäule' ? Shapes.giantPillar(rng) : Shapes.giantStatue(rng));
-        poi(kind, x, y, kind === 'Weltenbaum' ? 46 : kind === 'Riesenburg' ? 134 : 44); if (kind === 'Riesenburg') avoid.push({x, y: y - 60, r: 130}); }
+      } else { w.addGiant(x, y, kind === 'Pyramide' ? Shapes.pyramid(rng) : kind === 'Weltenbaum' ? Shapes.worldtree(rng) : kind === 'Riesenburg' ? Shapes.giantCastle(rng) : kind === 'Riesensäule' ? Shapes.giantPillar(rng) : Shapes.giantStatue(rng));
+        poi(kind, x, y, kind === 'Weltenbaum' ? 46 : kind === 'Riesenburg' ? 134 : kind === 'Pyramide' ? 104 : 44); if (kind === 'Riesenburg') avoid.push({x, y: y - 60, r: 130}); if (kind === 'Pyramide') avoid.push({x, y: y - 40, r: 110}); }
     }
     if (sites.altar !== undefined) { const x = cpx(sites.altar), y = cpy(sites.altar); w.add(x, y, ALTAR_SPR[1]); poi('Opferaltar', x, y, 24); w.pois[w.pois.length - 1].obj = w.lastObj; }
     // Großer Baum: einzeln auf offener Wiese
@@ -1366,6 +1502,9 @@ class WorldGenerator {
       const x = cx * 9 + rng() * 8, y = cy * 9 + rng() * 8, r1 = rng(), r2 = rng();
       const t = w.typeAt(x, y);
       if (t !== T.GRASS && t !== T.FOREST) continue;
+      if (DES) { if (blockedSite(x, y)) continue; const nw = dW[((y / CG | 0) * CN) + (x / CG | 0)] <= 2;   // Wüste: Palmen an den Oasen, sonst vereinzelt Kakteen und dürre Büsche
+        if (t === T.GRASS && nw && r1 < .45) w.add(x, y, palms[(r2 * 977 | 0) % palms.length]); else if (t === T.GRASS && r1 < .012) w.add(x, y, cacti[(r2 * 977 | 0) % cacti.length]); else if (r1 < (t === T.FOREST ? .006 : .018)) w.add(x, y, bushes[(r2 * 977 | 0) % bushes.length]);
+        continue; }
       const p = t === T.FOREST ? .82 : (vnoise(x / 90, y / 90, S + 301) > .72 ? .3 : .012);
       if (r1 > p || blockedSite(x, y)) continue;
       const conif = t === T.FOREST ? r2 < .8 : r2 < .25;
@@ -1375,16 +1514,16 @@ class WorldGenerator {
     for (let cy = 0; cy < W / 14; cy++) for (let cx = 0; cx < W / 14; cx++) {
       const x = cx * 14 + rng() * 13, y = cy * 14 + rng() * 13, r1 = rng(), r2 = rng();
       const t = w.typeAt(x, y);
-      if (((t === T.FOOT && r1 < .3) || (t === T.GRASS && r1 < .004)) && !blockedSite(x, y)) w.add(x, y, rocks[r2 * rocks.length | 0]);
+      if (((t === T.FOOT && r1 < .3 && !(DES && rimAt(x | 0, y | 0))) || (t === T.GRASS && r1 < .004)) && !blockedSite(x, y)) w.add(x, y, rocks[r2 * rocks.length | 0]);
     }
     // ---------- 13b. Gipfel: das Gebirge wird wie auf alten Karten aus einzelnen, schraffierten Bergen gesetzt — innen hoch, am Rand niedrig
-    const PH = [10, 14, 18, 23, 28, 34], peaks = PH.map(H => [Shapes.peak(rng, H), Shapes.peak(rng, H), Shapes.peak(rng, H)]);
+    const PH = [10, 14, 18, 23, 28, 34], peaks = PH.map(H => [Shapes.peak(rng, H), Shapes.peak(rng, H), Shapes.peak(rng, H)]); if (DES) for (const a of peaks) for (const q of a) q.tint = 16; const dunesB = DES ? PH.map(H => [Shapes.bigdune(rng, H), Shapes.bigdune(rng, H), Shapes.bigdune(rng, H)]) : null;
     for (let cy = 0; cy < W / 12; cy++) for (let cx = 0; cx < W / 12; cx++) {
       const x = cx * 12 + rng() * 11, y = cy * 12 + rng() * 11, r1 = rng(), r2 = rng();
-      if (w.typeAt(x, y) !== T.MOUNT || r1 > .8) continue;
+      const edgeD = DES && rimAt(x | 0, y | 0) === 1; if (w.typeAt(x, y) !== T.MOUNT || (r1 > .8 && !edgeD)) continue;
       let si = clamp((samp(fH, x, y) - mountT) / .035 * PH.length | 0, 0, PH.length - 1);
       while (si > 0 && w.typeAt(x, y - PH[si] * .6) !== T.MOUNT) si--;
-      w.add(x, y, peaks[si][r2 * 3 | 0]);
+      w.add(x, y, (edgeD ? dunesB : peaks)[si][r2 * 3 | 0]);
     }
     // ---------- 14. Start, Ausgang, Boss-Position
     const s0 = setts[0] || {x: W / 2, y: W / 2};
@@ -1399,16 +1538,16 @@ class WorldGenerator {
     const N = 512, st = WORLD / N, K = 2, INK = 0xFF2B242A, MID = 0xFF8F888F, PAP = 0xFFD2E6E8;
     const tmp = document.createElement('canvas'); tmp.width = tmp.height = N;
     const tc = tmp.getContext('2d'), img = tc.createImageData(N, N), o = new Uint32Array(img.data.buffer);
-    const prio = [0, 3, 1, 6, 0, 6, 0, 2, 1, 1, 0, 0, 3];
+    const prio = [0, 3, 1, 6, 0, 6, 0, 2, 1, 1, 0, 0, 3, 1];
     for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { let bt = 0, bp = -1;
       for (const [a, b] of [[0, 0], [2, 2], [0, 2], [2, 0]]) { const t = w.type[(y * st + b) * WORLD + x * st + a]; if (prio[t] > bp) { bp = prio[t]; bt = t; } }
       let c = PAP;
       switch (bt) {
-        case T.MOUNT: c = INK; break;
-        case T.FOOT: c = (x + y) & 1 ? INK : MID; break;
+        case T.MOUNT: case T.FOOT: c = w.biome === 'wueste' && w.rim && w.rim[((y * st) >> 2) * (WORLD >> 2) + ((x * st) >> 2)] ? ((x + y) % 3 ? MID : PAP) : bt === T.MOUNT ? INK : (x + y) & 1 ? INK : MID; break;   // Wüste: Randdünen hell schraffiert
         case T.FOREST: c = (x + y) & 1 ? MID : PAP; break;
         case T.WATER: c = y % 4 === 0 ? PAP : MID; break;
         case T.RIVER: case T.SHORE: c = MID; break;
+        case T.WADI: c = (x + y) & 1 ? MID : PAP; break;
         case T.ROAD: case T.BRIDGE: c = INK; break;
       }
       o[y * N + x] = c; }
@@ -1445,15 +1584,15 @@ class WorldGenerator {
     if (exit) label(exit.x, exit.y, 'Tor', 30, 'bold', 26);
     for (const s of w.settlements) label(s.x, s.y, s.kind, 32, 'bold', 18);
     if (bell) label(bell.x, bell.y, 'Glocke', 26, 'italic', 16);
-    const rank = ['Weltenbaum', 'Riesenburg', 'Nekropole', 'Riesensäule', 'Kolossstatue', 'Schmied', 'Stall', 'Opferaltar', 'Kapelle', 'Kirche', 'Turm', 'Burgruine', 'Ruine', 'Steinkreis', 'Obelisk', 'Großer Baum', 'Mühle', 'Friedhof'];
-    for (const p of w.pois.slice().sort((a, b) => rank.indexOf(a.kind) - rank.indexOf(b.kind))) label(p.x, p.y, p.kind, 26, 'italic', 13);
+    const rank = ['Pyramide', 'Weltenbaum', 'Riesenburg', 'Nekropole', 'Riesensäule', 'Kolossstatue', 'Schmied', 'Stall', 'Opferaltar', 'Kapelle', 'Kirche', 'Turm', 'Burgruine', 'Ruine', 'Steinkreis', 'Obelisk', 'Großer Baum', 'Mühle', 'Friedhof'];
+    for (const p of w.pois.slice().sort((a, b) => rank.indexOf(a.kind) - rank.indexOf(b.kind))) label(p.x, p.y, p.name || p.kind, 26, 'italic', 13);
   }
   // Generator-Debug: ganze Welt als Karte (Debugfarben erlaubt), ohne Gameplay
   static drawMap(w, canvas) {
     const N = 512, st = WORLD / N; canvas.width = canvas.height = N;
     const ctx = canvas.getContext('2d'), img = ctx.createImageData(N, N), o = new Uint32Array(img.data.buffer);
     const col = [0xFFB8D8C8, 0xFFC08040, 0xFF705030, 0xFFE8F0F0, 0xFF404040, 0xFF2060C0, 0xFF2060C0, 0xFF505058, 0xFF8890A0, 0xFF508050, 0xFF70C8D8, 0xFF70C8D8, 0xFFE0B070];
-    const prio = [0, 3, 1, 5, 2, 6, 6, 1, 1, 1, 1, 1, 3];
+    const prio = [0, 3, 1, 5, 2, 6, 6, 1, 1, 1, 1, 1, 3, 1];
     for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { let bt = 0, bp = -1;
       for (const [a, b] of [[0, 0], [2, 2], [0, 2], [2, 0]]) { const t = w.type[(y * st + b) * WORLD + x * st + a]; if (prio[t] > bp) { bp = prio[t]; bt = t; } }
       o[y * N + x] = col[bt]; }
@@ -1580,7 +1719,8 @@ class Renderer {
     // 1. Boden
     for (let y = 0; y < bh; y++) { const o = (cy + y) * WORLD + cx; f.set(world.ground.subarray(o, o + bw), y * bw); }
     const color = COLOR.on, tb = this.tint;
-    if (color) { const ty = world.type; for (let y = 0; y < bh; y++) { let o = (cy + y) * WORLD + cx, i = y * bw; for (let x = 0; x < bw; x++, o++, i++) tb[i] = TINT_OF_TYPE[ty[o]]; } }
+    if (color) { const ty = world.type, TT = world.tints || TINT_OF_TYPE, DS = world.biome === 'wueste'; for (let y = 0; y < bh; y++) { let o = (cy + y) * WORLD + cx, i = y * bw; const Y = cy + y, rimRow = DS && world.rim ? world.rim.subarray((Y >> 2) * (WORLD >> 2), ((Y >> 2) + 1) * (WORLD >> 2)) : null;
+      for (let x = 0; x < bw; x++, o++, i++) { const t = ty[o]; tb[i] = DS && (t === 7 || t === 8) && rimRow[(cx + x) >> 2] ? 18 : TT[t]; } } }   // Wüste: Randdünen in Dünenfarbe
     // Seen: die Wellenstriche wandern langsam, Zeile um Zeile gegenläufig (nur Zeilen, in denen überhaupt See liegt)
     if (world.waterRow) { const ty = world.type, sh = time * 2.2 | 0;
       for (let y = 0; y < bh; y++) { const wy = cy + y; if ((wy & 3) !== 0 || !world.waterRow[wy]) continue;
@@ -1631,6 +1771,7 @@ class Renderer {
       if (lx >= 0 && ly >= 0 && lx < bw - 1 && ly < bh) { const k = ly * bw + lx; f[k] = 30; if (Math.sin(time * 9 + L.ph) > 0) f[k + 1] = 30; }
     }
     if (scene) scene.drawOver(this, cx, cy, time);
+    if (scene && scene.drawSand) scene.drawSand(this, cx, cy, time);
     if (scene && scene.drawFuse) scene.drawFuse(this, cx, cy);
     if (scene && scene.quakes) scene.quakes(this, cx, cy);
     // 3. Raster: Grauwerte -> drei Druckfarben, Rastermatrix und Korn sind an der Welt verankert
@@ -1675,6 +1816,10 @@ const ENEMY_TYPES = [
   // ---- ab Ebene 4
   {name: 'Henker',     ai: 'dash',   hp: 90, sp: 16, dmg: 18, xp: 10, from: 150, w: 1.2, r: 5, lvl: 4, armor: 1, spr: ES(['...###...', '..#####..', '..#w#w#..', '.#######.', '#########', '#########', '#.#####.#', '#.#####.#', '..##.##..', '..##.##..'])}
 ];
+const DESERT_FORMS = {Schlurfer: ['Mumie', ['.###.', '#www#', '#w#w#', '.www.', '#w#ww', '.w.w.', '.#.#.']], 'Läufer': ['Skorpion', ['.#.....', '#.#....', '#..####', '.#w####', '#.#.#.#']],
+  Schwarm: ['Geier', ['#...#', '##w##', '..#..']], Hetzer: ['Schakal', ['......#', '#....##', '.#####w', '.####..', '.#..#..']], Geist: ['Sandgeist', ['.#.#.', '#www#', '#w#w#', '.www.', '..ww.', '.ww..']],
+  Koloss: ['Sandgolem', ['..ooooo..', '.ooooooo.', '.o#ooo#o.', 'ooooooooo', 'oo#ooo#oo', 'ooooooooo', '.ooooooo.', '.oo...oo.', '.##...##.']], Brutmutter: ['Skorpionkönigin', ['#........', '#.#......', '.#.######', '..#w##w##', '.########', '#.#.#.#.#']]};
+for (const ty of ENEMY_TYPES) { const f = DESERT_FORMS[ty.name]; if (f) { ty.dname = f[0]; ty.dspr = ES(f[1]); } }
 // ---- Waffen (je 5 Stufen, jede Stufe ändert etwas anderes) und passive Fähigkeiten. w = Gewicht im Angebot (selten = stark)
 // ---- Stellschrauben der Balance an einer Stelle
 const BAL = {eHp: 2.3, eDmg: 2.4, gateTime: 25, darkTime: 25, lvlHp: .6, lvlDmg: .35, hpRamp: 200, spawnMin: .2, capMax: 180, spawnRate: 1.5, bossSpawnMul: 2.2, afterBossMul: 3, lvlHeal: 5};
@@ -1751,7 +1896,20 @@ const CACO_ANIM = (() => { const W = 60, un = str => { let t = ''; str.replace(/
   const mk = set => { const r = set.map(e => { const sp = Sprite.fromRows(un(e), {'#': 20, 'm': 128, 'o': 236, 'r': RED}, 32, 46); sp.tint = 13; return sp; }); return [r, r.map(q => { const f = q.flipped(); f.tint = 13; return f; })]; };
   return {idle: mk(CACO_ROWS.idle), atk: mk(CACO_ROWS.atk), dead: mk(CACO_ROWS.dead)}; })();
 const BOSS3 = {name: 'Der Kakodämon', acc: 'den Kakodämon', ai: 'caco', boss: true, fly: true, hp: 1900, sp: 20, dmg: 14, xp: 0, r: 13, deadT: 1.2, spr: CACO_ANIM.idle[0][0]};
-const bossOf = level => level % 3 === 0 ? BOSS3 : level % 3 === 2 ? BOSS2 : BOSS;      // Ebene 1 Knochenkönig, 2 Waldgeist, 3 Kakodämon, dann von vorn
+const MON_TINT = {skel: 6, gob: 11, eye: 13, pilz: 12};
+const MON = (() => { const D = {"skel":{"w":104,"h":59,"ax":38,"ay":56,"a":{"idle":[".663o5.98o7.97o7.97m7.97m7.97m2#3m#.97#2m#4.78o3.17#2m2#2.77m4o.9o4.2#6.16o.61m5o.7o5.#7.16o.61m5o.5m2#2o2m#4.#.#.15o2.60m7o.3m#6m#m2#3.16o2.61m7o.2m#7m2#m#m#.15o2.62m7o.m#2.2#m#2m5#2.14o2.63m7om#2.2#2m3#m#2m3.12o3.63m9#2.3#4m2#2m#m2.11o3.64m9#.4#5m#3m#m.10o3.65m9#.4#m3#4m2#m.10o2.66m9#.6#7.#2.6#mo3.67m9#.5#4.#2.3#m2.o3.m2o.68m9#2.5#2.7#3o3m5.68m9#2.4#4m4.3#2o3#m#m2.68m9.5m7#2.7m2#.72m8.4m6#2m#.7m2.73m8.3m2#5m3#2.81m7.5#4m4#4.80m7.5#m2#m4#4.80m7.4#3m6#4.81m6.4#3m6#4.81m5.5#3m6.#3m.81m3.6#3m6.3#m.91#2.m5.3#2m.90#2.m6.3#2m.89#2.m6.3#2m3.87#m.m6.4#2m#.87#m.12#2.87m3.11m#2.87m#2.11m#3.86#3.11m#3.85m#2.11m4#.85m2#.11m3#.85m2#2.11m3#.84m3#.12m3#.84m#2.13m3.84m2#2.13m3.84m#2.13m3#.83m#2.14m3#.83m#2.14m2#2.82m2#.16#4.81#3m.14#6.80#4m2.12#5m2.265",".767o5.98o7.97o7.97m7.97m7.97m2#3m#.97#2m#4.78o3.17#2m2#2.77m4o.9o4.2#6.16o.61m5o.7o5.#7.16o.61m5o.5m2#2o2m#4.#.#.15o2.60m7o.3m#6m#m2#3.16o2.61m7o.2m#7m2#m#m#.15o2.62m7o.m#2.2#m#2m5#2.14o2.63m7om#2.2#2m3#m#2m3.12o3.63m9#2.3#4m2#2m#m2.11o3.64m9#.4#5m#3m#m.10o3.65m9#.4#m3#4m2#m.10o2.66m9#.6#7.#2.6#mo3.67m9#.5#4.#2.3#m2.o3.m2o.68m9#2.5#2.7#3o3m5.68m9#2.4#4m4.3#2o3#m#m2.68m9.5m7#2.7m2#.72m8.4m6#2m#2.6m2.73m8.3m2#5m2#4.80m7.5#4m4#4.80m7.4#3m#m4#4.80m7.4#3m6#4.81m6.4#3m6.#3m.80m5.5#3m5.4#m.81m3.7#2m5.4#2m.90#m6.5#2m.89#m6.5#2m3.87#m7.5#2m#.87#m7.6#2.87m3.11m#2.87m#2.11m#3.86#3.11m#3.85m#2.11m4#.85m2#.11m3#.85m2#2.11m3#.84m3#.12m3#.84m#2.13m3.84m2#2.13m3.84m#2.13m3#.83m#2.14m3#.83m#2.14m2#2.82m2#.16#4.81#3m.14#6.80#4m2.12#5m2.265",".871o5.98o7.97o7.97m7.97m7.97m2#3m#.97#2m#4.78o3.17#2m2#2.77m4o.9o4.2#6.16o.61m5o.7o5.#7.16o.61m5o.5m2#2o2m#4.#.#.15o2.60m7o.3m#6m#m2#3.16o2.61m7o.2m#7m2#m#m#.15o2.62m7o.m#2.2#m#2m5#2.14o2.63m7om#2.2#2m3#m#2m3.12o3.63m9#2.3#4m2#2m#m2.11o3.64m9#.4#5m#3m#m.10o3.65m9#.4#m3#4m2#m.10o2.66m9#.6#7.#2.6#mo3.67m9#.5#4.#2.3#m2.o3.m2o.68m9#2.5#2.7#3o3m5.68m9#2.4#4m4.3#2o3#m#m2.68m9.5m7#3.6m2#.72m8.4m6#2m#3.5m2.73m8.3m2#5m2#4.80m7.4#5m4#4.80m7.4#3m#m4#4.80m7.4#3m6.#3m.80m6.4#3m6.3#m.80m5.6#2m5.4#2m.80m3.7#m6.5#2m.89m6.6#2m3.87m6.7#2m#.87m5.9#2.87m5.9m#2.87m#2.11m#3.86#3.11m#3.85m#2.11m4#.85m2#.11m3#.85m2#2.11m3#.84m3#.12m3#.84m#2.13m3.84m2#2.13m3.84m#2.13m3#.83m#2.14m3#.83m#2.14m2#2.82m2#.16#4.81#3m.14#6.80#4m2.12#5m2.265",".767o5.98o7.97o7.97m7.97m7.97m2#3m#.97#2m#4.78o3.17#2m2#2.77m4o.9o4.2#6.16o.61m5o.7o5.#7.16o.61m5o.5m2#2o2m#4.#.#.15o2.60m7o.3m#6m#m2#3.16o2.61m7o.2m#7m2#m#m#.15o2.62m7o.m#2.2#m#2m5#2.14o2.63m7om#2.2#2m3#m#2m3.12o3.63m9#2.3#4m2#2m#m2.11o3.64m9#.4#5m#3m#m.10o3.65m9#.4#m3#4m2#m.10o2.66m9#.6#7.#2.6#mo3.67m9#.5#4.#2.3#m2.o3.m2o.68m9#2.5#2.7#3o3m5.68m9#2.4#4m4.3#2o3#m#m2.68m9.5m7#2.7m2#.72m8.4m6#2m#2.6m2.73m8.3m2#5m2#4.80m7.5#4m4#4.80m7.4#3m#m4#4.80m7.4#3m6#4.81m6.4#3m6.#3m.80m5.5#3m6.3#m.81m3.7#2m6.3#2m.90#2m6.4#2m.89#2m6.4#2m3.87#m6.6#2m#.87#m6.7#2.87m3.11m#2.87m#2.11m#3.86#3.11m#3.85m#2.11m4#.85m2#.11m3#.85m2#2.11m3#.84m3#.12m3#.84m#2.13m3.84m2#2.13m3.84m#2.13m3#.83m#2.14m3#.83m#2.14m2#2.82m2#.16#4.81#3m.14#6.80#4m2.12#5m2.265"],"walk":[".663o5.98o7.97o7.97m7.97m7.97m2#3m#.97#2m#4.78o3.17#2m2#2.77m4o.9o4.2#6.16o.61m5o.7o5.#7.16o.61m5o.5m2#2o2m#4.#.#.15o2.60m7o.3m#6m#m2#3.16o2.61m7o.2m#7m2#m#m#.15o2.62m7o.m#2.2#m#2m5#2.14o2.63m7om#2.2#2m3#m#2m3.12o3.63m9#2.3#4m2#2m#m2.11o3.64m9#.4#5m#3m#m.10o3.65m9#.4#m3#4m2#m.10o2.66m9#.6#7.#2.6#mo3.67m9#.5#4.#2.3#m2.o3.m2o.68m9#2.5#2.7#3o3m5.68m9#2.4#4m4.3#2o3#m#m2.68m9.5m7#2.7m2#.72m8.4m6#2m#.7m2.73m8.3m2#5m3#2.81m7.5#4m4#4.80m7.5#m2#m4#4.80m7.4#3m6#4.81m6.4#3m6#4.81m5.5#3m5.2#4.81m3.6#3m5.4#2.91#2m5.4#3.90#m6.5#3.89#m6.5#5.87#m5.7#4.87#m.12#2.87m3.11m#2.87m#2.11m#3.86#3.11m#3.85m#2.11m4#.85m2#.11m3#.85m2#2.11m3#.84m3#.12m3#.84m#2.13m3.84m2#2.13m3.84m#2.13m3#.83m#2.14m3#.83m#2.14m2#2.82m2#.16#4.81#3m.14#6.80#4m2.12#5m2.265",".767o5.98o7.97o7.97m7.97m7.97m2#3m#.97#2m#4.78o3.17#2m2#2.77m4o.9o4.2#6.16o.61m5o.7o5.#7.16o.61m5o.5m2#2o2m#4.#.#.15o2.60m7o.3m#6m#m2#3.16o2.61m7o.2m#7m2#m#m#.15o2.62m7o.m#2.2#m#2m5#2.14o2.63m7om#2.2#2m3#m#2m3.12o3.63m9#2.3#4m2#2m#m2.11o3.64m9#.4#5m#3m#m.10o3.65m9#.4#m3#4m2#m.10o2.66m9#.6#7.#2.6#mo3.67m9#.5#4.#2.3#m2.o3.m2o.68m9#2.5#2.7#3o3m5.68m9#2.4#4m4.3#2o3#m#m2.68m9.5m7#2.7m2#.72m8.4m6#2m#.7m2.73m8.3m2#5m2#3.81m7.5#4m4#3.81m7.4#3m#m4#3.81m7.4#3m6#3.82m6.4#3m6#3.82m5.6m#m6#3.83m3.7m8.#2.93m#m6.#3.92m#m5.2#3.91m2#m5.3#2.91m2.m4.4#2.91#2.8m#2.90m#2.8m#3.89m2#.8m#3.88m2#2.7m4#.87m3#.8m3#.88m#2.9m3#.87m2#2.9m3#.87m#2.10m3.87m#2.11m3.87m#2.10m3#.86m2#.11m3#.86#3m.10m2#2.86#4m2.9#4.99#6.98#5m2.269",".767o5.98o7.97o7.97m7.97m7.97m2#3m#.97#2m#4.78o3.17#2m2#2.77m4o.9o4.2#6.16o.61m5o.7o5.#7.16o.61m5o.5m2#2o2m#4.#.#.15o2.60m7o.3m#6m#m2#3.16o2.61m7o.2m#7m2#m#m#.15o2.62m7o.m#2.2#m#2m5#2.14o2.63m7om#2.2#2m3#m#2m3.12o3.63m9#2.3#4m2#2m#m2.11o3.64m9#.4#5m#3m#m.10o3.65m9#.4#m3#4m2#m.10o2.66m9#.6#7.#2.6#mo3.67m9#.5#4.#2.3#m2.o3.m2o.68m9#2.5#2.7#3o3m5.68m9#2.4#4m4.3#2o3#m#m2.68m9.5m7#2.7m2#.72m8.4m6#2m#.7m2.73m8.3m2#5m2#2.82m7.5#4m4#2.82m7.4#3m6#2.82m7.4#3m6#2.83m6.4#m#m7#.83m5.5#m9#.84m3.7#m8#.95m9.95#m7#.96#m5.#.96#m.4#3.95#m.4m#2.96#m.3m#2.96#m.3m#3.95m#2m4#2.95m2#m3#2.96m2#m3#.97m2#m3#.96m2#2m3#.96m2#.m3.97m2#m2#.98m2#m2#.98m#2m#2.98m#6.97m2#m#4.96#4m2#m2.272",".663o5.98o7.97o7.97m7.97m7.97m2#3m#.97#2m#4.78o3.17#2m2#2.77m4o.9o4.2#6.16o.61m5o.7o5.#7.16o.61m5o.5m2#2o2m#4.#.#.15o2.60m7o.3m#6m#m2#3.16o2.61m7o.2m#7m2#m#m#.15o2.62m7o.m#2.2#m#2m5#2.14o2.63m7om#2.2#2m3#m#2m3.12o3.63m9#2.3#4m2#2m#m2.11o3.64m9#.4#5m#3m#m.10o3.65m9#.4#m3#4m2#m.10o2.66m9#.6#7.#2.6#mo3.67m9#.5#4.#2.3#m2.o3.m2o.68m9#2.5#2.7#3o3m5.68m9#2.4#4m4.3#2o3#m#m2.68m9.5m7#2.7m2#.72m8.4m6#2m#.7m2.73m8.3m2#5m2#2.82m7.5#4m4#2.82m7.5#m2#m4#2.82m7.4#3m6#2.83m6.4#3m6#2.83m5.5#m#m6#2.84m3.6m9#3.92#m8#3.92#m8.#3.92#m7.#3.92#m7.#m#.92#m2.5m3#.93#m.5m4.93#m.5m4.93#m2.4m4.93#m2.4m4.93m2#.5m3.93m2#.5m3.93m2#.5m2#.92m2#2.5m2#.92m2#.5m2#2.92m2#.5m#4.91m2#.5#6.90m#2.5#5m2.89m#2.101m2#m.100#4m2.277"],"atk":[".663o5.98o7.97o7.97m7.97m7.97m2#3m#.97#2m#4.78o3.17#2m2#2.77m4o.9o4.2#6.16o.61m5o.7o5.#7.16o.61m5o.5m2#2o2m#4.#.#.15o2.60m7o.3m#6m#m2#3.16o2.61m7o.2m#7m2#m#m#.15o2.62m7o.m#2.2#m#2m5#2.14o2.63m7om#2.2#2m3#m#2m3.12o3.63m9#2.3#4m2#2m#m2.11o3.64m9#.4#5m#3m#m.10o3.65m9#.4#m3#4m2#m.10o2.66m9#.6#7.#2.6#mo3.67m9#.5#4.#2.3#m2.o3.m2o.68m9#2.5#2.7#3o3m5.68m9#2.4#4m4.3#2o3#m#m2.68m9.5m7#2.7m2#.72m8.4m6#2m#.7m2.73m8.3m2#5m3#2.81m7.5#4m4#4.80m7.5#m2#m4#4.80m7.4#3m6#4.81m6.4#3m6#4.81m5.5#3m6.#3m.81m3.6#3m6.3#m.91#2.m5.3#2m.90#2.m6.3#2m.89#2.m6.3#2m3.87#m.m6.4#2m#.87#m.12#2.87m3.11m#2.87m#2.11m#3.86#3.11m#3.85m#2.11m4#.85m2#.11m3#.85m2#2.11m3#.84m3#.12m3#.84m#2.13m3.84m2#2.13m3.84m#2.13m3#.83m#2.14m3#.83m#2.14m2#2.82m2#.16#4.81#3m.14#6.80#4m2.12#5m2.265",".554o5.98o7.97o7.97m7.17o.79m7.17o.79m2#3m#.16o2.66o4.9#2m#4.15o2.65m6o.9#2m2#2.14o2.66m7o.4o3#6.14o2.67m7om2#o4#6.12o3.67m9o#4o2m#5.11o3.68m9o#2.2#2m#m2#3.9o3.69m9o.3#3m2#m#m#.9o2.70m9o.2#m#2m5#2.5#mo3.70m11.#2m3#m#2m.5o2.m2o.71m11.#4m2#2m#2.4om5.71m11.#5m#3m4.o2#m#m2.71m11.#m3#4m2#2m2#m2#.74m11.3#7.#5m2.75m11.2#4.#2.84m11.3#2.88m11.2#4m4.84m10.m7#2.84m19#.84m11#3m5#2.83m9.#2m6#4.82m9.#2m6#4.83m8.#2m6#4.83m7.2#2m6#4.85m4.3#3m5.#m.94#2m6#m.94#2m6.#m.93#2m6.#m.93m#.8#m.92#2.8#m.91m#.10#m.90#2.10#2.89m#2.9#3.89#3.9#m#m.87m#2.10#m#m.87m2#.10#m3.87m#2.10m4.86m2#.12#m2.86m2#.12#m2.86m#2.12#m2.85m2#.13#m3.84m2#.13#m3.84m#2.13#2m2.84m#2.13#2m2.83m2#2.14#2m3.81#3m.14#4m2.80#4m2.12#5m2.265",".9o2.103o3.102o3.9o5.89o3.6o7.89o3m2.3o7.90o2m2.3m7.90om#mo2.m7.91m#2o2m3#3m#.94o#4m#4.96#4m2#2.97#6.99#5.96o3#6.94o9m2.93m9o#2.92m10o2#.91m10o2m.89m14o.89m14o.89m14o.89m14o.88m16.88m16.88m16.88m16.88m16.88m17.87m16#2.86m16#2.87m15#2.87m15#2.87m14#2m2.86m14.#m2.86m15.#m2.87m13.#2m.87m13.2#m2.89m6.6#2m.89m2#.10#m2.88m2#.10#m2.88m2#.11#m2.87m2#.11#m2.87m2#.12#2m.86#m#.11#3m2.85#3.11#3m2.84m2#2.11#3m2.84m2#2.11#3m2.83m3#.13#2m2.83m2#2.14#m2.83m2#2.14#m3.82m2#2.14#2m2.82m2#.15#2m2.82m#2.16#m2.82m#2.16#m2.82m#2.16#m2#.81m2#.17#4.80#m3.16#4.80#4.17#4.267",".9o2.103o3.102o3.9o5.89o3.6o7.89o3m2.3o7.90o2m2.3m7.90om#mo2.m7.91m#2o2m3#3m#.94o#4m#4.96#4m2#2.97#6.99#5.96o3#6.94o9m2.93m9o#2.92m10o2#.91m10o2m.89m14o.89m14o.89m14o.89m14o.88m16.88m16.88m16.88m16.88m16.88m17.87m16#2.86m16#2.87m15#2.87m15#2.87m14#2m2.86m14.#m2.86m15.#m2.87m13.#2m.87m13.2#m2.89m6.6#2m.89m2#.10#m2.88m2#.10#m2.88m2#.11#m2.87m2#.11#m2.87m2#.12#2m.86#m#.11#3m2.85#3.11#3m2.84m2#2.11#3m2.84m2#2.11#3m2.83m3#.13#2m2.83m2#2.14#m2.83m2#2.14#m3.82m2#2.14#2m2.82m2#.15#2m2.82m#2.16#m2.82m#2.16#m2.82m#2.16#m2#.81m2#.17#4.80#m3.16#4.80#4.17#4.267",".9o2.103o3.102o3.9o5.89o3.6o7.89o3m2.3o7.90o2m2.3m7.90om#mo2.m7.91m#2o2m3#3m#.94o#4m#4.96#4m2#2.97#6.99#5.96o3#6.94o9m2.93m9o#2.92m10o2#.91m10o2m.89m14o.89m14o.89m14o.89m14o.88m16.88m16.88m16.88m16.88m16.88m17.87m16#2.86m16#2.87m15#2.87m15#2.87m14#2m2.86m14.#m2.86m15.#m2.87m13.#2m.87m13.2#m2.89m6.6#2m.89m2#.10#m2.88m2#.10#m2.88m2#.11#m2.87m2#.11#m2.87m2#.12#2m.86#m#.11#3m2.85#3.11#3m2.84m2#2.11#3m2.84m2#2.11#3m2.83m3#.13#2m2.83m2#2.14#m2.83m2#2.14#m3.82m2#2.14#2m2.82m2#.15#2m2.82m#2.16#m2.82m#2.16#m2.82m#2.16#m2#.81m2#.17#4.80#m3.16#4.80#4.17#4.267",".14o2.103o3.102o3.11o5.87o3.8o7.87o3m2.5o7.88o2m2.5m7.88om#mo2.3m7.89m#2o2m.2m2#3m#.92o#2m.#2m#4.94#2.2#2m2#2.95#m.#5.89o4.3#2m#5.87m6o.2o3#4.88m7o4#m2#.89m7omo2#2m#2m.86m9o#2m4#2m2.84m9o#5m2#3.84m9o.#m2#m3#3.83m9o.#2m#m2#m3.82m11.2#3m2#4.82m11.2#4m#m2#.82m11.4m#2m#2.83m11.2#2m2#3.84m11.3#4.86m11.2#4.87m11.m2#2m#2.85m13#4m#2.85m12#m5#.85m10#3m5#m.84m9#2m7#.85m17#m2.84m17#m2.85m15.2#m2.84m7#2m4.4#2m.86m4.#2.9#m2.90#2.9#2m.89m2#.10#m2.88m2#.10#m2.88m2#.10#m2.88m2#.10#m2.87m2#.12#2.87m2#.11#3m.86#m#.11#3m2.84m#3.11#3m2.84m2#2.11#3m2.83m3#2.12#2m2.83m3#.14#m2.83m2#2.14#m2.83m2#2.14#m3.81m2#2.15#2m2.81m#2.17#m2.81m#2.17#m2.81m#2.17#m2.81m#2.16#m2#.81m2#.17#4.80#m3.16#4.80#4.17#4.267",".472o16.91o22.89o18.90o18.52m2o.12o5.18o17.48m4o.10o7.20o16.44m6o.10o7.22o16.41m7o.10m7.24o16.38m8o.10m7.25o16.36m9o.10m2#3m#.26o16.34m10o.10#2m#4.26o17.32m10o2.6o3.2#2m2#2.26o17.32m10o.8o4#5.28o17.30m18#3o3#5.28o18.29m10#11om2#4.29o18.29m10#.4#6m2#3.32o18.27m10#.5#3m#2m2#m2#.31o18.26m10#.6#3m5#m2#2.30o19.25m10#.6#4m6#m#.30o19.25m9#2.6#m#3m#4m#2.29o20.24m10.9#m2#m#2m#.m2.29o20.24m8.10#10.m#.28o21.24m7.10#8m2.m2#.26o23.25m4.11m#3.3#3.2m#.26o24.37m6#2.6m2.25o26.36#2m8.3m2#2.23o28.36#4m4#m5#2.21o30.37#5m3#m3#2.21o32.36#7m2#o#3.17o36.37#5m3o4#2.12o40.38#4o61.39#3o62.39o63.39o64.38o65.41mo60.43m2o58.42m4#o55.44m3#.4o50.46m2#.8o44.48#m2#.11o38.50m2#m#.13o34.52m2#2.16m3#2.2o16.59m4#2.16m2#2.78m2#4.15#m2#2.78m2#3.16m2#3.76m3#3.17m2#2.77m2#2.18m3#.78m#2.19m2#2.78#3.17#m3#.79m#2.18#4.79#m3.17#4.79#4.18#4.261",".600o.106o.160m2o.12o5.83m4o.10o7.80m6o.10o7.79m7o.10m7.78m8o.10m7.77m9o.10m2#3m#.76m10o.10#2m#4.42o.32m10o2.6o3.2#2m2#2.42o.32m10o.8o4#5.44o.30m18#3o3#5.45o.29m10#11om2#4.76m10#.4#6m2#3.49o.27m10#.5#3m#2m2#m2#.48o.26m10#.6#3m5#m2#2.47o2.25m10#.6#4m6#m#.47o2.25m9#2.6#m#3m#4m#2.47o2.24m10.9#m2#m#2m#.m2.48o.24m8.10#10.m#.48o.24m7.10#8m2.m2#.48o.25m4.11m#3.3#3.2m#.49o.37m6#2.6m2.49o2.36#2m8.3m2#2.49o2.36#4m4#m5#2.49o2.37#5m3#m3#2.51o2.36#7m2#o#3.51o2.37#5m3o4#2.50o2.38#4o12.48o.39#3o13.47o2.39o17.45o.39o20.43o.38o26.38o.41mo27.30o3.43m2o30.22o6.42m4#o55.44m3#.4o50.46m2#.8o44.48#m2#.11o38.50m2#m#.13o34.52m2#2.16m3#2.2o16.59m4#2.16m2#2.78m2#4.15#m2#2.78m2#3.16m2#3.76m3#3.17m2#2.77m2#2.18m3#.78m#2.19m2#2.78#3.17#m3#.79m#2.18#4.79#m3.17#4.79#4.18#4.261"],"spin":[".312o.103o.103o2.103o2.21o5.77o2.19o7.77o2.18o7.78o3.16m7.79o3.15m7.80o3.14m2#3m#.81o2.14#2m#4.82o3m#.11#2m2#2.83om2.o3.7#6.84m5o3m.4o3#2.#.84m2#m#o3#m2o5m5.9o6.71#m2.2#3o4#m3#2m.5m9o3.69m2.4#8m4.4m12o2.76#9m2.2m15o.76#3m#5m.m18.75#3m2#5m20.75#2m#5m21o.74#3m#4m22.75#5.#m22.77#3.m24.77#3m11o2m11.78#2m13om10.77#3m24.76m28.75m29.74m2#5m22.76#4m24.76#2m26.76#2m25.77#2m24.78#2m6#m16.80#2m5.#m14.81#2m6.#m12.82#2m6.#2m8.85#m7.2#2m2.90#m.8#2m2.89m3.9#2m.89m#2.9#3m.88#3.9m4.88m2#.9m4.88m#2.9m4.87m2#.10m4#.86m2#.11m3#.86m#2.11m4.85m2#.13m3.85m#2.13m3#.84m#2.13m3#.84m#.14m2#2.83m2#.14m2#4.81#3m.14#6.80#4m2.12#5m2.265",".525o.103o.103o2.20o5.78o2.18o7.78o2.17o7.79o2.16m7.80o3.14m7.81o3.13m2#3m#.82o3.12#2m#4.83o2.13#2m2#2.84o3m#.8#6.86om2.o3.3o3#3.#.86m5o8m5.6o6.74m2#m#o6#m#m2#2m.2m9o3.74#m2.2#6m#m3.m12o2.74m2.3#9m16o.79#3m#4m18.78#3m2#2m20.78#2m#2m21o.77#3m#m22.78#4m22.80#m24.80m11o2m11.80m13om10.80m24.79m25.78m26.77m2#2m22.78#4m22.78#3m23.78#4m21.79#4m20.81#3m19.82#2m19.83#2m18.84#m6.3#m6.87#m6.4#2m.89m8.4#3.89m#2.9m#2m.88#3.9m4.88m2#.9m4.87m2#2.9m4.87m2#.10m4.86m3#.10m4.86m2#.12m3.85m2#.13m3.85m2#.13m3#.84m#2.13m3#.84m#.14m2#2.83m2#.14m2#4.81#3m.14#6.80#4m2.12#5m2.265",".752o.103o.7o5.91o2.5o7.91o.5o7.91o.5m7.91o2.4m7.92o.4m2#3m#.92o2.3#2m#4.93o.3o6#.93m10o3.91m12o2.89m15o.87m18.85m20.83m21o.82m22.82m22.81m24.80m11o2m11.80m13om10.80m24.80m24.80m24.81m22.82m22.82m22.83m20.85m18.87m16.89m14.91m12.92#m8#2m.92#m6.3#m2.91#m5.4#2m.91#m5.4#2m2.89m7.5#2m.89m#2.9m#2.89#3.9m4.88m2#.9m4.87m2#2.9m4.87m2#.10m4.86m3#.10m4.86m2#.12m3.85m2#2.12m3.85m2#.13m2#.84m2#2.13m2#.84m#2.14m#2.83m2#.15m#4.81#3m.14#6.80#4m2.12#5m2.265",".1280mo.101m3o.100m3o.16o5.78m4o.15o7.77m4o.15o7.77m4o.10o4.m7.77m4o.2m7#o4.m7.77m5.m#12m3#3m#.77m6#2.5#m6#2m#4.77m6#.5#2m7#2m2#2.77m6#.5m3#2m4#5.78m5#.5#m10#4.78m5#.5#m2#2m#m5#.#.5m.72m5#2.3#2m3#5m#m2.6m2.72m5#2.2#4m5#m#m#2.4m3#.72m5.3#6m2#7m.3m4#.72m5.3#8m#5m2.m5#2.72m4.3#4.2#7.m2#m6#.73m4.3#3.4#5.2m8#2.73m4.3#2.12m4#m3#.75m3.3#3.10m3#m4#2.75m2.3#5.9m2#m4#2.76m.3#3m2#3.7#3m3#3.80#2m5#2.6#m4#3.81#2m5#2.5m5#3.81#2m6#3m.2m5#2.83#m6#4m6#3.84m7.3#4m#3.84m8.7m#2m#.83m8.9#4.83#m6.10m#3.82m#3.14m#2.82m2#2.14m#3.82#m#2.13m3#2.82m2#.14m4#.81m2#2.13m3#2.81m3#.14m3#.81m2#2.15m2#2.80m2#2.15m3#.80m2#2.16m2#2.80m#2.17m2#.81m#2.16m2#2.79m#3.17m2#2.79#3m.16#6.78#4m2.14#5m2.263",".1280mo.101m3o.100m3o.16o5.78m4o.15o7.77m4o.15o7.77m4o.10o4.m7.77m4o.2m7#o4.m7.77m5.m#12m3#3m#.77m6#2.5#m6#2m#4.77m6#.5#2m7#2m2#2.77m6#.5m3#2m4#5.78m5#.5#m10#4.78m5#.5#m2#2m#m5#.#.78m5#2.3#2m3#5m#m2.80m5#2.2#4m5#m#m#2.80m5.3#6m2#7m.80m5.3#8m#5m2.80m4.3#4.2#7.m3.80m4.3#3.4#5.2m3.80m4.3#2.12m3.81m3.3#3.10m2#2m.80m2.3#5.9m#2m3.79m.3#3m2#3.7m#2m3.83#2m5#2.5m#2m3#.83#2m5#2.5m#m3#2.82#3m5#3m.2m#2m2#2.83#3m5#3m4#5.84#3.m5.#3m#4.85m2#2.m5.4m#2m#.84m2#2.2m6.4#4.83m2#2.4m5.4m#3.82m2#2.6m5.3m#2.82m2#2.7m5.2m#3.82#m#2.7m3.3m3#2.82m2#.14m4#.81m2#2.13m3#2.81m3#.14m3#.81m2#2.15m2#2.80m2#2.15m3#.80m2#2.16m2#2.80m#2.17m2#.81m#2.16m2#2.79m#3.17m2#2.79#3m.16#6.78#4m2.14#5m2.263",".1280mo.101m3o.100m3o.16o5.78m4o.15o7.77m4o.15o7.77m4o.10o4.m7.77m4o.2m7#o4.m7.77m5.m#12m3#3m#.77m6#2.5#m6#2m#4.77m6#.5#2m7#2m2#2.77m6#.5m3#2m4#5.78m5#.5#m10#4.78m5#.5#m2#2m#m5#.#.78m5#2.3#2m3#5m#m2.80m5#2.2#4m5#m#m#2.80m5.3#6m2#7m.80m5.3#8m#5m2.80m4.3#4.2#7.m3.80m4.3#3.4#5.2m3.80m4.3#2.12m3.81m3.3#3.10m2#.82m2.3#5.9m#2.82m.3#3m2#3.7m#.87#2m5#2.5m#2.87#2m5#2.5m#.87#3m5#3m.2m#2.87#3m5#3m4#3.86#3m5.2#3m#4.85m2#2m5.5m#2m#.84m2#2m5.7#4.83m2#2.m5.7m#3.82m2#2.m5.8m#2.82m2#2.m6.7m#3.82#m#2.2m5.6m3#2.82m2#.14m4#.81m2#2.13m3#2.81m3#.14m3#.81m2#2.15m2#2.80m2#2.15m3#.80m2#2.16m2#2.80m#2.17m2#.81m#2.16m2#2.79m#3.17m2#2.79#3m.16#6.78#4m2.14#5m2.263"],"shield":[".1195o5.98o7.97o7.97m7.2o3.92m7.om4.91m2#3m#om5.91#2m#4om5.87o3.2#2m2#2m7.87o4#5om7.86#2o3#5om7.87#m3#4.om7.84#4m2#3.3m9.82#2m#3m4#.2m9.81#3m3#2m3#2.m9.81#4m3#2m3#.m9.81#m#3m#4m2#.m9.82#m2#m#2m#2m12.81#12m#m9.80#8m2.2#3m9.79m#4.2#3.4#2m8.77m6#2.11m8.76#2m8#.10m7.76#4m3#2m2#.9m7.77#4m#6.9m7.76#6m3#3.9m6.77#4m6#2.10m5.77#4m6#m2.10m3.78#4m6#m2.91m2#.m6.#m2.89m3#.m6.#2m.88m3#.2m6.2#m2.87m3#.2m6.2#2m2.86m2#.3m6.2#2m2.84m4#.12#2m2.82#m3#.13#2m2.82#m2#2.13m2#m#.80m4#.14m4#.80m2#m#.14m3#2.78m4#2.14#m2#2.78m2#3.15m2#3.77m4#3.15m2#3.77m3#3.15m3#2.78#4.16#m2#2.79m#2.18#4.79#m3.17#4.79#4.18#4.261",".1191o5.98o7.97o7.97m6o3.95m5om4.94m2#3m5.94#2m#om5.90o3.2#2m8.90o4#2om7.89#2o3#2om7.87#m.#om2#2om7.87#m2#m2#3m9.85#3m4#m11.84#5m3#m11.84#6m4#m9.84#m#5m2#m10.85#m2#m#2m12.84#9m#m9.83#8m#3m9.82m#4.2#3.#2m8.80m6#2.8m8.79#2m8.8m7.79#4m3#2m2.7m7.79#5m#5.7m7.79#6m3#2.7m6.81#3m6#2.7m5.81m2#m6#m2.7m3.82m2#m6#m3.90m3#m8#m2.89m3#.m7#2m.89m2#2.m8#m2.88m2#2.2m7.#m3.84m3#2.4m5.2#3m2.83m3#2.12#2m#.82m4#.14m2#.82m3#.15m2#.82m2#2.14m3#.82m2#2.14m2#2.81m2#2.15m2#2.80m2#3.14m2#3.78m4#2.15m2#2.79m3#3.15m2#2.79#5.15m3#2.79m#2.17#m2#2.79#m3.16#5.79#4.18#4.261",".1193o5.98o7.97o7.97m7.2o3.92m7.om4.91m2#3m#om5.91#2m#4om5.87o3.2#2m2#2m7.87o4#5om7.86#2o3#5om7.87#m3#4.om7.84#4m2#3.3m9.82#2m#3m4#.2m9.81#3m3#2m3#2.m9.81#4m3#2m3#.m9.81#m#3m#4m2#.m9.82#m2#m#2m#2m12.81#12m#m9.80#8m2.2#3m9.79m#4.2#3.4#2m8.77m6#3.10m8.76#2m8#2.9m7.76#4m3#2m2#.9m7.76#5m#5.10m7.76#5m4#3.9m6.77#3m6#2m2.9m5.77#3m6#2m2.10m3.78m2#m6.2#2m.89m3#m6.3#m2.88m3#m6.3#2m.88m10.4#m2.87m2#m6.6#m3.85m2#.m4.7#2m2.83m3#.13#2m#.82m3#2.14m2#.82m3#.15m2#.81m4#.14m3#.81m2#m.15m2#2.79m3#3.15m2#2.78m2#3.16m2#3.77m3#3.15m2#2.79m2#3.16m2#2.79#4.16m3#2.79m#2.17#m2#2.79#m3.16#5.79#4.18#4.261",".1195o5.98o7.97o7.97m7.2o3.92m7.om4.91m2#3m#om5.91#2m#4om5.87o3.2#2m2#2m7.87o4#5om7.86#2o3#5om7.87#m3#4.om7.84#4m2#3.3m9.82#2m#3m4#.2m9.81#3m3#2m3#2.m9.81#4m3#2m3#.m9.81#m#3m#4m2#.m9.82#m2#m#2m#2m12.81#12m#m9.80#8m2.2#3m9.79m#4.2#3.4#2m8.77m6#2.11m8.76#2m8#.10m7.76#4m3#2m2#.9m7.77#4m#6.9m7.76#6m3#3.9m6.77#4m6#2.10m5.77#4m6#m2.10m3.78#4m6#m2.91m2#.m6.#m2.89m3#.m6.#2m.88m3#.2m6.2#m2.87m3#.2m6.2#2m2.86m2#.3m6.2#2m2.84m4#.12#2m2.82#m3#.13#2m2.82#m2#2.13m2#m#.80m4#.14m4#.80m2#m#.14m3#2.78m4#2.14#m2#2.78m2#3.15m2#3.77m4#3.15m2#3.77m3#3.15m3#2.78#4.16#m2#2.79m#2.18#4.79#m3.17#4.79#4.18#4.261"],"dead":[".663o5.98o7.97o7.97m7.97m7.97m2#3m#.97#2m#4.78o3.17#2m2#2.77m4o.15#6.78m5o.14#6.78m5o.5m2#o4.5#.#.77m7o.3m#4o3.#.83m7o.2m#5o2m#4.81m7o.m#2.4#2m#m2#3.79m7om#2.4#3m2#m#m#.78m9#2.4#m#2m5#2.18o.59m9#.4#2m3#m#2m.20o.59m9#.4#4m2#2m#.19o2.59m9#.4#5m#3m.18o2.60m9#.4#m3#4m2.17o2.61m9#2.5#7.3m2.12o2.62m9#2.4#.10m2.10o3.63m9.7#2m2#2.4#m.9o3.65m8.7#2m3.5#m.8o3.66m8.6#2m6.3#2.8o2.67m7.6m7#2.9#mo3.68m7.5m9#.2#m2.o3.m2o.69m7.4m2#m6.4#3o3m5.70m6.5#2m6.5#2o3#m#m2.70m5.6#m6.10m2#.74m3.6#3m2.m.3m#2.5m2.84#3.m.5#4.90#3.7#4.90#3.7#4.91#2.7#4.91#2.8#3m.90#2.10#m.90#m.10#2m.89#m.11#2m.87m3.11#2m3.85m#2.12#2m.87#2.16m#2.#.98m#3.84#.13m3#2.83m2#2.12m3#3.80m4#.12m3#m#.80m4#2.11m4#.81m2#3.11m5#.80m2#4.11m5.82m#2m.13m3#4.79m#4m2.11#6m2.97#2.103#.62",".1495o5.98o7.97o7.97m7.97m7.97m2#3m#.97#2m#4.98#2m2#2.97#6.98#6.93o3.5#.#.92o4.#.98#o2m#4.97#2m#m2#3.94#3m2#m#m#.93#m#2m5#2.92#2m3#m#2m.94#4m2#2m#.94#5m2#2m.79o3.12#m3#m5.78m4o.13#2m4#.79m5o.11#.2m4.80m5o.5m2#.5m6#2.76m7o.3m#4.3m6#4.75m7o.2m#4.4m6#4.75m7o.m#2.6#m7#3.75m7om#2.6m7#5m2.72m9#2.6m6#2m#4m2.72m9#.6m2#5m2.4#2m.72m9#.7#4m2.6#2m.72m9#.7#m2#.9#2m.71m9#.4#.15#2m3.69m9#2.2#3.13#m2#o#o.68m9#2.2#3.13#3mo2m.3o12.53m9.4#4.13m#2m3o12.57m8.5#4.11m4#m2o8.61m8.7#2.12m.2#m2.69m7.9#m.16m.69m7.9#m2.16m.68m7.10m2.12m2.m2#2.67m6.7m4#2.10m4#3.#2.65m5.3m7#m#2.5m9#2.70m3.3m#9.7m7#m#3.262",".3575o5.98o7.97o7.97m7.97m7.97m2#3m#.83o3.11#2m#4.82m4o.11#2m2#2.80m6o.10#6.80m8o.9#6.78m10o.3o3.6#.#.77m10o2.2o4.#.83m11o.3#o2m#4.80m11o2.4#2m#m2#3.77m11o2.4#3m2#m#m#.76m12o.4#m#2m5#2.76m12.4#2m3#m4.77m12.5#4m5#.76m12.6#5m5.75m13#m2.3#m9#3.m4.67m11#7m3#m6#4m#2m#mo.65m10.#9m#m6#m3#3m#2m4o7.55m7#m.2m#8m#m5.m#m4#4mo15.248",".4608o3.100o4.#.98#o2m#3o5.93#2m#mo7.91#3m2#o7.90#m#2m10.89#2m3#m9.76m10.3#4m6#3m#.73m15.#5m3#2m#4.71m27#2m2#2m3.66m22#m5#8m#mo.63m23#m5#8m#2m4o7.53m23#m5.m#2m#m#4mo15.248"]}},"gob":{"w":88,"h":46,"ax":43,"ay":45,"a":{"idle":[".926m.87#m2.77#m.7#m.77#2m3.4#2m.4m.72#3m3.2m#2m.3m.73#3m2#m6.m#.74#3m2#m5#m#.75#3m#r2#mrm#2.76#4r2#2r#2.78#4m2#4.74m4#5m3#.71m5#m2#2o#3m2.70m3#5m3#6m.69m2#7m3#2o#4.68om#2.4m6#3o#2.63#2.2o3#.5m7#m2#2m.62#3o4.7m8#m#2m.62m3o.9m7#m2.#2m.61#m3#.9m8.3#2m3.59#4.8m#7.6#3m2.57#3o.6m3#m7.6m2#2.58#o2.4m5#m9.4m#.#.58o4.3m3#3m5#m4.3#.62o3.2m4#4m4#m5.66o3.m3#5m3#3m5.66o3m2#6m3#3m6.66o3#6m3.3#3m2#2.67o4#3.m2.5#2m#3.66m3#o2#.2m.5m7.66m4#2.9m6.66m5.10m5.68m5.10m4.69m4.11m3.69m4.12m4.66m5.13m5.64m6.15m4.34",".1015m.87m2.77#m.7#m.77#2m3.4#2m.4m.72#3m3.2m#2m.3m.73#3m2#m6.m#.74#3m2#m5#m#.75#3m#r2#mrm#2.76#4r2#2r#2.78#4m2#4.74m4#5m3#.71m5#m2#2o#3m2.70m3#5m3#6m.69m2#7m3#2o#4.68om#2.4m6#3o#2.63#2.2o3#.5m7#m2#2m.62#3o4.7m8#m#2m.62m3o.9m7#m2.#2m.61#m3#.9m8.3#2m3.59#4.8m#7.6#3m2.57#3o.6m3#m7.6m2#2.58#o2.5m4#m9.4m#.#.58o4.3m4#3m10.2#.62o3.2m4#5m10.65o3.m4#4.m4#m6.65o3m3#5.m3#2m4#2.66o3#6.3m2.#3m#3.67o4#3.4m.2m7.66m4o2#.5m.2m7.66m6.9m5.67m6.9m5.68m5.10m4.68m5.11m4.66m6.12m5.64m6.13m6.34",".1103m.87m2.77#m.7#m.77#2m3.4#2m.4m.72#3m3.2m#2m.3m.73#3m2#m6.m#.74#3m2#m5#m#.75#3m#r2#mrm#2.76#4r2#2r#2.78#4m2#4.74m4#5m3#.71m5#m2#2o#3m2.70m3#5m3#6m.69m2#7m3#2o#4.68om#2.4m6#3o#2.63#2.2o3#.5m7#m2#2m.62#3o4.7m8#m#2m.62m3o.9m7#m2.#2m.61#m3#.9#m7.3#2m3.59#4.7m2#7.6#3m2.57#3o.6m3#m7.6m2#2.58#o2.5m3#3m4#m2.5m#.#.58o4.4m2#4m4#m4.3#.62o3.3m3#4m4#2m4.66o3.m3#5m4#2m6.65o3#8.m4#3m#3.66o3#6.3m10.67o4#3.4m10.66m4o2#.6m8.67m6.9m6.66m6.9m5.67m6.10m4.66m7.11m5.64m6.13m6.34",".1270#m.7m2.77#2m3.3#3m.4m.72#3m3.2m#2m.3m.73#3m2#m6.m#.74#3m2#m5#m#.75#3m#r2#mrm#2.76#4r2#2r#2.74m4#4m2#4.70m5#m2#5m3#.69m3#5m2#2o#3m2.69m2#7m3#6m.68om#2.4m6#o#4.63#2.2o3#.5m6#3o#2m.62#3o4.7m6#m2#3m.62m3o.9m8#m.#2m.61#m3#.9m6#m.3#2m3.59#4.8m#7.6#3m2.57#3o.6m3#m7.6m2#2.58#o2.5m4#m9.4m#.#.58o4.3m4#2m5#m5.2#.62o3.2m4#3m4#2m6.65o3.m4#3m4#3m6.65o3m3#5m2.2#2m4#2.66o3#6.m2.3#3m#3.67o4#3.2m2.3m7.66m4o2#.4m2.2m7.66m6.9m5.67m6.9m5.68m5.10m4.68m5.11m4.66m6.12m5.64m6.13m6.34"],"walk":[".750m.87#m2.77#m.7#m.77#2m3.4#2m.4m.72#3m3.2m#2m.3m.73#3m2#m6.m#.74#3m2#m5#m#.75#3m#r2#mrm#2.76#4r2#2r#2.78#4m2#4.60#2.6m4.6#5m3#.60#3.3om2#2m#m6#2o#3m2.62m#o5#9m2#7m.62#m2o3#.5#4m3#2o#4.62#m2o.10#2m3#4o#2.4m3.55#4.10m6#2m2#2.4m2#2.54#4.10m7#m#3m.2m2#2.55#o2.12m7#m2#2m#m#3.55o3.12m10.#3.2#m.55o3.11#2m8.64o3.10#10.66o2.9#3m8.66o2m2.6#6m6.66mo2m5#6m#2m5.66mo2m5#9m6.65mo2m5#7m#2m6.64m2o2m5#5.2m#3m5.63m2o2.2m4#2.3m4#2m4.63m2.o.4m3.3m4.2#2m4.62m2.19#3m3.61m.20#3m3.2m4.77#m9.78#m8.80m7.82m6.83m4.208",".838m.87#m2.77#m.7#m.77#2m3.4#2m.4m.72#3m3.2m#2m.3m.73#3m2#m6.m#.74#3m2#m5#m#.75#3m#r2#mrm#2.76#4r2#2r#2.78#4m2#4.78#5m3#.75m4#2o#3m2.72m5#m2#7m.72m#5m3#2o#4.70m2#6m3#4o#2.69m2#3.2m6#2m2#2.69m#2.4m7#m#2.69m2#.6m7#m2.69mo.7m10.m2.66o#.8m8#m4.64o3.8#7.#5.61#2.o2.8m8.2#3.62#3mo#.6#3m6.2#2.63#m#m2#2.5#3m5.70#4o.5#3m4.72#3o2.4#3m5.72m#o4m2#4m4.72m2o6#4m4.72m3o6#4m3.72m5o6#3m2.72m4.2m2o4m3.73m2.6m7.73m2.7m6.73m.8m5.83m5.84m6.82m6.40",".838m.87#m2.77#m.7#m.77#2m3.4#2m.4m.72#3m3.2m#2m.3m.73#3m2#m6.m#.74#3m2#m5#m#.75#3m#r2#mrm#2.76#4r2#2r#2.78#4m2#4.78#5m3#.75m4#2o#3m2.75m2#m2#7m.74m2#2m3#2o#4.74m2#2m3#4o#2.74m#m6#2m2#2.73m2#m7#m#2.74m#.2m7#m2.73m2#.2m10.73m2#.3m8.74mo.4#9.73o2#.2m8#2.74o2.2#2m6#3.72o3.#3m6#3.71#.o3#3m6#3.71#3m2#o2m2o3#4.71#m#5o10.74m#3o8#2.74m2#3o5#3.76m#5m4#.77m4#2m.m3.77m7.81m6.82m5.83m4.84m6.82m6.43",".918#m.6#2m.77#2m3.4#2m.4m.72#3m3.2m#2m.3m.73#3m2#m6.m#.74#3m2#m5#m#.75#3m#r2#mrm#2.76#4r2#2r#2.78#4m2#4.78#5m3#.79#2o#3m2.78#9m.77#m3#2o#4.77#m3#4o#2.77m5#2m2#2.77m6#m#2.78m7#m2.78m10.79#m7.80#m#7.78m#m6#2.6o2.69m2#o#m4#3.3o4.69m2o3m3#4.2o4.69m5o2m3#o8.68m5o4#o8.70m4#2o#m3#o6.69#m3#9mo2.72m3#4m.2#m4.72m#7.m6.73m3#5.m5.73m4#3.3m4.73m7.5m3.72m6.7m4.71m5.9m3.72m4.10m3.72m3.86m2.50",".750m.87#m2.77#m.7#m.77#2m3.4#2m.4m.72#3m3.2m#2m.3m.73#3m2#m6.m#.74#3m2#m5#m#.75#3m#r2#mrm#2.76#4r2#2r#2.78#4m2#4.6o2.70#5m3#.7o2.69#3o#3m2.7o4.65#11m.7o4.64#5m#2o#4.7o3.65#3m#m#4o#2.7o4.63#3m3#m#2m2#2.6o5.62#3.m4#2m2#2.6o5.63#4m5#m#m2.7o4.63#4m5#3m2.4m2o#o2.66#.2m6#m2#.3m#m#2.70#8o6m2#.70m8#2o.o2#m#2.69m9#3.o3#.70m4#m4#6.#m.69m5#m3#7.#m.68m4#3m4#6.69m4#4m4.2#5.64m7#6m3.4#4m.63m7#6.7#3m2.63m7#5.9#m4.62m7#3.11m5.62m4.18m4.62m3.19m6.60m.21m9.80m7.292",".838m.87#m2.77#m.7#m.77#2m3.4#2m.4m.72#3m3.2m#2m.3m.73#3m2#m6.m#.74#3m2#m5#m#.75#3m#r2#mrm#2.76#4r2#2r#2.78#4m2#4.78#5m3#.79#2o#3m2.78#9m.77#3m#2o#4.77#m#m#4o#2.8o.68m#m3#2m2#2.7o2.68m2#m3#m#2.7o3.68m2#2m3#m2.6o3.68#m3#m6.5o4.68#2m2#m5.6o4.68#5m#5.3o4.72m3o4#m2o#o3.73m3#o4m#m#o2.74m4#o2#m2#.77m3#4o#3.77m2#5m#4.74m4#3m2#5.70m7#4m#5.71m7#4.#5.71m7#4.#5.71m7#3.2#m3.72m4.8m4.72m3.9m4.72m.11m4.84m4.84m5.83m6.34",".838m.87#m2.77#m.7#m.77#2m3.4#2m.4m.72#3m3.2m#2m.3m.73#3m2#m6.m#.74#3m2#m5#m#.75#3m#r2#mrm#2.76#4r2#2r#2.78#4m2#4.78#5m3#.79#2o#3m2.78#9m.77#m3#2o#4.77#2m2#4o#2.77m5#2m2#2.77m2#m3#m#2.78m2#m4#m2.77#m2#m7.77#2m#m6.8o3.67#4m2#5.6o4.69mo3m3#2.4o5.70m2o3m2#2.o7.71m3o3m2o#o6.73#3om4#o3.76#3o#5.79m5#4.79m3#2m3#.79m4#3m.80m5#3.79m6#2.79m8.81m7.81m6.83m5.84m5.83m6.38",".918#m.6#2m.77#2m3.4#2m.4m.72#3m3.2m#2m.3m.73#3m2#m6.m#.74#3m2#m5#m#.75#3m#r2#mrm#2.76#4r2#2r#2.78#4m2#4.78#5m3#.79#2o#3m2.78#9m.77#3m#2o#4.77#m#m#4o#2.77m#m3#2m2#2.77m#m4#m#2.78m#m5#m2.77m2#m8.4m#.71m#m9.2#m#2.70m2#10m#5.70m#3m5.2#6.71o2#m8.77o2#m9.74#2o3#m#m7.72#4o2m2#2m6.74#o2m4#o#m4.74m2#2m2o#o2#2m2.75#6o10.70#7.o11.67m2#6.3o9.66m5#4.5m4.70m6#.6m5.69m6.8m5.68m6.10m5.68m4.13m3.70m2.87m2.51"],"atk":[".926m.87#m2.77#m.7#m.77#2m3.4#2m.4m.72#3m3.2m#2m.3m.73#3m2#m6.m#.74#3m2#m5#m#.75#3m#r2#mrm#2.76#4r2#2r#2.78#4m2#4.74m4#5m3#.71m5#m2#2o#3m2.70m3#5m3#6m.69m2#7m3#2o#4.68om#2.4m6#3o#2.63#2.2o3#.5m7#m2#2m.62#3o4.7m8#m#2m.62m3o.9m7#m2.#2m.61#m3#.9m8.3#2m3.59#4.8m#7.6#3m2.57#3o.6m3#m7.6m2#2.58#o2.5m4#m9.4m#.#.58o4.3m3#3m5#m4.3#.62o3.2m4#4m4#m5.66o3.m3#5m3#3m5.66o3m2#6m3#3m6.66o3#6m3.3#3m2#2.67o4#3.m2.5#2m#3.66m3#o2#.2m.5m7.66m4#2.9m6.66m5.10m5.68m5.10m4.69m4.11m3.69m4.12m4.66m5.13m5.64m6.15m4.34",".926m.87#m2.77#m.7#m.77#2m3.4#2m.4m.72#3m3.2m#2m.3m.73#3m2#m6.m#.74#3m2#m5#m#.75#3m#r2#mrm#2.76#4r2#2r#2.78#4m2#4.78#5m3#.76m3#2o#3m2.77m2#m#6m.76m3#m2#o#4.76m2#m3#3o#2.75m2#m5#m2#2.75m2#m7#3.74m2#.m6#m3.74m2#.m10.75m#m.m9.75o2m#10m3.71mo2m#m7.2#3m2.69mo#3m9.m2#2.68mom3#om5o4m#.#.67m#2m2#2o10m.70#2m#4o9m3.68m2#6o7m6.67m#7.m3.2#3m2#2.66m3#5.3m2.3#2m#3.66m4#2.5m2.2m7.65m5#.10m5.67m5.11m4.68m5.10m4.68m5.11m4.66m6.12m5.64m6.15m4.34",".1102m.87#m2.77#m.7#m.77#2m3.4#2m.4m.72#3m3.2m#2m.3mo.72#3m2#m6.m#o.73#3m2#m5#m#o2.73#3m#r2#mrm#2o2.74#4r2#2r#2o3.75#4m2#4o3.74m#5m3#.o3.73m2#2o#3m2.2o3.72m2#8m.2o3.72m2#4o#4.2mo#.72m4#4o#2.m2#.73m5#2m2#2o2m2#2.71m5#2m#m#o2#3.72m7#4o3#2.72m9.5#2.71m3#6m2.4#2.70m4#m9.73m3#3m11.70m4#4m3#2m4#.69m3#6m3#3m4.68m2#7.m3#4m4.67m#7.2m3#4m5.65m3#5.4m2.2#3m2#2.65m4#3.5m.4#2m#3.64m5#2.6m.3m6.65m6.10m7.65m5.10m6.66m5.12m4.65m6.13m4.64m6.15m4.34",".1102m.87#m2.77#m.7#m.77#2m3.4#2m.4m.72#3m3.2m#2m.3mo.72#3m2#m6.m#o.73#3m2#m5#m#o2.73#3m#r2#mrm#2o2.74#4r2#2r#2o3.75#4m2#4o3.74m#5m3#.o3.73m2#2o#3m2.2o3.72m2#8m.2o3.72m2#4o#4.2mo#.72m4#4o#2.m2#.73m5#2m2#2o2m2#2.71m5#2m#m#o2#3.72m7#4o3#2.72m9.5#2.71m3#6m2.4#2.70m4#m9.73m3#3m11.70m4#4m3#2m4#.69m3#6m3#3m4.68m2#7.m3#4m4.67m#7.2m3#4m5.65m3#5.4m2.2#3m2#2.65m4#3.5m.4#2m#3.64m5#2.6m.3m6.65m6.10m7.65m5.10m6.66m5.12m4.65m6.13m4.64m6.15m4.34",".1102m.87#m2.77#m.7#m.77#2m3.4#2m.4m.72#3m3.2m#2m.3mo.72#3m2#m6.m#o.73#3m2#m5#m#o2.73#3m#r2#mrm#2o2.74#4r2#2r#2o3.75#4m2#4o3.74m#5m3#.o3.73m2#2o#3m2.2o3.72m2#8m.2o3.72m2#4o#4.2mo#.72m4#4o#2.m2#.73m5#2m2#2o2m2#2.71m5#2m#m#o2#3.72m7#4o3#2.72m9.5#2.71m3#6m2.4#2.70m4#m9.73m3#3m11.70m4#4m3#2m4#.69m3#6m3#3m4.68m2#7.m3#4m4.67m#7.2m3#4m5.65m3#5.4m2.2#3m2#2.65m4#3.5m.4#2m#3.64m5#2.6m.3m6.65m6.10m7.65m5.10m6.66m5.12m4.65m6.13m4.64m6.15m4.34",".1013m.87#m2.77#m.7#m.77#2m3.4#2m.4m.72#3m3.2m#2m.3m.73#3m2#m6.m#.74#3m2#m5#m#.75#3m#r2#mrm#2.76#4r2#2r#2.78#4m2#4.77m#5m3#.6o2.69m2#2o#3m2.7o2.68m2#8m.6o2.69m2#m2#o#4.5o3.69m2#m2#3o#2.4o3.70m2#m3#m2#2.3o3.71m3#m4#m.4o3.71m3#m3#m2.2o4.72m4#m4.3o3.72m3#4m4.2o3.71m4#2m#m2om3o2.72m2#4m2#3o2m2#.71m3#4m2#2o2#4.70m2#6m3#2o2#2m.69m3#5.2m3#5m2.67m2#7.2m3#4m4.66m2#6.4m.2#3m2#2.66m3#4.5m.3#2m#3.66m4#2.10m6.65m5#.10m6.66m6.10m6.66m5.10m5.67m5.11m4.66m6.12m5.64m6.15m4.34",".10o.81o9.78o11.75o15.73o16.18m.52o19.16#m2.50o18#m2.6#m.7#m.50o18#3m.5#2m3.4#2m.4m.44o18#3o2.5#3m3.2m#2m.3m.45o17.3o3.5#3m2#m6.m#.46o16.4o4.4#3m2#m5#m#.46o17.4#om.5#3m#r2#mrm#2.47o17.3#2m3.4#4r2#2r#2.50o15.5#2m2.4#4m2#4.50o17.5#m3.2#5m3#.52o16.6#m3.#2o#3m3.53o16.6#2m2.#6m3.21o.32o17.5#m3#o#5m2.54o16.6#2m#3o#3m3.54o17.5#m2#m2#2m3#.56o16.5m4#m5#2m.55o18.2m3#m6.#2m.24o.31o19m9.2#2m.57o17m8.4#2m3.55o19#5.6#3m2.22o.32o20m2.7m2#2.57o18m2.7m#.#.24o3.31o20.6#.28o3.32o22.32o3.33o22.30o4.33o24.27o5.34o26.22o7.34mo26.18o9.34m2#o52.33m2#3o50.33m4#.3o48.32m5.6o45.32m5.7#o43.33m4.9mo41.33m4.9m4o37.34m3.10m5.2o32.35m4.11m4.7o26.36m4.11m5.11o19.38m3.13m4.17o9.40m4.14m5.64m5.16m3.35",".10o.81o9.78o11.75o15.73o16.18m.52o19.16#m2.50o18#m2.6#m.7#m.50o18#3m.5#2m3.4#2m.4m.44o17.#3o2.5#3m3.2m#2m.3m.45o15.5o3.5#3m2#m6.m#.46o13.7o4.4#3m2#m5#m#.46o13.8#om.5#3m#r2#mrm#2.47o12.8#2m3.4#4r2#2r#2.50o10.10#2m2.4#4m2#4.50o10.12#m3.2#5m3#.52o10.12#m3.#2o#3m3.53o10.12#2m2.#6m3.54o8.14#m3#o#5m2.54o8.14#2m#3o#3m3.54o8.14#m2#m2#2m3#.56o7.14m4#m5#2m.55o7.13m3#m6.#2m.56o6.12m10.2#2m.57o6.11m8.4#2m3.55o6.10m#7.6#3m2.55o6.7m2#m6.7m2#2.57o6.4m3#m6.7m#.#.58o7.2m2#3m6.6#.63o6.m2#4m6.71o6m#5m6.71o7#3.m6.73o7#.#m#2m2.74mo7.m#2m3.73m2#o7#3m3.72m2#3o7#m3.72m4#.3o5m3.72m5.6o4m2.71m5.7#o4.72m4.9mo3.71m4.9m4o3.32o2.34m3.10m5.2o4.25o3.35m4.11m4.14o3.52m4.11m5.68m3.13m4.66m4.14m5.64m5.16m3.35"],"bomb":[".926m.87#m2.77#m.7#m.77#2m3.4#2m.4m.72#3m3.2m#2m.3m.73#3m2#m6.m#.74#3m2#m5#m#.75#3m#r2#mrm#2.76#4r2#2r#2.78#4m2#4.74m4#5m3#.71m5#m2#2o#3m2.70m3#5m3#6m.69m2#7m3#2o#4.68om#2.4m6#3o#2.63#2.2o3#.5m7#m2#2m.62#3o4.7m8#m#2m.62m3o.9m7#m2.#2m.61#m3#.9m8.3#2m3.59#4.8m#7.6#3m2.57#3o.6m3#m6.7m2#2.58#o2.4m5#m8.5m#.#.58o4.3m3#3m9.4#.62o3.2m4#4m9.67o3.m3#5m3#2m5.67o3m2#6m3#2m6.67o3#6m3.2#3m2#2.68o4#3.m2.4#2m#3.67m3#o2#.2m.4m7.67m4#2.8m6.67m5.9m5.69m5.9m4.70m4.10m3.70m4.11m4.67m5.12m5.65m6.14m4.35",".924m.87#m2.77#m.7#m.77#2m3.4#2m.4m.72#3m3.2m#2m.3m.73#3m2#m6.m#.74#3m2#m5#m#.75#3m#r2#mrm#2.76#4r2#2r#2.78#4m2#4.74m4#5m3#.70m5#2m2#2o#3m2.69m3#6m3#6m.68m2#8m3#2o#4.67om#2.5m6#3o#2.62#2.2o3#.6m7#m2#3m.60#3o4.8m8#m.#m.61m3o.10m7#m2.2#m.60#m3#.10m8.2m4.60#4.10m#6m.3#2m.60#3o.8m3#m7.#4.61#o2.6m5#m8.#2.62o4.5m3#3m9.65o3.4m4#4m9.65o3.3m3#5m3#m6.65o3.2m2#6m3#3m2#2.66o3m2#6.m3.#2m#3.67o4#5.3m.2m6.68m2o2#3.7m5.69m4#2.8m4.69m5.10m4.69m5.10m4.69m4.11m3.70m3.12m4.67m5.12m5.65m6.14m4.35",".832m.87#m2.77#m.7#m.77#2m3.4#2m.4m.72#3m3.2m#2m.3m.73#3m2#m6.m#.74#3m2#m5#m#.75#3m#r2#mrm#2.76#4r2#2r#2.78#4m2#4.76m2#5m3#.73m5#3o#3m2.72m3#5m#6m.71m2#7m#2o#4.70om#2.4m4#3o#2m2.63#2.2o3#.5m5#m2#m2#.63#3o4.7m6#m2#2.64m3o.9m5#m2#m.65#m3#.9m6#2.67#4.7m2#2m3#2m2.66#3o.5m7#2m5.66#o2.5m3#2m2#2m6.65o4.3m4#3m10.65o3.3m3#5m10.65o2.2m3#5.2m10.65o2.m2#6.3m3#2m2#2.66o2m2#5.4#.m#6.67om2#4.7m7.68m3#.10m5.69m4.10m5.69m4.11m4.69m4.11m4.69m4.11m4.69m3.12m3.70m3.12m4.67m5.12m5.65m6.14m4.35",".832m.87#m2.77#m.7#m.77#2m3.4#2m.4m.72#3m3.2m#2m.3m.73#3m2#m6.m#.74#3m2#m5#m#.75#3m#r2#mrm#2.76#4r2#2r#2.78#4m2#4.76m2#5m3#.73m5#3o#3m2.72m3#5m#6m.71m2#7m#2o#4.70om#2.4m4#3o#2m2.63#2.2o3#.5m5#m2#m2#.63#3o4.7m6#m2#2.64m3o.9m5#m2#2.65#m3#.9m6#2.67#4.7m2#4m2#m2.66#3o.5m9#m4.66#o2.5m3#2m2#2m6.65o4.3m4#3m#2m#m5.65o3.3m3#4m4#m6.65o2.2m3#5.m3#2m6.65o2.m2#6.m4#3m2#2.66o2m2#5.3m3.#6.67om2#4.5m2.m6.68m3#.7m.2m5.69m4.10m5.69m4.11m4.69m4.11m4.69m4.11m4.69m3.12m3.70m3.12m4.67m5.12m5.65m6.14m4.35",".832m.87#m2.77#m.7#m.77#2m3.4#2m.4m.72#3m3.2m#2m.3m.73#3m2#m6.m#.74#3m2#m5#m#.75#3m#r2#mrm#2.76#4r2#2r#2.78#4m2#4.76m2#5m3#.73m5#3o#3m2.72m3#5m#6m.71m2#7m#2o#4.70om#2.4m4#3o#2m2.63#2.2o3#.5m5#m2#m2#.63#3o4.7m6#m2#2.64m3o.9m5#m2#m.65#m3#.9m6#2.67#4.7m2#2m3#2m2.66#3o.5m7#2m5.66#o2.5m3#2m2#2m6.65o4.3m4#3m4#m5.65o3.3m3#5m3#m6.65o2.2m3#5.m3#2m6.65o2.m2#6.m4#3m2#2.66o2m2#5.2m2.3#6.67om2#4.3m2.3m6.68m3#.5m.4m5.69m4.10m5.69m4.11m4.69m4.11m4.69m4.11m4.69m3.12m3.70m3.12m4.67m5.12m5.65m6.14m4.35",".832m.87#m2.77#m.7#m.77#2m3.4#2m.4m.72#3m3.2m#2m.3m.73#3m2#m6.m#.74#3m2#m5#m#.75#3m#r2#mrm#2.76#4r2#2r#2.78#4m2#4.76m2#5m3#.73m5#3o#3m2.72m3#5m#6m.71m2#7m#2o#4.70om#2.4m4#3o#2m2.63#2.2o3#.5m5#m2#m2#.63#3o4.7m6#m2#2.64m3o.9m5#m2#2.65#m3#.9m6#2.67#4.7m2#4m2#m2.66#3o.5m9#m4.66#o2.5m3#2m2#3m5.65o4.3m4#3m#4m5.65o3.3m3#5m3#m6.65o2.2m3#5m4#3m5.65o2.m2#6m3.3#2m2#2.66o2m2#5m3.4#6.67om2#4.m3.4m6.68m3#.4m.5m5.69m4.10m5.69m4.11m4.69m4.11m4.69m4.11m4.69m3.12m3.70m3.12m4.67m5.12m5.65m6.14m4.35",".832m.87#m2.77#m.7#m.77#2m3.4#2m.4m.72#3m3.2m#2m.3m.73#3m2#m6.m#.74#3m2#m5#m#.75#3m#r2#mrm#2.76#4r2#2r#2.78#4m2#4.76m2#5m3#.73m5#3o#3m2.11r2.59m3#5m#6m.9r2#2.58m2#7m#2o#4.9r#3.57om#2.4m4#3o#2m2.5r#5.52#2.2o3#.5m5#m2#m4.r.#7.52#3o4.7m6#m3rm2#8m.53m3o.9m5#m4#9m2.54#m3#.9m8#8m3.56#4.7m2#5m2#5m4.59#3o.5m18.62#o2.5m3#2m10.65o4.3m4#3m10.65o3.3m3#5m3#m6.65o2.2m3#5m4#3m5.65o2.m2#6m3.3#2m2#2.66o2m2#5m3.4#6.67om2#4.m3.4m6.68m3#.4m.5m5.69m4.10m5.69m4.11m4.69m4.11m4.69m4.11m4.69m3.12m3.70m3.12m4.67m5.12m5.65m6.14m4.35",".832m.87#m2.77#m.7#m.13r.r.61#2m3.4#2m.4m.8r.2r.60#3m3.2m#2m.3m.7r4.62#3m2#m6.m#.8r4.62#3m2#m5#m#.7r.r#.64#3m#r2#mrm#2.8#3.65#4r2#2r#2.7#7.64#4m2#4.7#7.62m2#5m3#.7#9.57m5#3o#3m2.8#9.55m3#5m#6m.8#9.54m2#7m#2o#4.9#7.54om#2.4m4#3o#2m2.7#7.49#2.2o3#.5m5#m2#m2#m.5m2#4.51#3o4.7m6#m3#2m.3m2#2.55m3o.9m5#m4.#2m4#.57#m3#.9m8.3#5.59#4.7m2#7m2.4#2.60#3o.5m14.66#o2.5m3#2m10.65o4.3m4#2m4#m6.65o3.3m3#3m4#2m6.65o2.2m3#3m5#3m6.65o2.m2#4m4.3#3m2#2.66o2m2#4m3.4#7.67om2#4.7m7.68m3#.10m5.69m4.10m5.69m4.11m4.69m4.11m4.69m4.11m4.69m3.12m3.70m3.12m4.67m5.12m5.65m6.14m4.35",".832m.87#m2.77#m.7#m.16r.60#2m3.4#2m.4m.9r3.60#3m3.2m#2m.3m.8r.r3.60#3m2#m6.m#.9r2.r.61#3m2#m5#m#.10#.64#3m#r2#mrm#2.8#3.65#4r2#2r#2.7#7.64#4m2#4.7#7.62m2#5m3#.7#9.57m5#3o#3m2.8#9.55m3#5m#6m.8#9.54m2#7m#2o#4.9#7.54om#2.4m4#3o#2m2.7#7.49#2.2o3#.5m5#m2#m2#m.5m2#4.51#3o4.7m6#m3#2m.3m2#2.55m3o.9m5#m4.#2m4#.57#m3#.9m8.3#5.59#4.7m2#7m2.4#2.60#3o.5m14.66#o2.5m3#2m10.65o4.3m4#2m4#m6.65o3.3m3#4m3#2m6.65o2.2m3#5m3#3m6.65o2.m2#6m3.2#3m2#2.66o2m2#5.m3.2#7.67om2#4.2m2.3m7.68m3#.5m.4m5.69m4.10m5.69m4.11m4.69m4.11m4.69m4.11m4.69m3.12m3.70m3.12m4.67m5.12m5.65m6.14m4.35",".922m.87#m2.77#m.7#m.77#2m3.4#2m.4m.72#3m3.2m#2m.3m.73#3m2#m6.m#.74#3m2#m5#m#.75#3m#r2#mrm#2.76#4r2#2r#2.78#4m2#4.76m2#5m3#.73m5#3o#3m2.72m3#5m#6m.71m2#7m#2o#4.11r.58om#2.4m4#3o#2m.9r3.52#2.2o3#.5m5#m2#m3.7r.r3.51#3o4.7m6#m3#m.7r2.r.52m3o.9m5#m4#2m.7#.54#m3#.9m8.2#m2.4#3.55#4.9#7.4#m.2#7.53#3o.7m10.3#m2#8.54#o2.3m5#2m8.3#m#9.53o4.2m5#2m9.2#m#9.54o3.m3#5m10.3#9.55o2.m2#6m11.3#7.57o2.m#5m4#3m6.2#7.58o2.#5m2.3#4m2#2.4#3.61m.m#.10#6.68m4.11m5.68m4.11m4.69m4.11m4.68m4.11m4.69m3.12m3.70m3.12m4.67m5.12m5.65m6.14m4.35",".832m.87#m2.5#2m4.66#m.7#m.7#m5.64#2m3.4#2m.4m#.#m5.64#3m3.2m#2m.3m.2m6.65#3m2#m6.m#.2m7.10#4.51#3m2#m5#m#.3m6.9#6.51#3m#r2#mrm#2.3m7.7#7.52#4r2#2r#2.4m7.7#7.53#4m2#4.4m7.6#8.51m2#5m3#.4m8.5#8.48m5#3o#3m2.4m9.5#7.47m3#5m#6m.3m7.7#7.47m2#7m#2o#4.2m6.9#6.47om#2.4m4#3o#2m2#2m2.10#6.43#2.2o3#.5m5#m2#m2#2m2.11#5.44#3o4.7m6#m3#.13#5.46m3o.9m5#m4.14#4.47#m3#.9m8.14#5.48#4.7m2#7m2.13#4.49#3o.5m14.12#3.51#o2.5m3#2m10.11#2.52o4.3m4#2m4#m6.10#.54o3.3m3#4m3#2m6.65o2.2m3#5m3#3m6.65o2.m2#6m3.2#3m2#2.66o2m2#5.m3.2#7.67om2#4.2m2.3m7.68m3#.5m.4m5.69m4.10m5.69m4.11m4.69m4.11m4.69m4.11m4.69m3.12m3.70m3.12m4.67m5.12m5.65m6.14m4.35",".832m.87#m2.5#2m3.67#m.7#m.7#m2.67#2m3.4#2m.4m#.#m.68#3m3.2m#2m.3m.2#m2.68#3m2#m6.m#.2#m2.69#3m2#m5#m#.3#m.70#3m#r2#mrm#2.3#m.71#4r2#2r#2.4m2.72#4m2#4.4m.71m2#5m3#.4m2.67m5#3o#3m2.4m2#.65m3#5m#6m.3m2#.65m2#7m#2o#4.2m2#.65om#2.4m4#3o#2m2#2.61#2.2o3#.5m5#m2#m2#2.62#3o4.7m6#m3#.64m3o.9m5#m4.65#m3#.9m8.67#4.7m2#7m2.66#3o.5m14.66#o2.5m3#2m10.65o4.3m4#2m4#m6.65o3.3m3#4m3#2m6.65o2.2m3#5m3#3m6.65o2.m2#6m3.2#3m2#2.66o2m2#5.m3.2#7.67om2#4.2m2.3m7.68m3#.5m.4m5.69m4.10m5.69m4.11m4.69m4.11m4.69m4.11m4.69m3.12m3.70m3.12m4.67m5.12m5.65m6.14m4.35"],"dead":[".822m2.87m#3.85m2#3.10m5#2.67#m#3.8m#4m#m#2.64m2r2#m3.4m#4.#2.#4.60m#m3#2m3#8.7#3.58m2#2m2#2m2#5.#3m3.66m#2m3r2m#4om#4m2#3.63m#.3m2r2#4o#m2#3m5#m.o.64m#5o#4m7#m2o4#.62#m2#15o#2omo#3o11.49m3#5.#4m#4o3#m#m#2o11.49m3#3.4#4m5#m5#3o10.49m#5.4m2#3m5#m10.57m#3.6m3#2m5#2m10.55m#3.9m7#5m14.49#2.19#10m6.4m.69#9m10.74#4m9.80m7.85m2.1430",".664o.87o.87o2.86o3.85o3.84o4.84o3m.84o3m.84o3m2.83o3m2.76m.5mo3m2.75m#2.3m2o3m2.74m#2.3m2#2o2.12m2.61#m#.3#2mo#3.11m3.61#2.2#3o3#3.8m6.60m2#.#3m2om2#.5m10.60m2#6mo2#m.4m9.62m#4m5#m8#2m3.64m#5m4#2m5#5.66m#5m4o2m4#5.67m#3m6o2m#7.69#8m#o#5.71m#m8#6.73#2m3#m3#4.76#2m6#2.76m#3om#m2#2m.75#m2#2o#2m2#m2.74#2m#3o#2m2#m.73#m5#5m#m2.72#m#m2#m#2o#m4.71m4#m2#m#5.78#9.79#2m2#5.79#2m3#4.79m#m.m#m#2.81#.2#4.85#2.87#.135",".2084o.78m.8o.78m.7o2.77m3.6o2.77m3.6o3.76m4.4o4.76m4.3o5.74m6.3o3.68m.6m7.3o3.67m#2.4m6.5o3.2m2.62m#2.4#2m4.5o3.2m3.61#m#.3#6m2.4#o3m5.60#3.#.#3m6.3mo#o2m5.60#2m2.#2m8.2mo#4m3.60m#3om#2m11om2#2m2.61#m2#2o#7m7o2#3.62#2m#3o#2m11#5.62m5#5m8#6m.61#m#m2#m#2o#m7#6o2.61m3#m2#m#5m6#4m2o2.60m#14m10#2o.64#2m2#7m3#9.65#2m3#17.35",".2768m.86m#2.84m#2.84#m#.84#3.#.83#2m2.82m#3om#.80#m2#2o#7.74#2m#3o#2m6.72m5#5m6.70#m#m2#m#2o#m8.4#8.2m4.10m.39m3#m2#m#5m7.#12m17.37m#14m9#8m2om#m14.41#2m2#7m3#4m6o5m#o14m.42#2m3#15m#2o5#4o12m2.11"]}},"eye":{"w":56,"h":52,"ax":27,"ay":42,"a":{"walk":[".716#3.52m#2.19#2.7#2.22m#3m.17#2m3.4#3.21m#6.16#4m3.2#2m.20m#4.#2.16#.2#3m3#3m.15m4#3m.3#.19#5m#3m2.12m2#9.22#6m#4m2.8#14.20m#12m2.2m7#6.4#2.19m#14m4#m3o3m#.27#17m2#4o5.27#18m2#3o4ro2.26#.3m#3.4#11o4ro2.26#.2#3.9#8o4ro2.29#2.11#4m3#o5#.29#.13#5m3o3#.30#.13#4o#2m2#4.29#.13#6o#o#o#.45#10.42#2.m#10.42#2m3#o#o#o#o.43#.#2m#m7.m#2.42#m#8m#m#2.41#7.2#4.#.40#8.3#3.47#3.5#2.46#2.53m#.54#2.53m#.54#2.532",".660#2.53#2.21#2.30m#2m.19#2m.7#2.20m#5.18#3m2.4#3.19m2#6.17#.2#m3.2#2m.19m#4.2#.20#3m3#3m.15m3#3m.24#5m#3m2.12m2#8.22m#6m#3m.11m#11.19m#13m2.7#8.4#2.18#16m2.m7#3.26#18m3#m3o3m.27#.3m#13m2#4o5.27#.2#5.4#6m2#3o4ro2.29#3.7#5m#4o4ro2.29#.11#8o4ro2.29#.12#4m3#o5#.29#.13#5m3o3#.44#4o#2m2#4.43#6o#o#o#.45#10.42#2.m#10.42#2m3#o#o#o#o.43#.#2m#m7.m#2.42#m#8m#m#2.41#7.2#4.#.40#4.#3.3#3.47#2.6#2.45m#.52m2#2.50m2#3.51#3.534",".659#2.54#.23#2.29#2m.21#2m.28m#4.20#3m2.5#2.18m#6.19#.2#m.4#3.17m2#3.2#.22#m3.2#m.17m2#3m.25#3m2#3m.15m#8.22m#4m#3m2.12m2#9.20m#7m#3m.11m#8.22#14m2.7#8.24#16m2.m7#3.26#2.2m#13m3#m3o3m.30#15m2#4o5.30#3.#.4#6m2#3o4ro2.29#.9#5m#4o4ro2.41#8o4ro2.42#4m3#o5#.43#5m3o3#.44#4o#2m2#4.43#6o#o#o#.45#10.42#2.m#10.42#2m3#o#o#o#o.43#.#2m#m7.m#2.38m.3#m#8m#m#2.37#m3#7.2#4.#.38#7.6#3.55#2.690",".907#3.54#3m#2.49m2#5.47#m2#6.26#3.17#10m2.22m3.22#8m2.20m#4.20m#9m2.5m7#2.m4#6.19#11m3.2m2#m3o3m2#9.19#14m2.m#4o5#9.20#.5#10m2#3o4ro2#4.3#2.28#12o4ro2.8#.31#9o4ro2.43#3m3#o5#.43#5m3o3#.44#4o#2m2#4.43#6o#o#o#.45#10.46#10.42#2.m#2o#o#o#o.43#2m3#m6.43m#.#2m#7m.m#2.38#m3#m.#4.#2m#m#2.38#7.5#4.#.40#4.7#3.55#2.634",".963#2.55#2.53m2#2m#2.47#m2#6.25#2.18#11.9m7.8m#3.20#7m2.7m2#m3o3m.5m#3.20m#8m2.6m#4o5.4m#6.18#10m8#3o4ro2m3#5.19#22o4ro2#9.18#.3#18o4ro2#5.28#13m3#o5#3.34#6.#5m3o3#.44#4o#2m2#4.43#6o#o#o#.45#10.46#10.42#2.m#2o#o#o#o.43#2m3#m6.44#.#2m#7m.m#2.42#m.m#3.#2m#m#2.41#6.3#4.#.40#6.5#3.43m2#.9#2.40#m#.647",".1018#3.54#3m#2.49m2#5.10m7.30#m2#6.9m2#m3o3m.26#10m2.8m#4o5.29#8m10#3o4ro2.5m3#2.18m#20o4ro2m5#4m.18#21o4ro2#10.17#19m3#o5#12.16#.5#9.#5m3o3#.#2.2#4m.#.32#4o#2m2#4.7#2.34#6o#o#o#.45#10.46#10.42#2.m#2o#o#o#o.43#2m3#m6.44#.#2m#7m.m#2.42#m.2m#2.#2m#m#2.41#3m2#.3#4.#.40#4m#2.4#3.46m#2.6#2.44m#2.53#.55#.589",".1091m7.48m2#m3o3m.46m#4o5.44m#m#3o4ro2.40m3#6o4ro2m8.23#2.5m3#8o4ro2#10.17#3m2#2.m3#8m3#o5#10m.18#3m#m2#13m3o3#.#2.#7.18#14.#4o#2m2#4.4#7.18#12.2#6o#o#o#.7#m.#.19#10.5#10.9#.20#10.6#10.33#7.2#2.m#2o#o#o#o.34#4.5#2m3#m6.35#.8#.#2m#7m.m#2.42#m.3#2.#2m#m#2.41#3.2#.3#4.#.40#4.m#.4#3.47m#.6#2.46m#.54m#.53m#2.53m#.55#.531",".1091m7.48m2#m3o3m.30m#2m5.8m#4o5.5m3.#.18#11m6#m#3o4ro2m4#4m.19m#20o4ro2#9.18#22o4ro2#11.16#19m3#o5#2.2#7.18#20m3o3#.#.3#.#m.19#.#5.9#4o#2m2#4.7#.35#6o#o#o#.45#10.42#2.m#10.42#2m3#o#o#o#o.43#.#2m#m7.m#2.42#m#8m#m#2.41#3.2#2.2#4.#.40#4.m#2.3#3.47m#.6#2.46m#.54#2.53m#.53m#2.53m#.54m#.54m#.476"],"atk":[".716#3.52m#2.19#2.7#2.22m#3m.17#2m3.4#3.21m#6.16#4m3.2#2m.20m#4.#2.16#.2#3m3#3m.15m4#3m.3#.19#5m#3m2.12m2#9.22#6m#4m2.8#14.20m#12m2.2m7#6.4#2.19m#14m4#m3o3m#.27#17m2#4o5.27#18m2#3o4ro2.26#.3m#3.4#11o4ro2.26#.2#3.9#8o4ro2.29#2.11#4m3#o5#.29#.13#5m3o3#.30#.13#4o#2m2#4.29#.13#6o#o#o#.45#10.42#2.m#10.42#2m3#o#o#o#o.43#.#2m#m6.47#m#7m.m#2.42#7.#2m#m#2.40#8.2#4.#.45#3.3#3.47#2.6#2.45m#.54#2.53m#.54#2.532",".801#2.25#3.17#2.6#3.24m#2.17#2m3.4#2m.23m#3m.16#4m3.2#3m.21m#6.15#.2#3m3#3m2.14m6#4.#2.18#5m2#4m2.3m9#7m.3#.19#12m2.m2#m3o3m#9.21m#13m3#4o5#10.19m#16m#3o4ro2.7#2.19#17m#3o4ro2.27#22o4ro2.27#.3m#3.7#4m3#o5#.30#3.10#5m3o3#.31#2.11#4o#2m2#4.30#.12#6o#o#o#.45#10.42#2.m#10.42#2m3#o#o#o#o.43#.#2m#m6.m#2.43#m#7m#m#2.42#3.m#2.#4.#.41#5.m#.2#3.49m#.4#2.48m#.54m#.54m#.54#2.54#.55#.531",".810o3.52o5.49mo4ro2.10#2.24#2.9m2o4ro2m.6m3#3.22#2m4.6m#o4ro2m2.4m#4m.24#3m9#2o5#m6#5m.17#.5m#8m2#5o3#3m#5m#.#3.15#m6#m2#8m#2o#o#o#o#o#5m.3#.16#20mo#o#o#o#o#7.2#.16#2.#27.4#3.20#.2#26.5#2.23#10.3#13.30#8.6#11.30m#6.8#2o#8.30#6.9#2o#o#o#o#o.30#2.#3.5#2.m#2m#o#o#o#o.30#.2#2.6#2m3#10.m#2.26#2.2#.6#.#2m.3#4.#2m#m#2.29#2.8#m.3#4.2#4.#.30#.8#3.4#2m.2#3.40#4.5#m.4#2.48#2.55#m.55#.55#.753",".810o3.52o5.49mo4ro2.10#2.24#2.9m2o4ro2m.6m3#3.22#2m4.6m#o4ro2m2.4m#4m.24#3m9#2o5#m6#5m.17#.5m#8m2#5o3#3m#5m#.#3.15#m6#m2#8m#2o#o#o#o#o#5m.3#.16#20mo#o#o#o#o#7.2#.16#2.#27.4#3.20#.2#26.5#2.23#10.3#13.30#8.6#11.30m#6.8#2o#8.30#6.9#2o#o#o#o#o.30#2.#3.5#2.m#2m#o#o#o#o.30#.2#2.6#2m3#10.m#2.26#2.2#.6#.#2m.3#4.#2m#m#2.29#2.8#m.3#4.2#4.#.30#.8#3.4#2m.2#3.40#4.5#m.4#2.48#2.55#m.55#.55#.753",".810o3.52o5.49mo4ro2.10#2.24#2.9m2o4ro2m.6m3#3.22#2m4.6m#o4ro2m2.4m#4m.24#3m9#2o5#m6#5m.17#.5m#8m2#5o3#3m#5m#.#3.15#m6#m2#8m#2o#o#o#o#o#5m.3#.16#20mo#o#o#o#o#7.2#.16#2.#27.4#3.20#.2#26.5#2.23#10.3#13.30#8.6#11.30m#6.8#2o#8.30#6.9#2o#o#o#o#o.30#2.#3.5#2.m#2m#o#o#o#o.30#.2#2.6#2m3#10m.m#2.25#2.2#.6#.#2m.2#4.3#2m#m#2.28#2.8#m.4#2m.3#4.#.29#.8#3.4#m.4#3.39#4.4#2.6#2.47#m.55#.55#.810",".767#.54#3.21#m.6#3.11o3.5m3#m.21#2m2.4#m2.10o5.3m#4m.20#5m2.m#3m2.6mo4ro2.m#3.#3.20#.#10m.5m2o4ro2m#2m#.2#.24#10m2.3m#o4ro2m#3m#.25#13m4#2o5#m#5.25#14m#5o3#3m.#3.23m#15m#3o#o#o#o#o.26#20mo#o#o#o#o.26#2.#27.29#3.7#17.28#4.10#14.28#.15#11.39#2m.3#2o#8.39#2m4#2o#o#o#o#o.39#.#2m#3m#o#o#o#o.m#2.38#m#.#10m#m#2.37#3.2#4.4#4.#.36#4.4#2m.4#3.47#m.6#2.46#2.55#m.55#.55#.753",".1041#3.51m3#.2#2.48#3.2#m#2.30#3.13#4m2#3.33#m.#.12#7.29#2m2#5.12#6m.28#9m.13#5m.26#2.#8m2.13#3m2.25#13m.13o6.25#12m2.7m2o9.25#13m2.3m2#.o3r5o.27#13m4#3o9m.31#18o3#4.33#23.34#22.36#18o#.40#4o#o#o#o#o#o#.41#3o#o#o#o#o#o#.36#2m.2#3o#o#o#o#o#o#.36#2m4#13.37#.#2m#.3#.#4.44#m#.5#3.45#3.4#2.46#4.584",".1041#3.51m3#.2#2.48#3.2#m#2.31#3.12#4m2#3.34#m.#.11#7.30#2m2#5.11#6m.29#9m.12#5m.27#2.#8m2.12#o3m.26#13m.11o5.28#12m2.7mo4ro2.28#13m2.3m2.o4ro2.30#13m4#2o4ro2.35#15o5#2.36#14o3#4.36#20.38#18.42#5o#o#o#o#o.43#4o#o#o#o#o.37#2m.3#4o#o#o#o#o.37#2m4#12.38#.#2m#.3#.#4.44#m#.5#3.45#3.4#2.46#4.584"],"spin":[".716#3.52m#2.19#2.7#2.22m#3m.17#2m3.4#3.21m#6.16#4m3.2#2m.20m#4.#2.16#.2#3m3#3m.15m4#3m.3#.19#5m#3m2.12m2#9.22#6m#4m2.8#14.20m#12m2.2m7#6.4#2.19m#14m4#m3o3m#.27#17m2#4o5.27#18m2#3o4ro2.26#.3m#3.4#11o4ro2.26#.2#3.9#8o4ro2.29#2.11#4m3#o5#.29#.13#5m3o3#.30#.13#4o#2m2#4.29#.13#6o#o#o#.45#10.42#2.m#10.42#2m3#o#o#o#o.43#.#2m#m7.m#2.42#m#8m#m#2.41#7.2#4.#.40#8.3#3.47#3.5#2.46#2.53m#.54#2.53m#.54#2.532",".804m7.48m2#m3o3m.46m#4o5.45m2#3o4ro2.44#5o4ro2.43#2m7oro2.5m3#3.32#m#5m4o#m.2m2#5.33#10m3#m2#6m.33#10m3#11.32#11m4#8.34#12m#m#5.36#19.37#2o#o#6m2.#5.37#2m4#7.#.42#10m#m#2.42#3m#4m3#m#2.41#3m#m#7.#.43#m#5.#3.45#7.3#2.44#5.1037",".822#.2#.48o5m4#.44m3o4r#3m.41m7o3ro#2m.40m#4m5o3#3.40m#3m2#2m3o2#3.39m2#2m4#3m2o#2.40m2#5o#2o#m#3.39m2#5o#9.36m2#m2#7o#2o#3.35m#2m3#12.40m#12o#.40#3.#5.#5.41#.#8.51#5.51#4.#.52#.1202",".814m4.51m2#4o4.45m#5mo4r.44#5m#mo3ro.42m#4m#om3o3.#.39#6mo#m4o2.#m.38m#4m2#2om4o.2#m#.35m#2m4#o#3m3.2m#m.35#3m3#6o#m4#3m.34#.#2m#4o#10m#.35m.2m#6o#8m.37#2m2#13.42#8.2#3.44#2m#.51#2.#2.51#.#2.1255",".818#.#.51#6.50m#5.47m4o#2om#.42#m.2m4#3m3.41#4m5o#m5.41#3m5#2om4o.38m3#m5#o#3m3o2.38#m7#3o#m3r2.39#2m2#9m2o2.40m2#11o3.40m#12o2.41#12o2.42#.#2.#4m.3#.47#4m5.48#7m.49#5m#.51#4.1137",".24o8.46o12.46o11.48o9.49o8.48o9.12o.35o8.12o.35o9.11o.35o9.10o2.36o8.10o2.36o9.9o2.36o9.8o3.36o9.8o3.35o10.8o3.35o11.7o3.25o6.#mo12.6o4.22o9#4mom2o7.6o4.21o11#3m3o4mo3.5o5.20o13#m4#3m3o2.5o5.19o14m12o2.3o5.19o14m5#m2#m4o2.2o6.19o10m3om4#m3#m4o10.18o12#m6#m2#3m3o10.18o6.3o2#2m6#m#5m2o10.18o5.5o2#2m3#10o10.19o4.7o#15o10.19o3.8o2#o2#10o11.3o.15o3.8o2.o6#6o10.4o.15o2.8o10#5o10.4o.16o2.8o11#6.o6.5o.16o2.8o12#5.o6.3o3.16o2.9o12#o9.3o3.18o.9o21.2o5.18o.9o20.o7.28o26.30o26.30o25.32o4.2o17.33o5.3o13.36o4.6o7.39o5.52o4.54o3.54o2.55o3.415",".245o4.o.49o8.46o11.53o4.15o2.55o2.54o2.42#.#.#.8o.42#m#m#.8o2.41m#m#3.7o2.41m#4.8o2.40m#5.8o2.40m#4.9o2.36#m.m#4.9o.37#2m8.46m11.40m3.2m12.40#m15.40#2m14.40#3m4#6m3.41#2m2#9m2.43#12o.44#3m3#5o.44#2m3#5o2.45m3#6o2.45m3#5o2.45m4#.51m3#2.51#m2#3.50#7.50#6.13o.37#5.12o2.33o2.17o3.35o2.16o2.36o3.10o6.38o.12o4.39o2.55o2.55o4.582",".27o.2o2.56o.56o.56o.522o.93#.#.#.13o.37#m#m#.13o.30m2.5m#m#3.12o.28#2m2.m7#2.13o.28#3m10#.12o.30#m4#m7.42m5#m8.41m.m4#m8.43m4#8m.43m3#5o4#.43#m2#4o6.43#7o6.44#6or3o2.45#5o6.47#4o4.654o.56o.79o.32o.21o.34o2.16o3.403"],"cast":[".1094m5.49m9.45m7o3m#.42m5#3o5.m.39m6#3o4ro2#m.37m#9o4ro2#2m.35m#10o4ro2#3m.33#4.#4m3#o5#5.33#2m.3#5m3o3#.2#3.32#3m.3#4o#2m2#4.2#2m.31#2m2.3#6o#o#o#.3#2m.31#2m2.4#10.4#3.31#3m#2.2#10.3m#3.31#3m2#.2m#o#o#o#o.4m#m#.32#3m.3m#m7#.2#m2#2.32#5.m2#10.#2m#2.33#2.3m#6.2#3.2#3.34#3.2#7.2#2.49#3.53#2m.54#2.55#m.54#2.583",".1316m6#3.44#2m5#7.42#2m4#o5#2.41#m#m2#2o4ro2#2.39#2m#2m2#2o5#3.39#2m2#3m#2o#o#o#3.38#8mo#o#o#4.39#17.39#9.2#6.40#15.42#14.44#12.45#9.48#5.861",".1316m6#3.44#2m5#7.42#2m4#o5#2.41#m#m2#2o4ro2#2.39#2m#2m2#2o5#3.39#2m2#3m#2o#o#o#3.38#8mo#o#o#4.39#17.39#9.2#6.40#15.42#14.44#12.45#9.48#5.861",".1082#4.15m2#3.30#6m2.12m2#5.28#8m3.9m2#7.26#10m4.5m2#9.26#10m12#8.25#12m7#mo3m#6.25#12m6#m2o3m#7.23#14m4#m2o5.#6.23#15m3#2o4ro2#6.23#18m#o4ro2#6.24#19o4ro2#6.24#19o4ro2#6.25#9.3#3m3#o5#7.26#7.3#4m3#o5#7.27#7m#m#5m3o3#8.27#9m#4o#2m2#3.#6.28#5.2m#7o#o#o#.3#3.30#3.3m#7o#o#o#m2.#.33#2.#18m#2.33#2m#3.#11.#3.36#4.2#10.2#.38#2.3#9o.47#6omo.48momomo.524",".632#m2.53#2m.23m#.25#6m.21#m2#2.23#6m2.19m5#.23#6m2.18m4#4.23#5m3.17m3#5.22#7m2.16m3#3.#2.21#8m3.14m3#3.3#.21#2.#6m3.13m2#5.29#5m3.11m2#7.30#4m3.9m2#5.#2.31#4m4.5m2#5.37#3m12#2.40#3m7#mo3m.41#2m6#m2o3m.41#3m4#m2o5.42#3m3#2o4ro2.41#6m#o4ro2.42#7o4ro2.42#7o4ro2.43#3m3#o5#.37m2.3#4m3#o5#.38#2m#m#5m3o3#2.39#3m#4o#2m2#3.42m#7o#o#o#.42m#7o#o#o#m2.#.36#18m#2.34#m#3.#11.#3.36#4.2#10.2#.38#2.3#9o.47#6omo.48momomo.524",".688#m2.53#2m.23m#.25#6m.21#m2#2.23#6m2.19m5#.23#6m2.18m4#4.23#5m3.16m4#5.22#7m3.14m4#3.#2.21#9m3.13m2#4.3#.21#2.#7m3.11m2#6.29#6m3.9m2#8.31#4m4.5m2#5.#.#2.32#3m12#2.40#3m7#mo3m.41#2m6#m2o3m.41#3m4#m2o5.42#3m3#2o4ro2.41#6m#o4ro2.42#7o4ro2.42#7o4ro2.43#3m3#o5#.43#3m3#o5#.42#6m3o3#2.40m#m#4o#2m2#3.38m2#3m#6o#o#o#.42m#2.#4o#o#o#m.41m#2.#11m.#.36#5.#9.#2m#2.34#m#3.2#9.2#3.36#4.3o#o#o#o.4#.38#2.4#m#m#m.581"],"dead":[".716#3.52m#2.19#2.7#2.22m#3m.17#2m3.4#3.21m#6.16#4m3.2#2m.20m#4.#2.16#.2#3m3#3m.15m4#3m.3#.19#5m#3m2.12m2#9.22#6m#4m2.8#14.20m#12m2.2m7#6.4#2.19m#14m4#m3o3m#.27#17m2#4o5.27#18m2#3o4ro2.26#.3m#3.4#11o4ro2.26#.2#3.9#8o4ro2.29#2.11#4m3#o5#.29#.13#5m3o3#.30#.13#4o#2m2#4.29#.13#6o#o#o#.45#10.42#2.m#10.42#2m3#o#o#o#o.43#.#2m#m7.m#2.42#m#8m#m#2.41#7.2#4.#.40#8.3#3.47#3.5#2.46#2.53m#.54#2.53m#.54#2.532",".1201#.50#.4#.8#.41#.3#2.8#2.#.38#m#.#2.7#m3#.38m2#m#2.7#m3#.37m3#m2#m.6#m3#.37#m5#m#.4#m4#.37m8.2#.2#m5.37#2m6#3.3m5.37#2m5#3.#.2#m4.37#2m6#2.#4m4.37#2m4#3oro2m#2m2#.37#2m3#3o6#2m2#.37#2m3#.o7#2m#2.37#3m#2.o7#5.37#3m#2mo7m#4.38#5m2o5m2#3.39#4m11#2.40#3m12#.41#2m12#.43m12.44#m11.44#2m9#.44#12.45#11.45#10.47#8.49#6.51#4.136",".2210#.11#.40#2m#2.6#2.#2.41m#2.8#2m2#2.22#.15#3m4.6#3.24#.14m9#3m3#m#2.17#.3#2.11#4m7#4m6.17#4.#m#.10#12m10.17#7.9#m4#8m10#.7#2.8m2#6.7#5m14#5.7#2.8m2#37.4#5.3#.6#50.#54m#48m3#6",".2098#.11#.40#2m#2.6#2.#2.26#.14m#2.8#2m2#2.24#.13#3m4.6#3.22#.2#2.14m7#m3.#2m#2.20#.2#2.13#2m5#2m4#2.22#3.#m#.12#8m6#.23#6.11#m2#6m6#.24m#5.10m16.8#2.14m#6.7#3m14#.8#2.14m#18m10#3.6#4.2#.12#31.4#4m.2#2.8#.3#44.8#47m#.7#42m2#5.4"]}},"pilz":{"w":64,"h":52,"ax":24,"ay":51,"a":{"idle":[".980#10.51#16.46#19.44#21.42#23.41#23.41#23.42#22.43#20.48#3o3#8.52o2r2o#or2.55o2r2o3r2.55o9.54o10.52o4#o#o#o#o2.50o5#2o#4o2.50o6#o2#o#o3.48o16.47o18.46o18.46o19.44o20.44o4#o15.43#2o3#2o15.42#3o#o#o12#o#.43#5o13#3.44#3o#o12.#.45#.#o14.49o14.50o13.51o14.50o14.50o14.50o14.50#o4.5o4.49#3o#.6#o#o.49#4.7#4.33",".1040#17.45#21.42#23.41#23.41#23.41#23.42#21.45#19.46#17.49#3o3#6.54o2r2o#or2.55o2r2o3r2.55o9.54o10.52o4#o#o#o#o2.50o5#2o#4o2.49o7#o2#o#o3.47o17.47o18.46o19.44o20.44o4#o15.43#2o3#2o15.42#3o#o#o12#o#.43#5o13#3.44#3o#o12.#.45#.#o14.49o15.49o14.50o14.50o14.50o14.50o14.50#o13.49#3o#.6#o#o.49#4.7#4.33",".1104#17.45#21.42#23.41#23.41#23.41#23.42#21.45#19.46#17.49#3o3#6.54o2r2o#or2.55o2r2o3r2.55o9.54o10.52o4#o#o#o#o2.50o5#2o#4o2.50o6#o2#o#o3.48o16.47o18.46o18.46o19.44o20.44o4#o15.43#2o3#2o15.42#3o#o#o12#o#.43#5o13#3.44#3o#o12.#.45#.#o14.49o14.50o14.50o14.50o14.50#o13.49#3o#.o5#o#o.49#4.7#4.33",".1044#10.51#16.46#19.44#21.42#23.41#23.41#23.42#22.43#20.48#3o3#8.52o2r2o#or2.55o2r2o3r2.55o9.54o10.54o2#o#o#o#o2.51o4#2o#4o2.50o6#o2#o#o3.49o15.48o16.47o18.46o18.46o19.44o20.44o4#o15.43#2o3#2o15.42#3o#o#o12#o#.43#5o13#3.44#3o#o12.#.45#.#o13.50o14.50o14.50o14.50o14.50#o13.49#3o#.6#o#o.49#4.7#4.33"],"walk":[".852#10.51#16.46#19.44#21.42#23.41#23.41#23.42#22.43#20.48#3o3#8.52o2r2o#or2.55o2r2o3r2.55o9.54o10.54o2#o#o#o#o2.51o4#2o#4o2.49o7#o2#o#o3.47o17.46o19.44o20#2.41o21#2.40#2o21#.40#2o3#o17.41#2o#3.o13.44#4o#.o14.44#5.o14.45#.#.2o14.50o14.50o13.51o12.53o11.54o9.54#o10.52#o10#2.52#2o2.2o3#3.53#2.5#3.226",".976#17.46#20.43#22.42#22.41#23.41#23.42#22.43#20.46#17.49#3o3#7.53o2r2o#or2.55o2r2o3r2.55o9.54o10.53o3#o#o#o#o2.49o6#2o#4o2.49o7#o2#o#o2.48o16.47o17.47o18.46o18.45o19.45o4#o15.43#2o3#o13#.44#2o#2o#o13#.44#6o13#.44#5o14.46#.#.o14.50o13.51o12.53o11.54o9.55#o7.57o7.56#4o3.59#.#3.61#3.37",".916#10.51#16.46#19.44#21.42#23.41#23.41#23.42#22.43#20.48#3o3#8.52o5r2o2.55o5r2o2.55o9.54o10.54o6#o#o2.53o6#3o2.53o6#o#o.53o11.53o11.53o11.53o11.53o11.52o13.51o13.51o5#o8.50o5#o8.50#2o2#o#o7.50#2o#5o6.50o#6o6.51o2#2o#o6.53o11.54o9.55o9.56o4#3.57o3.2#.58#3.61#3.104",".852#10.51#16.46#19.44#21.42#23.41#23.41#23.42#22.43#20.48#5o#8.52o7r2.55o7r2.55o9.54o10.54o8#o2.53o8#2o.53o8#2.52o12.51o13.51o13.51o13.51o13.2#2.47o13#o#3.46#o12#4.46#2o13#2.#.46#o14#2.48o11#4.49o11#3.50o14.50o14.50o14.50o14.49o15.49o3.2o6#o#o.49#3.8#4.49#3.236",".977#16.46#20.43#21.43#22.41#23.41#23.41#23.42#21.46#17.49#5o#7.53o7r2.55o7r2.55o9.54o10.54o8#o2.53o8#2o.53o8#2.4#2.46o12.2o2#3.44o17#3.44o17#3.44o18#2.44o18#.45o17.47#o15.47#2o14.49#o14.50o14.50o14.50o14.48#2o14.48#2o14.47#2o15.47#o16.48o5.o11.59o5.59o2#3.59o#3.32",".980#10.51#16.46#19.44#21.42#23.41#23.41#23.42#22.43#20.48#5o#8.52o7r2.55o7r2.55o9.54o10.54o8#o2.53o8#2o.53o8#2.53o11.53o11.53o11.53o11.53o14#2.47o14#3.47o14#3.47o14#3.47o14#2.48o14.50o14.50o13.51o12.53o11.54o9.54#2o8.53#3o8.53#3o8.54#2o5#o2.59#5.35",".916#10.51#16.46#19.44#21.42#23.41#23.41#23.42#22.43#20.48#3o3#8.52o5r2o2.55o5r2o2.55o9.54o10.54o6#o#o2.53o6#3o2.53o6#o#o.53o11.53o11.53o11.53o11.53o11.52o13.51o13.51o14.50o14.50o14.50o9#3o2.50o7#5o.51o7#4o2.52o7#2o4.52o12.51o7#o5.51o6#2o4.51o5.2#3o2.52o#3o.3#2.54#5.105",".852#10.51#16.46#19.44#21.42#23.41#23.41#23.42#22.43#20.48#3o3#8.52o2r2o#or2.55o2r2o3r2.55o9.54o10.54o2#o#o#o#o2.53o2#2o#4o2.53o3#o2#o#o2.52o15.47o17#2.45o18#2.43o19#2.43o19#2.42o16.48o16.49o16.49o15.49o15.50#o#o11.49#5o9.51#4o9.51#o#o11.50o14.49o15.48#2o14.48#5o.6#4.49#4.7#4.224"],"atk":[".980#10.51#16.46#19.44#21.42#23.41#23.41#23.42#22.43#20.48#3o3#8.52o2r2o#or2.55o2r2o3r2.55o9.54o10.52o4#o#o#o#o2.50o5#2o#4o2.50o6#o2#o#o3.48o16.47o18.46o18.46o19.44o20.44o4#o15.43#2o3#2o15.42#3o#o#o12#o#.43#5o13#3.44#3o#o12.#.45#.#o14.49o14.50o13.51o14.50o14.50o14.50o14.50#o4.5o4.49#3o#.6#o#o.49#4.7#4.33",".785#10.51#16.46#19.44#21.42#23.41#23.41#23.42#22.43#20.48#3o3#8.52o2r2o#or2.55o2r2o3r2.55o9.55o9.55o#o#o#o#o2.54o#2o#4o2.53o3#o2#o#o2.52o13.50o15.48o17#.46o16#2.45#o15#3.45#3o#o10.#2.46#6o10.49#3o#o10.50#2o13.50o14.50o14.50o14.50o13.51o13.51o13.51o13.51o14.50o14.51o5.2o6.51o4.5o5.50#o3.6o4.49#3o.7#o#o.49#4.7#4.33",".587#10.51#16.46#19.44#21.42#23.41#23.41#23.42#22.43#20.48#3o3#8.52o2r2o#or2.55o2r2o3r2.55o9.54o2#o#o#o3.54#o#o#o#o#o2.52#2o#7o2.44#2.5#4o#o#o#o3.42#4o4.2o#o2#o3#o3.43#2o7#2o11.41#4o19.42#4o19.40#3o#2o18.42#3o19.42#.6o15.53o11.52o13.51o13.51o14.50o14.50o14.50o14.50o14.50o13.52o13.50o14.50o15.49o15.49o6.4o6.48o6.4o6.48o5.6o5.48#o4.7o4.47#3o#.9#o#o.46#4.10#4.35",".587#10.51#16.46#19.44#21.42#23.41#23.41#23.42#22.43#20.48#3o3#8.52o2r2o#or2.55o2r2o3r2.55o9.54o2#o#o#o3.54#o#o#o#o#o2.52#2o#7o2.44#2.5#4o#o#o#o3.42#4o4.2o#o2#o3#o3.43#2o7#2o11.41#4o19.42#4o19.40#3o#2o18.42#3o19.42#.6o15.53o11.52o13.51o13.51o14.50o14.50o14.50o14.50o14.50o13.52o13.50o14.50o15.49o15.49o6.4o6.48o6.4o6.48o5.6o5.48#o4.7o4.47#3o#.9#o#o.46#4.10#4.35",".587#10.51#16.46#19.44#21.42#23.41#23.41#23.42#22.43#20.48#3o3#8.52o2r2o#or2.55o2r2o3r2.55o9.54o2#o#o#o3.54#o#o#o#o#o2.52#2o#7o2.44#2.5#4o#o#o#o3.42#4o4.2o#o2#o3#o3.43#2o7#2o11.41#4o19.42#4o19.40#3o#2o18.42#3o19.42#.6o15.53o11.52o13.51o13.51o14.50o14.50o14.50o14.50o14.50o13.52o13.50o14.50o15.49o15.49o6.4o6.48o6.4o6.48o5.6o5.48#o4.7o4.47#3o#.9#o#o.46#4.10#4.35",".468#7.50#14.47#18.44#20.43#21.42#22.42#22.42#21.44#20.45#18.49#15.51#3o3#5.55o2r2o#or2.55o2r2o3r2.55o9.55o#o#o#o3.53#.o#o#o#o#o2.51#3o#8o.45#2.3#4o#8o.43#4o2.2o#o#o#o#o#o#o.44#2o5#2o#o#o3#o2.44#4o17.44#4o16.43#3o#2o16.44#3o17.44#.4o15.53o11.53o11.52o13.51o13.51o14.50o14.50o14.50o14.50o14.50o14.49o15.49o15.48o16.48o17.47o6.6o5.47o6.7o4.47#o4.8o4.46#3o2.9#o#o.46#4.10#4.35",".674#2.59#8.55#11.51#15.49#16.48#17.47#17.48#17.47#18.48#o2#13.47o2r2#13.47o2r2o#o#10.46o8r2#8.45o9r2#8.45o10.2#7.22o6.17o3#o6.3#6.23o11.11o3#o#o4.2o#5.25o16.4o3#2o#o#o2.2o.9o2.20o21#o#3o4.2o2.6o3.21o29.2o4.3o4.21o26#10o6.22o22#3o6#7o3.27o21#14o9.25o13#2o6#8o8.31o10#16o5.34o14#12o3.34o11#16o.36o13.#13o2.35o13.6#6o5.33o14.6o13.31o14.7o4.3o7.29o14.8o3.7o4.26o15.10o3.35o16.11o2.35o16.12o2.33o16.14o.33o16.47o7.4o6.47o6.5o5.48#o4.6o5.47#3o2.7#o#o.48#4.8#4.35",".668#9.53#14.49#17.47#18.46#19.46#19.45#20.46#18.47#18.46#3o2#13.47o2r2#13.10o.36o2r2o#o#3o#6.10o.35o8r2#o#5.8o3.35o9r2#o#5.7o3.36o10.2#2.10o3.37o3#o6.14o2.38o3#o#o4.53o3#2o#o#o2.53o2#o#3o4.52o11.25o2.26o17.17o3.25o19#2.12o4.26o19#4.11o.28o20#3.40o23#2.39o21#5.37o13.2o7#4.38o13.6o3#5.37o13.50o14.50o14.18o4.28o14.19o6.23o15.11o.11o5.20o16.12o.12o4.19o16.12o2.14o3.16o16.14o2.32o16.15o2.30o7.4o6.15o3.29o6.5o5.17o2.29#o4.6o5.17o2.28#3o2.7#o#o.19o2.27#4.8#4.20o.14"],"spore":[".979#10.51#16.46#19.44#21.42#23.41#23.41#23.42#22.43#20.48#3o3#8.52o2r2o#or2.55o2r2o3r2.55o9.54o10.52o4#o#o#o#o2.50o5#7o3.47o7#2o#4o4.45o9#o2#o#o5.44o21.42o6.o16.41o4#o.o11.o4.40#2o3#2.o11.2o3.40#3o#o#o13.o4.40#5o14.#2o#.41#3.#o14#4.41#.#.2o14.#2.47o14.50o14.49o14.50o13.51o14.50o14.50o14.50o14.50#o4.5o4.49#3o#.6#o#o.49#4.7#4.33",".914#10.51#16.46#19.44#21.42#23.41#23.41#23.42#22.43#20.48#3o3#8.52o2r2o#or2.55o2r2o3r2.55o10.52o13.50o4#o#o#o#o4.47o6#7o5.45o7#2o#4o6.44o8#o2#o#o6.43o17.o3.43o4#o12.o4.41#2o3#2o11.#2o#.41#3o#o#o11.#4.42#5o13.#2.44#3.#o12.47#.#.o14.50o14.50o14.50o14.50o13.51o12.52o13.51o14.50o14.50o14.50o5.5o4.50#o4.5o4.49#3o#.6#o#o.49#4.7#4.33",".979#10.51#16.46#19.44#21.42#23.41#23.41#23.42#22.43#20.48#3o3#8.52o2r2o#or2.55o2r2o3r2.55o9.54o10.52o4#o#o#o#o2.50o5#7o3.47o7#2o#4o4.45o9#o2#o#o5.44o21.42o6.o16.41o4#o.o11.o4.40#2o3#2.o11.2o3.40#3o#o#o13.o4.40#5o14.#2o#.41#3.#o14#4.41#.#.2o14.#2.47o14.50o14.49o14.50o13.51o14.50o14.50o14.50o14.50#o4.5o4.49#3o#.6#o#o.49#4.7#4.33",".1371#7.54#13.50#15.48#17.46#19.44#20.44#20.44#20.44#20.44#20.44#20.45#18.47#16.42#.#.4#15.41#5o5#11o2#.#.38#5o18#4.37#5o18#4.37#4o19#3.39o24.41o22.42o18.46o17.47o17.47o17.46o17.47o17.47o17.47o17.47o17.47#6.4#6.48#6.5#5.32",".1308#6.55#12.49#17.46#19.45#20.43#21.42#22.42#22.42#22.42#22.42#22.43#20.44#20.40#.#.2#18.40#5o.#17.#.38#5o2.#19.37#5o5#11o2#4.37#4o19#3.39o24.41o22.43o19.45o17.46o17.47o17.47o17.46o17.47o17.47o17.47o17.47o17.47#6.4#6.48#6.5#5.32",".1371#7.54#13.50#15.48#17.46#19.44#20.44#20.44#20.44#20.44#20.44#20.45#18.47#16.42#.#.4#15.41#5o5#11o2#.#.38#5o18#4.37#5o18#4.37#4o19#3.39o24.41o22.42o18.46o17.47o17.47o17.46o17.47o17.47o17.47o17.47o17.47#6.4#6.48#6.5#5.32",".1308#6.55#12.49#17.46#19.45#20.43#21.42#22.42#22.42#22.42#22.42#22.43#20.44#20.40#.#.2#18.40#5o.#17.#.38#5o2.#19.37#5o5#11o2#4.37#4o19#3.39o24.41o22.43o19.45o17.46o17.47o17.47o17.46o17.47o17.47o17.47o17.47o17.47#6.4#6.48#6.5#5.32",".540m.63m.62m2.62m2.17m.44m2.16m.45m2.15m.46m2.14m2.33m.11m4.12m3.34m2.9m5.10m3.36m3.6m#8.6m4.36m4.2#16.m4.38m4#19m3.39m#21m3.39#24m.38#26.37#28.36#28.33m2#30.27m7#30.30m4#30.32m2#30m2.32#30m6.29#28m8.28#28m9.m.26#26m4.33#.#24m2.35#26.38#27.37#5o2#20.37#4o7#8o4#3.39o24.41o22.43o19.45o17.46o17.47o17.47o17.46o17.47o17.47o17.47o17.47o17.47#6.4#6.48#6.5#5.32",".476m.63m2.63m.63m2.62m2.62m3.13m.44m10.8m2.43m12.6m2.35m2.7m2.4m.10m3.36m3.18m2.m3.38m7.14m4.38m6.17m3.m.38m.20m5.31m4.m2.22m3.34m5.23m3.34m3.9#6.45m2.7#14.41m2.4#20.32m7.5#20.6m2.23m8.4#22.3m4.26m5.3#24.3m3.27m4.2#26.2m4.29m.2#26.2m8.28#26m11.27#26m7.31#26m2.37#24.38#.2#22.38#27.37#27.37#5o3#14.#4.37#4o8#6o3.o#3.39o19.o4.41o22.43o19.44o17.47o17.47o17.46o17.47o17.47o17.47o17.47o17.47#6.4#6.48#6.5#5.32",".282m4.60m2.m2.63m2.63m.47m2.14m2.45m4.13m2.44m2.2m2.12m2.12m3.29m.5m2.11m.2m3.6m5.35m.7m8.m2.4m2.2m2.36m.5m2.3m2.4m2.3m.46m.12m.3m.42m.51m3.28m.32m.2m2.25m2.36m.m3.21m.4m3.23m3.4m3.24m3.2m2.21m6.m2.54m3.2m3.57m.43m5.58m2.2m2.57m2.4m2.36#6.13m3.5m.33#12.8m4.38#16.7m2.39#16.7m.38#20.5m.37#22.2m3.37#22.2m3.37#22.2m2.38#22.42#22.39#.3#19.40#5.2#16.#3.37#5o2#15.#4.37#5o4#12o2#4.37#4o8#6o5#3.39o24.42o19.44o17.47o17.47o17.46o17.47o17.47o17.47o17.47o17.47#6.4#6.48#6.5#5.32",".27m2.60m2.2m2.57m2.3m.m.56m2.71m.44m2.60m2.2m3.57m2.32m2.34m.25m5.59m.3m2.282m2.63m.57m3.60m5.5m.17m.39m.5m.29m.66m4.60m5.22m.28m.6m.28m.205#6.55#12.50#16.48#16.46#20.43#22.42#22.42#22.42#22.42#22.39#.3#19.40#5.2#16.#3.37#5o2#15.#4.37#5o4#12o2#4.37#4o8#6o5#3.39o24.42o19.44o17.47o17.47o17.46o17.47o17.47o17.47o17.47o17.47#6.4#6.48#6.5#5.32"],"dead":[".980#10.51#16.46#19.44#21.42#23.41#23.41#23.42#22.43#20.48#3o3#8.52o2r2o#or2.55o2r2o3r2.55o9.54o10.52o4#o#o#o#o2.50o5#2o#4o2.50o6#o2#o#o3.48o16.47o18.46o18.46o19.44o20.44o4#o15.43#2o3#2o15.42#3o#o#o12#o#.43#5o13#3.44#3o#o12.#.45#.#o14.49o14.50o13.51o14.50o14.50o14.50o14.50#o4.5o4.49#3o#.6#o#o.49#4.7#4.33",".985#6.56#13.50#16.46#19.45#19.44#21.43#21.44#20.45#18.46#18.48#15.52#m3#6.54m2#2m#m#2.55o2#2omo#2.55o9.54o10.54o2#o#o#o#o2.48o7#2o#4o2.47o9#o2#o#o.46o5m2o10.46o6mo11.46mo3m2o12.45m2o2m2o11mo2.44m2om3o11mo2.43#2m3#2o14.43#3m#o#o12mo2.43#5o13#o#.44#3o#o10m2#3.44#.#om3o7m2.2#.48m6o3m3.53m11o.51om10o3.49o2m10o3.48o3m10o3.48o3m3.3m3o3.48#2m4.5#m4.48#2m2.7#4.33",".1690#8.54#11.52#15.48#18.45#19.45#19.44#21.43#21.43#8m3#10.44#6m2#2m#m#7.45#5m2#2m3#2.#3.49#2m9.54m3omomom2.54m2#o#o#o#m2.51m4#2o#4m2.50m6#om#o#m.50m13.51m11.52m12.51m14.50m14.50m3#2m10.48m17.47m4#3m10.46#2m2#3m11.46#2m2#6m3#m3.29",".1624#10.54#14.49#16.48#17.46#18.45#19.45#20.44#7m3#10.44#6m2#2m#m#7.44#6m2#2m3#7.45#5m9#4.49#m3omomom2#.53m2#o#o#o#m2.51m4#2o#4m2.50m6#om#o#m.50m13.51m11.52m12.51m14.50m14.50m14.50m14.50m3#2m10.48m17.47m4#3m10.46#2m2#3m11.46#2m2#6m3#m3.29"]}}}, out = {};    // Monster Creatures Fantasy (Luiz Melo), in den Druckstil gebracht: Lauflängen-kodiert
+  for (const key in D) { const d = D[key], un = str => { let t = ''; str.replace(/([.#mor])(\d*)/g, (_, c, n) => { t += c.repeat(+n || 1); }); const rows = []; for (let i = 0; i < t.length; i += d.w) rows.push(t.slice(i, i + d.w)); return rows; }, A = {};
+    const ol = rows => { const H = rows.length + 2, Wd = d.w + 2, P = [''.padEnd(Wd, '.')].concat(rows.map(q => '.' + q + '.'), [''.padEnd(Wd, '.')]);   // dunkle Kontur rundum, damit helle Leiber sich vom Sand abheben
+      return P.map((q, y) => q.replace(/\./g, (c, x) => (x > 0 && q[x - 1] !== '.') || (x < Wd - 1 && q[x + 1] !== '.') || (y > 0 && P[y - 1][x] !== '.') || (y < H - 1 && P[y + 1][x] !== '.') ? '#' : '.')); };
+    for (const a in d.a) { const r = d.a[a].map(e => { const sp = Sprite.fromRows(ol(un(e)), {'#': 20, 'm': 124, 'o': 236, 'r': RED}, d.ax + 1, d.ay + 1); sp.tint = MON_TINT[key]; return sp; }); A[a] = [r, r.map(q => { const f = q.flipped(); f.tint = q.tint; return f; })]; }
+    out[key] = A; }
+  return out; })();
+const BOSS4 = {name: 'Der Grabwächter', acc: 'den Grabwächter', ai: 'mon', mon: 'skel', ach: 'grabwaechter', boss: true, hp: 1600, sp: 19, dmg: 12, xp: 0, r: 9, deadT: 1, melee: 34, atkT: .9, hitAt: .55, reach: 46, hitDmg: 20, dashSp: 88, cd: 2.6, rageMsg: 'Der Grabwächter hebt den Schild höher – und schlägt schneller zu!', spr: MON.skel.idle[0][0]};
+const BOSS5 = {name: 'Der Sandgoblin', acc: 'den Sandgoblin', ai: 'mon', mon: 'gob', ach: 'sandgoblin', boss: true, hp: 1700, sp: 30, dmg: 12, xp: 0, r: 8, deadT: 1, melee: 28, atkT: .7, hitAt: .5, reach: 38, hitDmg: 18, dashSp: 125, cd: 2.2, rageMsg: 'Der Sandgoblin kichert – jetzt fliegen die Bomben dichter!', spr: MON.gob.idle[0][0]};
+const BOSS6 = {name: 'Das Wüstenauge', acc: 'das Wüstenauge', ai: 'mon', mon: 'eye', ach: 'wuestenauge', boss: true, fly: true, wake: 'Es kommt.', hp: 1900, sp: 26, dmg: 13, xp: 0, r: 9, deadT: 1, dashSp: 108, cd: 2, rageMsg: 'Das Wüstenauge rast!', spr: MON.eye.walk[0][0]};
+const BOSS7 = {name: 'Der Pilzfürst', acc: 'den Pilzfürsten', ai: 'mon', mon: 'pilz', ach: 'pilzfuerst', boss: true, hp: 2000, sp: 15, dmg: 14, xp: 0, r: 9, deadT: 1, melee: 30, atkT: .8, hitAt: .6, reach: 40, hitDmg: 22, dashSp: 80, cd: 2.4, rageMsg: 'Der Pilzfürst stäubt – die Luft wird giftig!', spr: MON.pilz.idle[0][0]};
+const ALL_BOSSES = [BOSS, BOSS2, BOSS3, BOSS4, BOSS5, BOSS6, BOSS7];
+const bossOf = (level, seed, endless) => endless ? ALL_BOSSES[hash2(level, (seed | 0) ^ 0x7B055, 31) * ALL_BOSSES.length | 0] : [BOSS, BOSS2, BOSS3, BOSS4, BOSS5, BOSS6][(level - 1) % 6];   // Ebene 1–3 Grünland, 4–6 Wüste; endlos: irgendeiner der sieben
 // ---- Dauerhafte Verbesserungen beim Krämer (Gold bleibt über den Tod hinaus erhalten)
 const META = {
   vita:   {name: 'Eiserne Ration', desc: '+10 Leben je Stufe',                 max: 5, base: 20},
@@ -1762,9 +1920,19 @@ const META = {
   gier:   {name: 'Geldkatze',      desc: '+15 % Gold je Stufe',                max: 5, base: 35},
   wams:   {name: 'Kettenhemd',     desc: 'Jeder Treffer 1 Schaden weniger je Stufe', max: 2, base: 90},
   goldfluss: {name: 'Goldfluss', desc: 'Schaltet die Fähigkeit Goldfluss frei: In Welten mit riesigem Wahrzeichen liegt sie dort als Goldsack – bewacht vom Goldgoblin. Sie macht aus Erfahrung Gold', max: 1, base: 500, need: 3000},
-  zweit:  {name: 'Zweite Waffe',   desc: 'Jeder Lauf beginnt mit einer zufälligen zweiten Waffe', max: 1, base: 150}
+  zweit:  {name: 'Zweite Waffe',   desc: 'Jeder Lauf beginnt mit einer zufälligen zweiten Waffe aus deiner Waffenkammer', max: 1, base: 150}
 };
 const CHANGELOG = [                                // neueste Version oben; n = neu, g = geändert, e = entfernt
+  ['V0.994', {n: ['Sandverwehungen in der Wüste, in den Einstellungen abschaltbar.', 'Zum Testen: In den Einstellungen lässt sich die Startebene wählen.'],
+             g: ['Die Randdünen sind steile, dunkel umrandete Wände – erkennbar unbegehbar.', 'Die Wüstenmusik liegt jetzt bei.']}],
+  ['V0.993', {n: ['Eigene Musik für die Wüste (Ebene 4 bis 6).', 'Eigene Wüstenbauten: Grabstätte mit kleinen Säulen statt Kirche, Nomadenzelt statt Kapelle, Wüstengrab statt Friedhof, Zisterne statt Mühle.', 'Ruinen und Nekropolen der Wüste mit kleinen, oft abgebrochenen Säulen.'],
+             g: ['Am Rand der Wüste stehen hohe Dünen statt Berge.']}],
+  ['V0.992', {n: ['Die Wüste: Ebene 4 bis 6 mit Sand, Dünen, Oasen, trockenen Flussbetten, Felsplateaus, Lehmhäusern, Palmen, Kakteen und Pyramiden.', 'Drei neue Bosse: der Grabwächter, der Sandgoblin und das Wüstenauge.', 'Im Endlosmodus: der Pilzfürst, alle sieben Bosse und ein zufälliges Biom je Ebene.', 'Wüstengegner: Mumie, Skorpion, Geier, Schakal, Sandgeist, Sandgolem und Skorpionkönigin.', 'Neue Erfolge für Grünland, Wüste und die neuen Bosse.'],
+             g: ['Fin kommt erst nach Ebene 6.', 'Farbdruck und Endlos gibt es weiterhin nach Ebene 3.', 'In der Wüste beginnt die Dunkelheit wieder hell und wird bis Ebene 6 Nacht.']}],
+  ['V0.991', {n: ['Tierhandlung im Hauptmenü mit Katze, Hund, Lama und Schleim.', 'Dein Tier begleitet dich, sammelt Erfahrung oder Gold oder greift an, je nach Art.', 'Tiere lernen mit, behalten ihre Stufe bis X und wachsen mit Futter schneller.', 'Immer nur ein Tier je Lauf; ein angefangener Lauf behält sein Tier.', 'Zwei neue Erfolge rund um Haustiere.'],
+             g: ['Das Hauptmenü hat eine Zeile mehr: Krämer und Tierhandlung, Almanach und Erfolge, darunter die Einstellungen.']}],
+  ['V0.99', {n: ['Waffenkammer beim Krämer: Waffen, Fähigkeiten, Boss-Kräfte und Baupläne werden dort gekauft.', 'Erfolg „Volle Waffenkammer“.'],
+             g: ['Zu Beginn gibt es nur ein Startpaket: Messer, Axt, Bogen, Irrlicht und vier Fähigkeiten.', 'Im Lauf, als Fund und als Bossbeute taucht nur auf, was gekauft ist.', 'Der Schmied schmiedet nur Werke, deren Bauplan du besitzt.', 'Die zweite Waffe vom Krämer kommt aus deiner Waffenkammer.']}],
   ['V0.98', {n: ['Fünf neue Schmiedewerke: Feuersturm, Seuchenheer, Donnerspeer, Klingenwirbel und Kometenschlag.', 'Beim Schmieden kreisen zwei Lichter ineinander, dann fällt der Hammer.', 'Dieser Changelog im Hauptmenü.'],
              g: ['Gegner haben doppelt so viel Leben und teilen doppelt so viel aus.']}],
   ['V0.97', {n: ['Nekromantie: Skelette kämpfen eine Weile an deiner Seite.', 'Meteor: Brocken stürzen auf Gegner in deiner Nähe.', 'Dornenpanzer: Wer dich trifft, bekommt Schaden zurück.', 'Ein Testhändler im Pausemenü gibt alles her, nur zum Ausprobieren.'],
@@ -1794,6 +1962,40 @@ const CHANGELOG = [                                // neueste Version oben; n = 
              n: ['Musik im Lauf, in Dauerschleife.', 'Icon für den Homescreen, Vollbild ohne schwarzen Balken.', 'Spielbar auf iPad und PC, gleich pixelig, nur mit mehr Sicht.', 'Erfolge, auch ein paar lustige.', 'Nach Ebene 3 ist es geschafft: Fin.', 'Der Schmied verschmilzt zwei Waffen zu einem Werk.', 'Farbdruck nach Ebene 3, Endlosmodus mit allen Erfolgen.', 'Wölbung: Die Welt ist leicht gewölbt wie durch eine Linse.', 'Credits als Abspann, am Ende mit Cheats.'],
              g: ['Nach dem Boss bleiben 25 Sekunden, dann kommt die Dunkelheit mit Massen an Gegnern.', 'Der Boss steht in späteren Ebenen wieder auf.', 'Mehr und stärkere Gegner.', 'Lederwams geht bis Stufe X.', 'Seuche ist deutlich besser zu sehen.', 'Erdstoß hebt und senkt den Boden, Bomben wachsen sichtbar mit.', 'Wege führen zu Turm und Burg.', 'Der Text auf dem Startbildschirm ist aufgeräumt.']}]
 ];
+const STARTER = ['messer', 'axt', 'bogen', 'magie', 'herz', 'stiefel', 'magnet', 'kraft'];   // Startpaket: immer dabei, muss nicht gekauft werden
+const ARM_PRICE = {ring: 60, speer: 50, blitz: 80, bombe: 60, begleiter: 60, stoss: 70, nekro: 110, meteor: 110, frost: 70,
+  eile: 60, wams: 60, auge: 50, fibel: 40, weite: 50, schild: 80, doppel: 90, dornen: 70, blut: 90, seuche: 150, kette: 150, flamme: 120};
+const ARMORY = { owned: {}, all: false,          // Waffenkammer: was gekauft ist, darf im Lauf auftauchen (Stufenaufstieg, Fund, Bossbeute, Schmied)
+  free(id) { return STARTER.includes(id) || (PASSIVES[id] && PASSIVES[id].found); },    // Goldfluss und Glocke haben eigene Wege in den Lauf
+  has(id) { return this.all || !!this.owned[id] || this.free(id); },
+  price(id) { const w = WEAPONS[id]; if (w && w.forge) return w.forge.some(q => WEAPONS[q] && WEAPONS[q].found) ? 240 : 180; return ARM_PRICE[id] || 0; },
+  ready(id) { const w = WEAPONS[id]; return !w || !w.forge || w.forge.every(q => this.has(q)); },          // Bauplan erst, wenn beide Zutaten gekauft sind
+  goods() { return [...Object.keys(WEAPONS), ...Object.keys(PASSIVES)].filter(id => !this.free(id)); },
+  load(pr) { this.owned = Object.assign({}, pr && pr.owned || {}); },
+  full() { return this.goods().every(id => this.owned[id]); } };
+// ---- Haustiere: eines begleitet dich je Lauf; es lernt mit (Anteil deiner Erfahrung) und bleibt dauerhaft auf seiner Stufe, Futter beim Händler beschleunigt
+const PET_SHARE = .15, PET_MAXXP = 1800, FOOD_COST = 20, FOOD_XP = 40;
+const petLevel = xp => { let L = 1; while (L < 10 && xp >= 20 * L * (L + 1)) L++; return L; };          // Stufe II ab 40, III ab 120 … X ab 1800 Erfahrung
+const f1 = v => (Math.round(v * 10) / 10).toString().replace('.', ',');
+const PETS = {
+  katze: {name: 'Katze', price: 120, tint: 0, role: 'Sammelt Erfahrung', xp: true, reach: L => 44 + 5 * L, speed: L => 78 + 4 * L, bonus: L => .03 * L,
+    info: L => 'Holt Erfahrungssplitter bis ' + (44 + 5 * L) + ' Schritt um dich; jeder zählt ' + 3 * L + ' % mehr',
+    rows: [['#...#.#', '#...###', '.####w#', '.####..', '.#..#..'], ['#...#.#', '#...###', '.####w#', '.####..', '..#..#.']]},
+  hund: {name: 'Hund', price: 150, tint: 5, role: 'Greift an', bite: L => 6 + 3 * L, biteCd: L => Math.max(.45, 1.05 - .06 * L), reach: L => 52 + 4 * L, speed: L => 92 + 4 * L,
+    info: L => 'Stellt Feinde bis ' + (52 + 4 * L) + ' Schritt um dich und beißt: ' + (6 + 3 * L) + ' Schaden alle ' + f1(Math.max(.45, 1.05 - .06 * L)) + ' s',
+    rows: [['.....##..', '#...#oo#.', '#...#o#o#', '.#####oo.', '.#oooo#..', '.#.#.#.#.'], ['.....##..', '#...#oo#.', '#...#o#o#', '.#####oo.', '.#oooo#..', '..#.#.#..']]},
+  lama: {name: 'Lama', price: 250, tint: 3, role: 'Sammelt Gold und spuckt', gold: true, spit: L => 5 + 2.5 * L, spitCd: L => Math.max(.8, 1.9 - .1 * L), reach: L => 40 + 4 * L, speed: L => 66 + 3 * L, bonus: L => .05 * L,
+    info: L => 'Holt Münzen bis ' + (40 + 4 * L) + ' Schritt um dich, ' + 5 * L + ' % mehr Gold; spuckt ' + f1(5 + 2.5 * L) + ' Schaden alle ' + f1(Math.max(.8, 1.9 - .1 * L)) + ' s',
+    rows: [['....##', '....#w#', '....#w.', '....#w.', '#####w.', '#wrrw#.', '#wwww#.', '.#..#..', '.#..#..'], ['....##', '....#w#', '....#w.', '....#w.', '#####w.', '#wrrw#.', '#wwww#.', '..#.#..', '..#.#..']]},
+  slime: {name: 'Schleim', price: 400, tint: 1, role: 'Sammelt Erfahrung und Gold, ätzt Feinde', xp: true, gold: true, acid: L => 3 + 1.5 * L, reach: L => 34 + 3 * L, speed: L => 50 + 3 * L, bonus: L => .02 * L, hop: true,
+    info: L => 'Schluckt Splitter und Münzen bis ' + (34 + 3 * L) + ' Schritt um dich (' + 2 * L + ' % mehr), ätzt ' + f1(3 + 1.5 * L) + ' Schaden je halbe Sekunde und bremst',
+    rows: [['.........', '...###...', '..#ooo#..', '.#owooo#.', '.#ooooo#.', '..#####..'], ['.........', '.........', '...###...', '.#oowoo#.', '#ooooooo#', '.#######.']]}
+};
+for (const id in PETS) { const D = PETS[id], fr = D.rows.map(rows => { const sp = Sprite.fromRows(rows, {'#': 20, 'o': 110, 'w': 236, 'r': RED}, rows[0].length >> 1, rows.length - 1); sp.tint = D.tint; return sp; });
+  const fl = fr.map(q => { const f = q.flipped(); f.tint = D.tint; return f; }); D.spr = [fr[0], fr[1], fl[0], fl[1]]; }
+const PET = { data: {}, active: '',
+  load(pr) { this.data = JSON.parse(JSON.stringify(pr && pr.pets || {})); this.active = pr && pr.pet && this.data[pr.pet] ? pr.pet : ''; },
+  owns(id) { return !!this.data[id]; }, xp(id) { return this.data[id] ? this.data[id].xp | 0 : 0; }, level(id) { return petLevel(this.xp(id)); } };
 const FORGE_COST = 60, FORGE_MIN = 3;            // Schmied: Preis je Werk, Mindeststufe beider Zutaten
 const earnedOf = pr => pr.goldEarned !== undefined ? pr.goldEarned | 0 : (pr.gold | 0) + Object.keys(pr.metaUpgrades || {}).reduce((a, id) => { if (!META[id]) return a; for (let l = 0; l < (pr.metaUpgrades[id] | 0) && l < META[id].max; l++) a += metaCost(id, l); return a; }, 0);   // insgesamt verdientes Gold; für alte Profile aus Beutel + Käufen geschätzt
 const metaCost = (id, lvl) => Math.round(META[id].base * (META[id].mul || [1, 2, 3.5, 5.5, 8])[lvl]);
@@ -1819,24 +2021,27 @@ class Combat {
     const p = game.player; p.maxHp = 100; p.hp = 100; p.xp = 0; p.level = 1; p.xpNext = 5; p.inv = 0; p.pickup = 24;
     p.dmgMul = 1; p.cdMul = 1; p.area = 1; p.crit = 0; p.armor = 0; p.xpMul = 1; p.speedMul = 1; this.applyMeta();
     this.weapons = []; this.items = {}; this.aimX = 1; this.aimY = 0;
-    this.gold = 0; this.goldPending = 0; this.earnPending = 0; this.gfAcc = 0; this.rerolls = 3; this.bans = 2; this.banned = {}; this.autoPick = ''; this.ebombs = []; this.allies = []; this.meteors = []; this.fuse = null;
+    this.gold = 0; this.goldPending = 0; this.earnPending = 0; this.gfAcc = 0; this.rerolls = 3; this.bans = 2; this.banned = {}; this.autoPick = ''; this.ebombs = []; this.allies = []; this.meteors = []; this.fuse = null; this.pet = null; this.petGain = 0; this.petPending = 0;
     this.choose({id: 'messer', kind: 'w', lvl: 1});
-    if ((game.meta.zweit | 0) > 0) { const ids = Object.keys(WEAPONS).filter(id => id !== 'messer' && !WEAPONS[id].found && !WEAPONS[id].forge); this.choose({id: ids[Math.random() * ids.length | 0], kind: 'w', lvl: 1}); }
+    if ((game.meta.zweit | 0) > 0) { const ids = Object.keys(WEAPONS).filter(id => id !== 'messer' && !WEAPONS[id].found && !WEAPONS[id].forge && ARMORY.has(id)); this.choose({id: ids[Math.random() * ids.length | 0], kind: 'w', lvl: 1}); }
     if (allWeapons) for (const id in WEAPONS) if (!this.items[id]) this.choose({id, kind: 'w', lvl: 1});
     this.setupLevel();
   }
   // wird für jede Ebene neu aufgerufen; Waffen, Fähigkeiten und Werte des Spielers bleiben erhalten
+  setupPet() { const id = PET.active; if (!id || !PETS[id]) { this.pet = null; return; }
+    if (!this.pet || this.pet.id !== id) this.pet = {id, x: 0, y: 0, face: true, step: 0, cd: .6, at: 0, scan: 0, tg: null, tk: 0, mv: false, flash: 0, spr: PETS[id].spr[0], base: PET.xp(id), lvl: 1};
+    this.pet.lvl = petLevel(this.pet.base + this.petGain); this.pet.warp = true; }
   setupLevel() {
-    const g = this.g, w = g.world;
+    const g = this.g, w = g.world; this.setupPet();
     document.getElementById('vignette').classList.remove('dread');
     this.time = 0; this.spawnT = 1.5; this.alive = 0;
     for (const pool of [this.enemies, this.proj, this.drops, this.fx, this.flames, this.smoke]) for (const o of pool) { o.alive = false; o.pull = false; }
-    this.darkLv = g.level <= 1 ? 0 : Math.min(.8, .3 + .32 * (g.level - 2));   // jede Ebene dunkler: I hell, II Dämmerung, III Nacht; im Endlosmodus bis fast schwarz
+    { const st = g.endless ? g.level : (g.level - 1) % 3 + 1; this.darkLv = st <= 1 ? 0 : Math.min(.8, .3 + .32 * (st - 2)); } this.desert = w.biome === 'wueste';   // jede Ebene dunkler: I hell, II Dämmerung, III Nacht; im Endlosmodus bis fast schwarz
     this.lvlMul = (1 + BAL.lvlHp * (g.level - 1)) * BAL.eHp; this.dmgLvl = (1 + BAL.lvlDmg * (g.level - 1)) * BAL.eDmg; this.tOff = Math.min(180, 50 * (g.level - 1));
     this.graves = w.pois.filter(o => o.kind === 'Friedhof' || o.kind === 'Nekropole'); this.ruins = w.pois.filter(o => o.kind === 'Ruine' || o.kind === 'Burgruine');
     const spot = this.spot = (x, y) => { for (let r = 0; r < 70; r += 3) for (let a = 0; a < 6.28; a += .7) { const px = x + Math.cos(a) * r, py = y + 10 + Math.sin(a) * r; if (!w.blocked(px, py) && !w.blocked(px + 2, py) && !w.blocked(px - 2, py) && w.reachable(px | 0, py | 0)) return {x: px | 0, y: py | 0, ok: true}; } return {x, y: y + 10, ok: false}; };
     // Kapellen und Kirche: je drei Kerzen = drei kleine Heilungen
-    this.shrines = w.pois.filter(o => o.kind === 'Kapelle' || o.kind === 'Kirche').map(o => ({x: o.x, y: o.y, kind: o.kind, obj: o.obj, left: 3, cd: 0}));
+    this.shrines = w.pois.filter(o => o.kind === 'Kapelle' || o.kind === 'Kirche').map(o => ({x: o.x, y: o.y, kind: o.name || o.kind, obj: o.obj, left: 3, cd: 0}));
     this.shrineLook();
     // Opferaltar: state 0 ruht · 1 Wächter lebt · 2 Wächter tot, Magnet frei · taken = Magnet benutzt
     const ap = w.pois.find(o => o.kind === 'Opferaltar');
@@ -1847,13 +2052,13 @@ class Combat {
     // Unheilsglocke: liegt in jeder Ebene an einem besonderen Ort und ist nur dort zu bekommen
     const bp = w.pois.filter(o => ['Steinkreis', 'Großer Baum', 'Obelisk', 'Mühle', 'Ruine'].includes(o.kind) && o !== w.exit);
     const bo = bp.length ? bp[w.seed % bp.length] : null, bs0 = bo ? spot(bo.x - 16, bo.y - 8) : spot(w.spawn.x + 90, w.spawn.y - 70);
-    this.bell = bs0.ok ? {x: bs0.x, y: bs0.y, place: bo ? bo.kind : 'Wiese', taken: false} : null;
+    this.bell = bs0.ok ? {x: bs0.x, y: bs0.y, place: bo ? bo.name || bo.kind : (w.biome === 'wueste' ? 'Sand' : 'Wiese'), taken: false} : null;
     if (this.altar && this.altar.obj) this.altar.obj.spr = ALTAR_SPR[1];
     // Fundstellen an besonderen Orten: Truhe mit Gegenstand oder Proviant
-    const ITEM = ['Ruine', 'Burgruine', 'Turm', 'Steinkreis', 'Weltenbaum', 'Riesenburg', 'Nekropole', 'Riesensäule', 'Kolossstatue'], HEAL = ['Obelisk', 'Großer Baum', 'Mühle', 'Friedhof'];
-    { const gp = (this.g.meta.goldfluss | 0) > 0 ? w.pois.find(o => ['Weltenbaum', 'Riesenburg', 'Nekropole', 'Riesensäule', 'Kolossstatue'].includes(o.kind)) : null, hs = gp ? spot(gp.x + 16, gp.y + 6) : null;
+    const ITEM = ['Ruine', 'Burgruine', 'Turm', 'Steinkreis', 'Weltenbaum', 'Riesenburg', 'Nekropole', 'Riesensäule', 'Kolossstatue', 'Pyramide'], HEAL = ['Obelisk', 'Großer Baum', 'Mühle', 'Friedhof'];
+    { const gp = (this.g.meta.goldfluss | 0) > 0 ? w.pois.find(o => ['Weltenbaum', 'Riesenburg', 'Nekropole', 'Riesensäule', 'Kolossstatue', 'Pyramide'].includes(o.kind)) : null, hs = gp ? spot(gp.x + 16, gp.y + 6) : null;
       this.hoard = hs && hs.ok ? {x: hs.x, y: hs.y, state: 0, place: gp.kind} : null; }   // Goldfluss liegt am Wahrzeichen: 0 unberührt, 1 Goblin da, 2 frei, 3 genommen
-    this.caches = w.pois.filter(o => (ITEM.includes(o.kind) || HEAL.includes(o.kind)) && o !== w.exit).map(o => Object.assign(spot(o.x, o.y), {item: ITEM.includes(o.kind), place: o.kind, open: false})).filter(c => c.ok);
+    this.caches = w.pois.filter(o => (ITEM.includes(o.kind) || HEAL.includes(o.kind)) && o !== w.exit).map(o => Object.assign(spot(o.x, o.y), {item: ITEM.includes(o.kind), place: o.name || o.kind, open: false})).filter(c => c.ok);
     this.boss = null; this.corpse = null; this.bossState = 0; this.bossN = 0; this.exitOpen = false; this.gateT = BAL.gateTime; this.dark = 0; document.getElementById('vignette').style.background = '';      // bossState: 0 ruhig, 1 angekündigt, 2 da, 3 besiegt
     const ex = w.exit || {x: w.spawn.x + 120, y: w.spawn.y}, bs = w.bossSpawn || ex;
     this.exit = spot(ex.x, ex.y - 2); this.bossAt = spot(bs.x, bs.y);
@@ -1864,6 +2069,41 @@ class Combat {
     p.maxHp += 10 * (m.vita | 0); p.hp = p.maxHp; p.dmgMul += .05 * (m.kraft | 0); p.speedMul += .03 * (m.tempo | 0);
     p.pickup *= 1 + .1 * (m.magnet | 0); p.xpMul += .05 * (m.lehre | 0); p.armor += Math.min(m.wams | 0, META.wams.max); this.goldMul = 1 + .15 * (m.gier | 0);
   }
+  monAct(e, ty, u, dt, rage, t) {                // Sonderangriffe der Wüstenbosse, zeitlich an ihre Bildfolge gebunden
+    const p = this.g.player, aim = Math.atan2(p.y - 3 - (e.y - 12), p.x - e.x), once = th => { if (u >= th && e.next < th) { e.next = th; return true; } return false; };
+    switch (e.act) {
+      case 'skel1': if (once(.5)) for (let q = 0; q < 14; q++) { const a = q * .4488 + t; this.shoot(2, e.x, e.y - 12, Math.cos(a) * 48, Math.sin(a) * 48, 0, 7, 3.4); } break;          // Wirbelhieb: Knochenkranz
+      case 'skel2': if (once(.15)) for (let q = 0; q < 4; q++) this.spawnAt(ENEMY_TYPES[0], e.x + (Math.random() - .5) * 40, e.y + (Math.random() - .5) * 36, this.time); break;       // Schild hoch, Mumien steigen aus dem Sand
+      case 'gob1': if (once(.55)) for (let q = 0; q < (rage ? 5 : 3); q++) { const a = Math.random() * 6.283, rr = q ? 20 + Math.random() * 30 : 0; if (this.ebombs.length < 24) this.ebombs.push({x: p.x + Math.cos(a) * rr, y: p.y + Math.sin(a) * rr, t: 1.05 + q * .14, src: 'eine Bombe des Sandgoblins'}); } break;
+      case 'gob0': if (once(.5)) for (let q = -2; q <= 2; q++) this.shoot(2, e.x + (e.face ? 8 : -8), e.y - 10, Math.cos(aim + q * .17) * 82, Math.sin(aim + q * .17) * 82, 0, 8, 2.6); break;   // Wurfmesser im Fächer
+      case 'eye2': if (u > .25 && u < .9 && (e.next -= dt) <= 0) { e.next = rage ? .05 : .07; const a = t * 7; for (let q = 0; q < 2; q++) this.shoot(2, e.x, e.y - 14, Math.cos(a + q * 3.1416) * 52, Math.sin(a + q * 3.1416) * 52, 0, 7, 3.2); } break;   // Spirale
+      case 'eye0': if (once(.6)) { const sw = ENEMY_TYPES.find(q => q.name === 'Schwarm') || ENEMY_TYPES[0]; for (let q = 0; q < 6; q++) this.spawnAt(sw, e.x + (Math.random() - .5) * 46, e.y - 10 + (Math.random() - .5) * 36, this.time);
+          for (let q = 0; q < 16; q++) { const a = q * .3927; this.shoot(2, e.x, e.y - 14, Math.cos(a) * 44, Math.sin(a) * 44, 0, 7, 3.4); } } break;
+      case 'pilz1': if (once(.5)) for (let q = 0; q < (rage ? 7 : 5); q++) { const a = Math.random() * 6.283, rr = q ? 18 + Math.random() * 44 : 0; if (this.ebombs.length < 24) this.ebombs.push({x: p.x + Math.cos(a) * rr, y: p.y + Math.sin(a) * rr, t: 1.2 + q * .1, src: 'eine Sporenwolke des Pilzfürsten'}); } break;
+      case 'pilz0': if (once(.6)) { const ox = p.x - e.x; if ((e.face ? ox > -6 && ox < ty.reach : ox < 6 && ox > -ty.reach) && Math.abs(p.y - e.y) < 16) { this.hurt(ty.hitDmg, ty.acc); p.inv = Math.max(p.inv, 1.1); } } break;
+    }
+  }
+  petLearn(a) { const P = this.pet; this.petGain += a; this.petPending += a; const nl = petLevel(P.base + this.petGain); if (nl > P.lvl) { P.lvl = nl; this.g.toast(PETS[P.id].name + ' erreicht Stufe ' + ROMAN[nl] + '.'); this.g.refreshItems(); this.boom(P.x, P.y - 3, 8, 2); if (nl >= 10) ACH.give('treue'); } }
+  petUpdate(dt) {                                // Haustier: folgt dir, holt Splitter oder Münzen, stellt Feinde – je nach Art
+    const P = this.pet, p = this.g.player, E = this.enemies, D = PETS[P.id], L = P.lvl, g = this.g;
+    if (P.warp || Math.abs(P.x - p.x) > 125 || Math.abs(P.y - p.y) > 125) { P.x = p.x + (p.face === 'r' ? -8 : 8); P.y = p.y + 2; P.warp = false; P.tg = null; this.boom(P.x, P.y - 2, 5); }
+    P.cd -= dt; P.scan -= dt; if (P.lunge > 0) P.lunge -= dt;
+    if (P.tg && (P.tk === 1 ? (!P.tg.alive || P.tg.pull) : !P.tg.alive)) P.tg = null;
+    if (P.scan <= 0) { P.scan = .15; const R = D.reach(L), R2 = R * R;
+      if (!P.tg && (D.xp || D.gold)) { let bd = 1e9; for (let i = 0; i < this.drops.length; i++) { const d = this.drops[i]; if (!d.alive || d.pull || (d.gold ? !D.gold : !D.xp)) continue; if ((d.x - p.x) ** 2 + (d.y - p.y) ** 2 > R2) continue; const q = (d.x - P.x) ** 2 + (d.y - P.y) ** 2; if (q < bd) { bd = q; P.tg = d; P.tk = 1; } } }
+      if (!P.tg && (D.bite || D.acid)) { let bd = R2; for (let i = 0; i < E.length; i++) { const e = E[i]; if (!e.alive) continue; const q = (e.x - p.x) ** 2 + (e.y - p.y) ** 2; if (q < bd) { bd = q; P.tg = e; P.tk = 2; } } } }
+    const gx = P.tg ? P.tg.x : p.x + (p.face === 'r' ? -9 : 9), gy = P.tg ? P.tg.y : p.y + 2, ox = gx - P.x, oy = gy - P.y, dd = Math.hypot(ox, oy) || 1, near = P.tg ? (P.tk === 2 ? P.tg.type.r + 3 : 2.5) : 5;
+    if (dd > near) { const v = Math.min(dd, D.speed(L) * (P.tg ? 1 : clamp(dd / 22, .35, 1.5)) * dt); P.x += ox / dd * v; P.y += oy / dd * v; P.step += dt * (D.hop ? 5 : 11); P.mv = true; } else P.mv = false;
+    if (Math.abs(ox) > .6) P.face = ox > 0;
+    if (P.tg && dd <= near + .6) {
+      if (P.tk === 1) { P.tg.pull = true; P.tg.v *= 1 + D.bonus(L); P.tg = null; P.scan = 0; }
+      else if (D.bite && P.cd <= 0) { P.cd = D.biteCd(L); this.hit(P.tg, this.dmg(D.bite(L)), ox / dd * 1.6, oy / dd * 1.6); P.lunge = .12; this.boom(P.tg.x, P.tg.y - 3, 4, 4); } }
+    if (D.spit && P.cd <= 0) { let tg = null, bd = 78 * 78; for (let i = 0; i < E.length; i++) { const e = E[i]; if (!e.alive) continue; const q = (e.x - P.x) ** 2 + (e.y - 3 - P.y) ** 2; if (q < bd) { bd = q; tg = e; } }
+      if (tg) { P.cd = D.spitCd(L); const sx = tg.x - P.x, sy = tg.y - 3 - (P.y - 7), sd = Math.hypot(sx, sy) || 1; this.ptag = 0; this.shoot1(8, P.x + (P.face ? 2 : -2), P.y - 7, sx / sd * 125, sy / sd * 125, 0, this.dmg(D.spit(L)), .75, 0, 0, null); P.face = sx > 0; } else P.cd = .2; }
+    if (D.acid && (P.at -= dt) <= 0) { P.at = .5; for (let i = 0; i < E.length; i++) { const e = E[i]; if (!e.alive || Math.abs(e.x - P.x) > 8 + e.type.r || Math.abs(e.y - P.y) > 6 + e.type.r) continue; this.hit(e, this.dmg(D.acid(L)), 0, 0); e.slowT = Math.max(e.slowT, .7); } }
+    P.spr = D.spr[(P.face ? 0 : 2) + ((P.mv || D.hop && (this.time * 2 | 0) & 1 ? (D.hop && !P.mv ? (this.time * 2 | 0) : P.step | 0) : 0) & 1)];
+    if (Math.abs(P.x - p.x) < g.renderer.bw / 2 + 14 && Math.abs(P.y - p.y) < g.renderer.bh / 2 + 16) this.dyn.push(P);
+  }
   coin(x, y, v) { const d = this.get(this.drops); if (d) { d.alive = true; d.gold = true; d.pull = false; d.x = x; d.y = y; d.v = v; } }
   xpDrop(x, y, v) {                              // ist der Vorrat voll, geht nichts verloren: der Wert wandert in einen liegenden Splitter
     const d = this.get(this.drops);
@@ -1873,7 +2113,7 @@ class Combat {
   serialize() {
     const wl = {}, al = {}; for (const id in this.items) (WEAPONS[id] ? wl : al)[id] = this.items[id];
     const b = this.boss && this.boss.alive ? this.boss : null;
-    return {weapons: Object.keys(wl), weaponLevels: wl, abilities: Object.keys(al), abilityLevels: al, kills: this.kills, gold: this.gold, horse: this.g.player.horse | 0, stallUsed: this.stall && this.stall.used ? 1 : 0, smithUsed: this.smith && this.smith.used ? 1 : 0, spent: Object.keys(this.spent), rerolls: this.rerolls, bans: this.bans, banned: Object.keys(this.banned), autoPick: this.autoPick,
+    return {pet: this.pet ? this.pet.id : '', weapons: Object.keys(wl), weaponLevels: wl, abilities: Object.keys(al), abilityLevels: al, kills: this.kills, gold: this.gold, horse: this.g.player.horse | 0, stallUsed: this.stall && this.stall.used ? 1 : 0, smithUsed: this.smith && this.smith.used ? 1 : 0, spent: Object.keys(this.spent), rerolls: this.rerolls, bans: this.bans, banned: Object.keys(this.banned), autoPick: this.autoPick,
       bossState: this.bossState, bossHP: b ? b.hp : 0, bossX: b ? b.x : 0, bossY: b ? b.y : 0, bossRev: b ? b.revived | 0 : 0, exitState: this.exitOpen ? 1 : 0, exitX: this.exit.x, exitY: this.exit.y, gateT: this.gateT,
       bell: this.bell && this.bell.taken ? 1 : 0,
       altar: this.altar ? (this.altar.taken ? 3 : this.altar.state === 2 ? 2 : 0) : 0, hoard: this.hoard ? (this.hoard.state >= 2 ? this.hoard.state : 0) : 0,
@@ -1882,6 +2122,7 @@ class Combat {
   // Lauf wiederherstellen: Welt ist schon aus Seed + Ebene neu erzeugt, hier wird nur der Zustand eingesetzt
   restore(d) {
     const p = this.g.player;
+    if (d.pet !== undefined) { PET.active = d.pet && PET.owns(d.pet) ? d.pet : ''; this.pet = null; this.setupPet(); }   // ein Lauf behält sein Tier, auch wenn im Menü inzwischen ein anderes gewählt wurde
     p.maxHp = 100; p.pickup = 24; p.dmgMul = 1; p.cdMul = 1; p.area = 1; p.crit = 0; p.armor = 0; p.xpMul = 1; p.speedMul = 1; this.applyMeta();
     this.weapons = []; this.items = {}; this.spent = {};
     const all = Object.assign({}, d.weaponLevels, d.abilityLevels);
@@ -1899,7 +2140,7 @@ class Combat {
     if (this.altar && d.altar >= 2) { this.altar.state = 2; this.altar.taken = d.altar === 3; if (this.altar.taken && this.altar.obj) this.altar.obj.spr = ALTAR_SPR[0]; }
     this.bossState = clamp(d.bossState | 0, 0, 3);
     if (this.bossState === 1) document.getElementById('vignette').classList.add('dread');
-    if (this.bossState === 2) { const b = this.spawnAt(bossOf(this.g.level), +d.bossX || this.bossAt.x, +d.bossY || this.bossAt.y, 0); if (b) { if (d.bossHP > 0) b.hp = +d.bossHP; b.revived = +d.bossRev | 0; b.cd = 2; this.boss = b; } }
+    if (this.bossState === 2) { const b = this.spawnAt(bossOf(this.g.level, this.g.seed, this.g.endless), +d.bossX || this.bossAt.x, +d.bossY || this.bossAt.y, 0); if (b) { if (d.bossHP > 0) b.hp = +d.bossHP; b.revived = +d.bossRev | 0; b.cd = 2; this.boss = b; } }
     if (this.bossState === 3 || d.exitState) { this.bossState = 3; this.exitOpen = true; if (Number.isFinite(d.exitX) && Number.isFinite(d.exitY)) this.exit = {x: d.exitX, y: d.exitY, ok: true}; if (Number.isFinite(d.gateT)) this.gateT = d.gateT; }
     p.level = Math.max(1, d.playerLevel | 0); p.xp = Math.max(0, +d.XP || 0); p.xpNext = Math.max(3, +d.xpNext || 5); p.hp = clamp(+d.playerHP || 1, 1, p.maxHp);
     if (Number.isFinite(d.playerX) && Number.isFinite(d.playerY) && !this.g.world.blocked(d.playerX, d.playerY)) { p.x = d.playerX; p.y = d.playerY; }
@@ -1930,7 +2171,7 @@ class Combat {
   }
   spawnAt(type, x, y, t) {
     const e = this.get(this.enemies); if (!e) return null;
-    e.alive = true; e.type = type; e.spr = type.spr; e.x = x; e.y = y; e.hp = type.hp * (1 + t / BAL.hpRamp) * this.lvlMul;
+    e.alive = true; e.type = type; e.spr = this.desert && type.dspr || type.spr; e.x = x; e.y = y; e.hp = type.hp * (1 + t / BAL.hpRamp) * this.lvlMul;
     e.flash = 0; e.cd = 1 + Math.random() * 2; e.state = 0; e.kx = e.ky = 0; e.buff = 0; e.axeT = 0; e.ph = Math.random() * 6; e.dashT = 0; e.dying = false; e.revived = false; e.atkCd = 0; e.slowT = 0; e.frozT = 0; e.plagueT = 0; e.plagueGen = 0; e.plagueTick = 0;
     this.alive++; return e;
   }
@@ -1959,7 +2200,7 @@ class Combat {
     const type = ENEMY_TYPES[ti];
     for (let i = 0; i < (type.group || 1); i++) {
       const e = this.get(this.enemies); if (!e) return;
-      e.alive = true; e.type = type; e.spr = type.spr; e.x = x + (Math.random() - .5) * 14 * i; e.y = y + (Math.random() - .5) * 14 * i;
+      e.alive = true; e.type = type; e.spr = this.desert && type.dspr || type.spr; e.x = x + (Math.random() - .5) * 14 * i; e.y = y + (Math.random() - .5) * 14 * i;
       e.hp = type.hp * (1 + t / BAL.hpRamp) * this.lvlMul; e.flash = 0; e.cd = 1 + Math.random() * 2; e.state = 0; e.kx = e.ky = 0; e.buff = 0; e.axeT = 0; e.ph = Math.random() * 6; e.slowT = 0; e.frozT = 0; e.plagueT = 0; e.plagueGen = 0; e.plagueTick = 0; e.dashT = 0; e.dying = false;
       this.alive++;
     }
@@ -1967,6 +2208,7 @@ class Combat {
   hit(e, dmg, nx, ny) {
     if (e.type.boss && e.state >= 3) return;                                       // zerfällt oder liegt: unverwundbar
     if (e.type.armor) dmg = Math.max(1, dmg - e.type.armor);
+    if (e.shieldT > 0) { dmg *= .15; if (Math.random() < .3) this.boom(e.x + (e.face ? 6 : -6), e.y - 12, 4, 4); }   // Grabwächter hinter dem Schild
     const lp = this.g.player.leech; if (lp > 0) this.leechPool += Math.min(dmg, e.hp) * lp;   // Blutdurst: Anteil des wirklich angerichteten Schadens                       // Rüstung schluckt einen Teil jedes Treffers
     e.hp -= dmg; e.flash = .09; e.kx = nx * 34; e.ky = ny * 34;
     if (e.type.boss || e.type.guard) e.kx = e.ky = 0;
@@ -1981,7 +2223,7 @@ class Combat {
       for (let i = 0; i < 14; i++) { const d = this.get(this.drops); if (d) { d.alive = true; d.gold = false; d.pull = false; d.x = e.x + (Math.random() - .5) * 30; d.y = e.y + (Math.random() - .5) * 24; d.v = 4; } }
       for (let i = 0; i < 12; i++) this.coin(e.x + (Math.random() - .5) * 36, e.y + (Math.random() - .5) * 28, 3);
       this.boom(e.x, e.y - 6, 40); this.g.toast((e.type === BOSS ? 'Der Knochenkönig zerfällt' : e.type.name + ' vergeht') + '. Ein Tor öffnet sich – du hast ' + BAL.gateTime + ' Sekunden, dann kommt die Dunkelheit.');
-      document.getElementById('vignette').classList.remove('dread'); SAVE.bump({totalBossKills: 1}); ACH.give(e.type === BOSS3 ? 'daemon' : e.type === BOSS2 ? 'waldgeist' : 'koenig'); this.g.lastBoss = e.type.name; this.g.save(); this.g.bossReward(); return;
+      document.getElementById('vignette').classList.remove('dread'); SAVE.bump({totalBossKills: 1}); ACH.give(e.type.ach || (e.type === BOSS3 ? 'daemon' : e.type === BOSS2 ? 'waldgeist' : 'koenig')); this.g.lastBoss = e.type.name; this.g.save(); this.g.bossReward(); return;
     }
     if (e.type.hoard) {                            // Goldgoblin besiegt: Münzregen, der Goldsack liegt frei
       if (this.hoard) this.hoard.state = 2;
@@ -2003,8 +2245,8 @@ class Combat {
   // ---- Angebote beim Stufenaufstieg: gewichtet, höchstens 10 Plätze für Waffen + Fähigkeiten zusammen
   offers() {
     const it = this.items, slots = Object.keys(it).length - (it.goldfluss ? 1 : 0), c = [];   // der Goldfluss zählt nicht zu den zehn Plätzen
-    for (const id in WEAPONS) { const L = it[id] || 0; if (L === 0) { if (slots < 10 && !WEAPONS[id].found && !WEAPONS[id].forge && !this.spent[id] && !this.banned[id]) c.push({id, kind: 'w', lvl: 1, w: WEAPONS[id].w}); } else if (L < 5 && !this.banned[id]) c.push({id, kind: 'w', lvl: L + 1, w: L >= 4 ? 3 : 5}); }
-    for (const id in PASSIVES) { const L = it[id] || 0; if (L === 0) { if (slots < 10 && !PASSIVES[id].found && !this.spent[id] && !this.banned[id] && (!PASSIVES[id].meta || (this.g.meta[PASSIVES[id].meta] | 0) > 0)) c.push({id, kind: 'p', lvl: 1, w: PASSIVES[id].w}); } else if (L < (this.g.endless && PASSIVES[id].inf || PASSIVES[id].max || 5) && !this.banned[id]) c.push({id, kind: 'p', lvl: L + 1, w: 3.5}); }
+    for (const id in WEAPONS) { const L = it[id] || 0; if (L === 0) { if (slots < 10 && !WEAPONS[id].found && !WEAPONS[id].forge && !this.spent[id] && !this.banned[id] && ARMORY.has(id)) c.push({id, kind: 'w', lvl: 1, w: WEAPONS[id].w}); } else if (L < 5 && !this.banned[id]) c.push({id, kind: 'w', lvl: L + 1, w: L >= 4 ? 3 : 5}); }
+    for (const id in PASSIVES) { const L = it[id] || 0; if (L === 0) { if (slots < 10 && !PASSIVES[id].found && !this.spent[id] && !this.banned[id] && ARMORY.has(id) && (!PASSIVES[id].meta || (this.g.meta[PASSIVES[id].meta] | 0) > 0)) c.push({id, kind: 'p', lvl: 1, w: PASSIVES[id].w}); } else if (L < (this.g.endless && PASSIVES[id].inf || PASSIVES[id].max || 5) && !this.banned[id]) c.push({id, kind: 'p', lvl: L + 1, w: 3.5}); }
     const out = [];
     while (out.length < 3 && c.length) { let sum = 0; for (const o of c) sum += o.w; let r = Math.random() * sum, i = 0; while (i < c.length - 1 && (r -= c[i].w) > 0) i++; out.push(c.splice(i, 1)[0]); }
     if (!out.length) out.push({id: 'proviant', kind: 'x', lvl: 0}, {id: 'goldsack', kind: 'x', lvl: 0});   // nichts mehr auszubauen: Leben oder Gold
@@ -2024,12 +2266,12 @@ class Combat {
   }
   recipes() {                                    // alle Schmiedewerke mit Stand: geht es, und wenn nicht, woran fehlt es
     const it = this.items, out = [];
-    for (const id in WEAPONS) { const f = WEAPONS[id].forge; if (!f || it[id]) continue; const la = it[f[0]] | 0, lb = it[f[1]] | 0;
+    for (const id in WEAPONS) { const f = WEAPONS[id].forge; if (!f || it[id] || !ARMORY.has(id)) continue; const la = it[f[0]] | 0, lb = it[f[1]] | 0;
       out.push({id, a: f[0], b: f[1], la, lb, ok: la >= FORGE_MIN && lb >= FORGE_MIN && this.gold >= FORGE_COST}); }
     return out;
   }
   forge(id) {
-    const f = WEAPONS[id] && WEAPONS[id].forge; if (!f || this.items[id] || (this.items[f[0]] | 0) < FORGE_MIN || (this.items[f[1]] | 0) < FORGE_MIN || this.gold < FORGE_COST) return false;
+    const f = WEAPONS[id] && WEAPONS[id].forge; if (!f || !ARMORY.has(id) || this.items[id] || (this.items[f[0]] | 0) < FORGE_MIN || (this.items[f[1]] | 0) < FORGE_MIN || this.gold < FORGE_COST) return false;
     this.gold -= FORGE_COST; this.goldPending -= FORGE_COST;
     for (const k of f) { delete this.items[k]; this.spent[k] = 1; } this.weapons = this.weapons.filter(w => w.id !== f[0] && w.id !== f[1]);
     if (f.includes('blut')) this.g.player.leech = 0;                      // Blutdurst geht im Werk auf
@@ -2082,10 +2324,10 @@ class Combat {
     if (this.leechT > 0) this.leechT -= dt;
     // ---- Boss: Ankündigung bei 4:30, Erscheinen bei 5:00 an seinem Ort in der Welt
     if (this.bossState === 0 && t >= 270) { this.bossState = 1; g.toast('Die Vögel verstummen. Etwas Großes regt sich …'); document.getElementById('vignette').classList.add('dread'); }
-    if (this.bossState === 1 && t >= 300) { this.bossState = 2; const b = this.spawnAt(bossOf(g.level), this.bossAt.x, this.bossAt.y, 0); if (b) { this.boss = b; b.cd = 2; } g.toast(bossOf(g.level).name + ' ist erwacht. Er kommt.'); }
+    if (this.bossState === 1 && t >= 300) { this.bossState = 2; const bt = bossOf(g.level, g.seed, g.endless), b = this.spawnAt(bt, this.bossAt.x, this.bossAt.y, 0); if (b) { this.boss = b; b.cd = 2; } g.toast(bt.name + ' ist erwacht. ' + (bt.wake || 'Er kommt.')); }
     // ---- Kapellen: begrenzte, kleine Heilung
     for (const s of this.shrines) { if (s.cd > 0) s.cd -= dt;
-      if (s.left > 0 && s.cd <= 0 && p.hp < p.maxHp && Math.abs(p.x - s.x) < 16 && p.y - s.y < 14 && p.y - s.y > -8) { s.left--; s.cd = 20; ACH.give('kirche'); p.hp = Math.min(p.maxHp, p.hp + 10); this.shrineLook(); g.toast(s.left ? 'Ein Fenster schließt sich (+10 Leben)' : 'Das letzte Fenster schließt sich (+10 Leben)'); g.save(); } }
+      if (s.left > 0 && s.cd <= 0 && p.hp < p.maxHp && Math.abs(p.x - s.x) < 16 && p.y - s.y < 14 && p.y - s.y > -8) { s.left--; s.cd = 20; ACH.give('kirche'); p.hp = Math.min(p.maxHp, p.hp + 10); this.shrineLook(); { const lamp = s.kind === 'Grabstätte' || s.kind === 'Nomadenzelt'; g.toast(s.left ? (lamp ? 'Ein Licht erlischt (+10 Leben)' : 'Ein Fenster schließt sich (+10 Leben)') : (lamp ? 'Das letzte Licht erlischt (+10 Leben)' : 'Das letzte Fenster schließt sich (+10 Leben)')); } g.save(); } }
     // ---- Opferaltar: Wächter erscheint bei Annäherung; ist er tot, zieht der Magnet alles Liegengebliebene heran
     const HO = this.hoard;
     if (HO && HO.state < 3) { const hd = Math.hypot(p.x - HO.x, p.y - HO.y);
@@ -2150,7 +2392,7 @@ class Combat {
     const farR = Math.hypot(g.renderer.bw, g.renderer.bh) * .9 + 40, vx = g.renderer.bw / 2 + 14, vy = g.renderer.bh / 2 + 16;
     this.dyn.length = 0; if (this.corpse) this.dyn.push(this.corpse);
     for (let i = this.ebombs.length - 1; i >= 0; i--) { const B = this.ebombs[i];      // Bomben des Dämons: angekündigt durch einen sich schließenden Kreis, dann Explosion
-      if ((B.t -= dt) <= 0) { this.ebombs.splice(i, 1); this.blast(B.x, B.y, 19, 2.2, .8); if (Math.hypot(p.x - B.x, p.y - 2 - B.y) < 20) { this.hurt(18, 'eine Bombe des Kakodämons'); } } }
+      if ((B.t -= dt) <= 0) { this.ebombs.splice(i, 1); this.blast(B.x, B.y, 19, 2.2, .8); if (Math.hypot(p.x - B.x, p.y - 2 - B.y) < 20) { this.hurt(18, B.src || 'eine Bombe des Kakodämons'); } } }
     const plagueL = Math.max(this.items.seuche | 0, this.items.pest | 0, this.items.pestfeuer | 0, this.items.blutpest | 0, this.items.seuchenheer | 0), BP = this.items.blutpest | 0;
     if (BP && this.bpPool > 0) { const h = Math.min(this.bpPool, (2 + BP) * dt); this.bpPool -= h; if (this.bpPool > 12) this.bpPool = 12; if (p.hp < p.maxHp) { p.hp = Math.min(p.maxHp, p.hp + h); this.leechT = .25; } }   // Blutpest: gezehrtes Leben fließt gedeckelt zu
     if (this.pestQ.length) { const PL = this.items.pest | 0, R = (15 + 2 * (PL >= 2) + 3 * (PL >= 4)) * p.area, Q = this.pestQ.splice(0, 12);
@@ -2246,6 +2488,28 @@ class Combat {
             if (e.dashT <= 0) { e.state = 0; e.cd = 2.6; e.beam = 0; } }
           if (e.state !== 2) e.beam = 0;
           break; }
+        case 'mon': {                              // Wüstenbosse und der Pilzfürst: gemeinsames Gerüst (gehen, Nahhieb, Ansturm), dazu je eigene Sonderangriffe (monAct)
+          const A = MON[ty.mon], k = e.face ? 0 : 1, rage = e.hp < ty.hp * this.lvlMul * .5, fr = (set, u) => A[set][k][clamp(u * A[set][0].length | 0, 0, A[set][0].length - 1)];
+          if (e.state >= 3) { sp = 0; e.dashT -= dt; e.spr = fr('dead', 1 - e.dashT / ty.deadT); if (e.dashT <= 0) { e.dying = true; this.corpse = {x: e.x, y: e.y, spr: A.dead[k][A.dead[0].length - 1]}; this.kill(e); continue; } break; }
+          if (rage && !e.rage) { e.rage = true; g.toast(ty.rageMsg); }
+          e.cd -= dt; e.atkCd = (e.atkCd || 0) - dt; e.buff = 0; if (e.shieldT > 0) e.shieldT -= dt;
+          if (e.state === 0) { e.face = dx >= 0; sp = (d > 220 ? 70 : ty.sp) * (rage ? 1.25 : 1); e.spr = A.walk[e.face ? 0 : 1][(t * 10 | 0) % A.walk[0].length];
+            if (ty.mon === 'eye' && d < 56) { mx = -dx; my = -dy; }
+            if (ty.melee && d < ty.melee && e.atkCd <= 0) { e.state = 2; e.dashT = e.T = ty.atkT; e.struck = false; }
+            else if (d < 190 && e.cd <= 0) { this.bossN++; const m = this.bossN % 3; e.struck = false; e.next = 0; e.act = ty.mon + m;
+              const dash = T0 => { e.state = 1; e.dashT = T0; e.dx = dx; e.dy = dy; }, play = (an, T0) => { e.state = -1; e.anim = an; e.dashT = e.T = T0; };
+              if (ty.mon === 'skel') { if (m === 1) play('spin', .9); else if (m === 2) { play('shield', 1.8); e.shieldT = 1.8; } else dash(.7); }
+              else if (ty.mon === 'gob') { if (m === 1) play('bomb', 1.2); else if (m === 2) dash(.55); else play('atk', .6); }
+              else if (ty.mon === 'eye') { if (m === 1) dash(.9); else if (m === 2) play('spin', 1.2); else play('cast', 1); }
+              else { if (m === 1) play('spore', 1.4); else if (m === 2) dash(.8); else play('atk', .8); } } }
+          else if (e.state === 1) { sp = ty.dashSp * (rage ? 1.15 : 1); mx = e.dx; my = e.dy; const an = ty.mon === 'eye' ? 'atk' : 'walk'; e.spr = A[an][k][(t * 14 | 0) % A[an][0].length];
+            if ((e.dashT -= dt) <= 0) { e.state = 0; e.cd = 1.4 * (rage ? .7 : 1); if (ty.mon === 'pilz') for (let q = 0; q < 10; q++) { const a = q * .6283 + t; this.shoot(2, e.x, e.y - 10, Math.cos(a) * 44, Math.sin(a) * 44, 0, 7, 3.2); } } }
+          else if (e.state === 2) { sp = 0; e.dashT -= dt; const u = 1 - e.dashT / e.T; e.spr = fr('atk', u);
+            if (u >= ty.hitAt && !e.struck) { e.struck = true; const ox = p.x - e.x; if ((e.face ? ox > -6 && ox < ty.reach : ox < 6 && ox > -ty.reach) && Math.abs(p.y - e.y) < 16) { this.hurt(ty.hitDmg, ty.acc); p.inv = Math.max(p.inv, 1.1); } }
+            if (e.dashT <= 0) { e.state = 0; e.atkCd = 1.3 * (rage ? .75 : 1); } }
+          else { sp = ty.mon === 'eye' ? ty.sp * .4 : 0; e.dashT -= dt; const u = 1 - e.dashT / e.T; e.spr = fr(e.anim, u); this.monAct(e, ty, u, dt, rage, t);
+            if (e.dashT <= 0) { e.state = 0; e.cd = ty.cd * (rage ? .7 : 1); e.shieldT = 0; } }
+          break; }
         case 'goblin': {                           // Goldgoblin: trottet heran, setzt alle paar Sekunden zum Sprung an, wirft dazwischen Münzen; bleibt beim Hort
           const H = this.hoard, home = H && Math.hypot(p.x - H.x, p.y - H.y) > 260; e.cd -= dt; e.buff = 0; e.face = dx >= 0;
           if (home) { const ox = H.x - e.x, oy = H.y - e.y, m = Math.hypot(ox, oy) || 1; mx = m > 8 ? ox / m : 0; my = m > 8 ? oy / m : 0; sp = 30; }
@@ -2290,6 +2554,7 @@ class Combat {
       else if (tg && a.cd <= 0) { a.cd = .55; if (a.plague && !(tg.plagueT > 0)) { tg.plagueT = 6; tg.plagueGen = 0; tg.plagueTick = .4; } this.hit(tg, this.dmg(a.dmg), ox / dd, oy / dd); }
       if (Math.abs(ox) > 1) a.face = ox > 0; a.spr = (a.plague ? SKEL2_SPR : SKEL_SPR)[(a.face ? 0 : 2) + ((a.step | 0) & 1)]; a.flash = a.t < 1.5 && ((a.t * 10 | 0) & 1) ? 1 : 0;   // blinkt, kurz bevor es zerfällt
       if (Math.abs(a.x - p.x) < g.renderer.bw / 2 + 14 && Math.abs(a.y - p.y) < g.renderer.bh / 2 + 16) this.dyn.push(a); }
+    if (this.pet) this.petUpdate(dt);
     // ---- Meteore: Schatten wächst, Brocken fällt, Einschlag
     for (let i = this.meteors.length - 1; i >= 0; i--) { const M = this.meteors[i]; if ((M.t -= dt) <= 0) { this.meteors.splice(i, 1); const kd = M.kind | 0;
         if (kd === 1) { this.aoe(M.x, M.y, M.R, M.dmg, 1.2); this.boom(M.x, M.y, M.R); this.boom(M.x, M.y, M.R * .6, 4); this.debris(M.x, M.y, M.R * .7, 2); for (let j = 0; j < 4; j++) { const f = this.get(this.flames); if (!f) break; f.alive = true; f.x = M.x + (j ? Math.cos(j * 2.1) * 5 : 0); f.y = M.y + (j ? Math.sin(j * 2.1) * 4 : 0); f.t = 1.5 + j * .15; } }
@@ -2471,7 +2736,7 @@ class Combat {
       const d = this.drops[i]; if (!d.alive) continue;
       const ox = p.x - d.x, oy = p.y - 3 - d.y, dist = Math.hypot(ox, oy) || 1;
       if (dist < 4) { d.alive = false; if (d.gold) { const n = Math.max(1, Math.round(d.v * this.goldMul)); this.gold += n; this.goldPending += n; this.earnPending += n; }
-        else { const gf = Math.min(.75, p.goldFlow || 0); p.xp += d.v * p.xpMul * (1 - gf);          // Goldfluss: ein Teil der Erfahrung wird zu Gold (2 Erfahrung = 1 Gold)
+        else { const gf = Math.min(.75, p.goldFlow || 0); p.xp += d.v * p.xpMul * (1 - gf); if (this.pet) this.petLearn(d.v * p.xpMul * PET_SHARE);          // Goldfluss: ein Teil der Erfahrung wird zu Gold (2 Erfahrung = 1 Gold)
           if (gf) { this.gfAcc += d.v * gf * .5 * this.goldMul; const n = this.gfAcc | 0; if (n) { this.gfAcc -= n; this.gold += n; this.goldPending += n; this.earnPending += n; } } } }
       else if (d.pull || dist < p.pickup) { const v = d.pull ? Math.max(240, dist * 1.6) : 85; d.x += ox / dist * v * dt; d.y += oy / dist * v * dt; }
     }
@@ -2509,6 +2774,13 @@ class Combat {
     for (const f of this.fx) if (f.alive && (f.kind === 4 || f.kind === 1)) r.light(Math.round(f.x) - cx, Math.round(f.y) - cy, f.kind === 4 ? f.r * 2.4 : f.t < .16 ? 60 : 30);
     { const b0 = this.boss; if (b0 && b0.alive) r.light(Math.round(b0.x) - cx, Math.round(b0.y) - b0.spr.h / 2 - cy, b0.type === BOSS3 ? 44 : 30); }   // Bosse glimmen, damit man sie auch nachts kommen sieht
     const b = this.boss; if (b && b.alive && b.beam === 2) { const f = b.face ? 1 : -1; for (let q = 0; q < 300; q += 22) r.light(Math.round(b.x) - cx + f * q, Math.round(b.y - 9) - cy, 24); }
+  }
+  drawSand(r, cx, cy, time) {                    // Sandverwehungen: Böen treiben helle Sandschlieren über das Bild, mal dicht, mal kaum
+    if (!this.desert || !SANDFX.on) return; const S = this.sandQ || (this.sandQ = Array.from({length: 110}, () => ({x: Math.random() * 600, y: Math.random(), l: 9 + Math.random() * 20, v: 55 + Math.random() * 80, ph: Math.random() * 6.283, low: Math.random() < .45})));
+    const gust = .5 + .5 * Math.sin(time * .31) * Math.sin(time * .11 + 1.3), n = Math.round(S.length * (.45 + .55 * gust)), W2 = r.bw + 80;
+    for (let i = 0; i < n; i++) { const q = S[i], x0 = ((q.x + time * q.v) % W2 + W2) % W2 - 40, wy = q.y * r.bh + Math.sin(time * 1.3 + q.ph) * 5 + ((cy * (q.low ? 1 : .6)) % 7);
+      for (let j = 0; j < q.l; j++) { if ((j + i) % 3 === 0) continue; const x = Math.round(x0 - j * 1.6), y = Math.round(wy + Math.sin(x * .06 + q.ph) * 2.2);
+        r.dot(x, y, j < 3 ? 120 : (j & 1) ? 150 : 236); if (j < q.l * .6 && (j + i) % 3 === 1) r.dot(x, y - 1, 246); if (q.low && (j & 1)) r.dot(x, y + 1, 96); } }   // dunkler Sandkern, heller Rand: auf hellem Sand wie im Dunkeln sichtbar
   }
   drawFuse(r, cx, cy) {                          // über allem: die Verschmelzung beim Schmied
     const F = this.fuse; if (!F) return; const p = this.g.player, t = F.t, X0 = Math.round(p.x) - cx, Y0 = Math.round(p.y) - 3 - cy, T = 1.1;
@@ -2585,6 +2857,7 @@ class Combat {
           D(0, 238); D(1, 238); D(2, 20, 1); D(2, 20, -1); for (let k = 2; k < 9; k++) D(k, 20); D(4, 238, 2); D(5, 238, 2); D(6, 238, -2); D(7, 238, -2);
           if (q.tag === 'donner') { const k = time * 30 | 0; D(-1, 250); D(-2, 250); D(-1, RED, 1); D(-1, RED, -1); for (let j = 1; j < 10; j++) D(j, (j + k) & 1 ? 250 : RED, ((j * 7 + k) % 5) - 2); for (let j = 10; j < 24; j += 2) D(j, (j >> 1) & 1 ? 250 : 20, ((j + k) % 3) - 1); }   // Donnerspeer: Funken zucken um den Schaft, dahinter ein heller Schweif
           break; }
+        case 8: { r.dot(x, y, 250); r.dot(x + 1, y, 236); r.dot(x, y - 1, 236); r.dot(x - 1, y, 20); r.dot(x, y + 1, 20); r.dot(Math.round(x - ux * 2), Math.round(y - uy * 2), 110); r.dot(Math.round(x - ux * 4), Math.round(y - uy * 4), 236); break; }   // Lama-Spucke: heller Batzen, dunkler Rand, Tropfen dahinter
         case 7: { const k = (time * 12 | 0);       // Kugelblitz: heller Ball mit dunklem Rand, rotem Kern und zuckenden Funken
           for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) { const d2 = dx * dx + dy * dy; if (d2 <= 10) r.dot(x + dx, y + dy, d2 > 5 ? 20 : 238); }
           r.dot(x, y, RED); r.dot(x + ((k & 1) ? 1 : -1), y, RED);
@@ -2648,7 +2921,7 @@ function viewSize() {
   return [vw, vh];
 }
 viewSize(); addEventListener('resize', viewSize); addEventListener('orientationchange', () => setTimeout(viewSize, 250));
-const LAST_LEVEL = 3;                                  // hinter dem Tor der dritten Ebene ist Schluss
+const LAST_LEVEL = 6;                                  // Grünland (1–3), Wüste (4–6): hinter dem Tor der sechsten Ebene ist Schluss
 // Erfolge: im Profil gespeichert, Meldung als eigenes Band, damit sie keine Spielmeldung verdrängt.
 const ACH = { got: {}, q: [], busy: false, t: 0,
   list: [
@@ -2665,6 +2938,11 @@ const ACH = { got: {}, q: [], busy: false, t: 0,
     ['koenig', 'Königsmörder', 'Den Knochenkönig besiegen'],
     ['waldgeist', 'Holzfäller', 'Den Waldgeist besiegen'],
     ['daemon', 'Exorzist', 'Den Kakodämon besiegen'],
+    ['gruen', 'Grenzgänger', 'Das Grünland durchqueren (Ebene 3 beenden)'],
+    ['grabwaechter', 'Grabräuber', 'Den Grabwächter besiegen'],
+    ['sandgoblin', 'Sandsturm', 'Den Sandgoblin besiegen'],
+    ['wuestenauge', 'Augenblick', 'Das Wüstenauge besiegen'],
+    ['pilzfuerst', 'Pilzsammler', 'Im Endlosmodus den Pilzfürsten besiegen'],
     ['ebene2', 'Durchs Tor', 'Ebene 2 erreichen'],
     ['ebene3', 'Tiefer hinab', 'Ebene 3 erreichen'],
     ['fin', 'Fin', 'Durch das letzte Tor schreiten'],
@@ -2681,6 +2959,9 @@ const ACH = { got: {}, q: [], busy: false, t: 0,
     ['reiter', 'Hoch zu Ross', 'Ein Pferd kaufen'],
     ['schmied', 'Heißes Eisen', 'Beim Schmied zwei Waffen verschmelzen'],
     ['kunde', 'Stammkunde in spe', 'Beim Krämer etwas kaufen'],
+    ['kammer', 'Volle Waffenkammer', 'Alles in der Waffenkammer kaufen'],
+    ['tier', 'Bester Freund', 'Ein Haustier kaufen'],
+    ['treue', 'Treue bis X', 'Ein Haustier auf Stufe X bringen'],
     ['faden', 'Am seidenen Faden', 'Das Tor mit weniger als einem Fünftel des Lebens erreichen'],
     ['unbelehrbar', 'Unbelehrbar', 'Zehn Läufe beginnen'],
     ['totengraeber', 'Totengräber', 'Insgesamt 10 000 Feinde erlegen'],
@@ -2691,8 +2972,8 @@ const ACH = { got: {}, q: [], busy: false, t: 0,
     ['erster', 'Aller Anfang', 'Den ersten Erfolg erringen']],
   load(pr) { this.got = Object.assign({}, pr.achievements, this.got); this.base = pr.totalKills | 0; if (pr.totalRuns >= 10) this.give('unbelehrbar'); if (HERO.name) this.give('name'); this.unlock(); },
   unlock() {                                     // Farbdruck: wer Ebene 3 beendet hat. Endlos: wer alle Erfolge hat
-    if ((this.got.fin || CHEAT.color) && !COLOR.free) { COLOR.free = true; try { COLOR.on = localStorage.getItem('loColor') !== '0'; } catch (e) { COLOR.on = true; } }
-    if (this.got.fin && !ENDLESS.free) { ENDLESS.free = true; try { ENDLESS.on = localStorage.getItem('loEndless') === '1'; } catch (e) {} }
+    if ((this.got.fin || this.got.gruen || CHEAT.color) && !COLOR.free) { COLOR.free = true; try { COLOR.on = localStorage.getItem('loColor') !== '0'; } catch (e) { COLOR.on = true; } }
+    if ((this.got.fin || this.got.gruen) && !ENDLESS.free) { ENDLESS.free = true; try { ENDLESS.on = localStorage.getItem('loEndless') === '1'; } catch (e) {} }
     if ((this.got.koenig || CHEAT.turbo) && !TURBO.free) { TURBO.free = true; try { TURBO.on = localStorage.getItem('loTurbo') === '1'; } catch (e) {} }
     const set = (id, o, name, how) => { const b = document.getElementById(id); if (b) { b.disabled = !o.free; b.textContent = o.free ? name + ': ' + (o.on ? 'an' : 'aus') : name + ' – ' + how; } };
     set('btnColor', COLOR, 'Farbdruck', 'Ebene 3 beenden'); set('btnTurbo', TURBO, 'Turbo', 'den Knochenkönig besiegen'); set('btnEndless', ENDLESS, 'Endlos', 'Ebene 3 beenden'); },
@@ -2701,6 +2982,7 @@ const ACH = { got: {}, q: [], busy: false, t: 0,
     SAVE.update(pr => { (pr.achievements = pr.achievements || {})[id] = this.got[id]; });
     this.q.push(a[1]); this.next(); if (id !== 'erster') this.give('erster'); { const ab = document.getElementById('btnAch'); if (ab) ab.textContent = 'Erfolge · ' + this.count() + '/' + this.list.length; }
     if (id === 'koenig' && !TURBO.free) { this.unlock(); this.q.push('Turbo freigeschaltet'); this.next(); }
+    if (id === 'gruen' && !COLOR.free) { this.unlock(); this.q.push('Farbdruck und Endlos freigeschaltet'); this.next(); }
     if (id === 'fin' && (!COLOR.free || !ENDLESS.free)) { this.unlock(); this.q.push('Farbdruck und Endlosmodus freigeschaltet'); this.next(); } },
   next() { if (this.busy || !this.q.length) return; this.busy = true; const el = document.getElementById('achToast'); el.textContent = 'Erfolg · ' + this.q.shift(); el.style.opacity = 1;
     setTimeout(() => { el.style.opacity = 0; setTimeout(() => { this.busy = false; this.next(); }, 350); }, 2600); },
@@ -2712,8 +2994,10 @@ const ACH = { got: {}, q: [], busy: false, t: 0,
     if (it.seuche && it.kette && it.flamme) this.give('kraefte'); if (c.gold >= 100) this.give('gold100');
     if (g.level >= 2) this.give('ebene2'); if (g.level >= 3) this.give('ebene3'); if (MUSIC.plays >= 2) this.give('ohrwurm'); } };
 // Musik: musik.mp3 liegt neben der index.html (zu groß zum Einbetten). Fehlt die Datei, bleibt es einfach still. Läuft als Schleife, solange der Lauf läuft.
-const MUSIC = { a: null, on: true, want: false, busy: false, plays: 0, lastT: 0,
-  init() { if (this.a) return; try { this.on = localStorage.getItem('loMusic') !== '0'; } catch (e) {} const a = this.a = new Audio('musik.mp3'); a.loop = true; a.preload = 'auto'; a.volume = .55; },
+const MUSIC = { a: null, on: true, want: false, busy: false, plays: 0, lastT: 0, cur: 'musik.mp3', bad: {},
+  init() { if (this.a) return; try { this.on = localStorage.getItem('loMusic') !== '0'; } catch (e) {} const a = this.a = new Audio(this.cur); a.loop = true; a.preload = 'auto'; a.volume = .55;
+    a.addEventListener('error', () => { if (this.cur !== 'musik.mp3') { this.bad[this.cur] = 1; this.track('musik.mp3', true); } }); },   // fehlt music2.mp3, läuft einfach die alte Musik weiter
+  track(f, force) { if (this.bad[f]) f = 'musik.mp3'; if (f === this.cur && !force) return; this.cur = f; if (!this.a) return; const a = this.a, was = !a.paused; a.pause(); a.src = f; a.currentTime = 0; this.lastT = 0; this.busy = false; if (was) this.sync(true); },   // Grünland: musik.mp3, Wüste: music2.mp3
   unlock() { if (this.want) this.sync(true); },                                                    // iOS erlaubt Ton erst nach einer Berührung
   sync(run) { this.init(); this.want = run; const a = this.a; if (a.currentTime < this.lastT - 5) this.plays++; this.lastT = a.currentTime;
     if (!(run && this.on)) { if (!a.paused) a.pause(); return; }
@@ -2727,12 +3011,12 @@ class Game {
     this.input = Game.input || (Game.input = new InputManager());
     this.camera = new Camera();
     this.renderer = new Renderer(document.getElementById('game'));
-    this.world = world || WorldGenerator.generate(this.seed, this.level);   // das Menü reicht die schon erzeugte Vorschau-Welt weiter
+    this.world = world || WorldGenerator.generate(this.seed, this.level, biomeOf(this.seed, this.level, this.endless));   // das Menü reicht die schon erzeugte Vorschau-Welt weiter
     this.player = new Player(this.world.spawn.x, this.world.spawn.y);
     this.dir = {x: 0, y: 0};
     this.combat = new Combat(this, q.get('weapons') === 'all'); this.dead = false; this.paused = false; this.userPaused = false; this.transition = false; this.saveT = 0; this.hudT = 0;
     if (save) this.combat.restore(save);
-    document.getElementById('hudItems').textContent = this.combat.itemList();
+    this.refreshItems();
     document.getElementById('hud').style.display = 'block'; document.getElementById('pauseBtn').style.display = 'block'; document.getElementById('joy').style.display = 'block'; document.getElementById('mapBtn').style.display = 'block';
     this.last = 0; this.fps = 60; this.dbgT = 0;
     this.dbgEl = document.getElementById('debug');
@@ -2765,7 +3049,9 @@ class Game {
     this.bank();
     return SAVE.put('runs', 'active', this.snapshot()).then(ok => { document.getElementById('saveWarn').style.display = ok ? 'none' : 'block'; return ok; });
   }
-  bank() { const c = this.combat, n = c.goldPending, e = c.earnPending; if (n !== 0 || e) { c.goldPending = 0; c.earnPending = 0; SAVE.bump({gold: n, goldEarned: e}); } }   // Gold wandert laufend ins Profil
+  bank() { const c = this.combat, n = c.goldPending, e = c.earnPending; if (n !== 0 || e) { c.goldPending = 0; c.earnPending = 0; SAVE.bump({gold: n, goldEarned: e}); } this.bankPet(); }
+  bankPet() { const c = this.combat, n = c.petPending | 0; if (!c.pet || n < 1) return; c.petPending -= n; const id = c.pet.id;   // Erfahrung des Tiers wandert laufend ins Profil
+    SAVE.update(pr => { pr.pets = pr.pets || {}; const st = pr.pets[id]; if (!st) return false; st.xp = Math.min(PET_MAXXP, (st.xp | 0) + n); }); }   // Gold wandert laufend ins Profil
   pause() { if (this.dead) return; if (this.userPaused) { this.save(); return; } this.userPaused = true; this.showStats(); const pg = document.getElementById('pause'); pg.style.display = 'flex'; pg.scrollTop = 0; this.save(); }
   showStats() {                                  // aktuelle Werte samt Herkunft: Fähigkeiten im Lauf (Stufe) und Krämer-Käufe
     const p = this.player, c = this.combat, it = c.items, m = this.meta || {}, box = document.getElementById('stats'); box.textContent = '';
@@ -2780,6 +3066,7 @@ class Game {
     row('Waffen bereit', x(p.cdMul) + ' Wartezeit', src(['Stundenglas', I('eile'), pc(Math.pow(.92, I('eile')) - 1)]));
     row('Reichweite und Fläche', x(p.area), src(['Langer Arm', I('weite'), pc(.1 * I('weite'))]));
     row('Rüstung', (p.armor ? '−' + p.armor : '0') + ' je Treffer', src(['Lederwams', I('wams'), '−' + I('wams')], ['Kettenhemd', Math.min(m.wams | 0, META.wams.max), '−' + Math.min(m.wams | 0, META.wams.max)]) + (p.armor ? ' · ein Viertel kommt immer durch' : ''));
+    if (c.pet) { const D = PETS[c.pet.id]; row('Haustier', D.name + ' ' + ROMAN[c.pet.lvl], D.role + ' · ' + D.info(c.pet.lvl)); }
     row('Lauftempo', x(p.speedMul * (p.horse > 0 ? 1.5 : 1)), src(['Wanderstiefel', I('stiefel'), pc(.08 * I('stiefel'))], ['Gute Sohlen', m.tempo | 0, pc(.03 * (m.tempo | 0))]) + (p.horse > 0 ? ' · zu Pferd ×1,5 (noch ' + p.horse + ' Treffer)' : ''));
     row('Erfahrung', x(p.xpMul), src(['Fibel', I('fibel'), pc(.12 * I('fibel'))], ['Lesebrille', m.lehre | 0, pc(.05 * (m.lehre | 0))]));
     row('Sammelreichweite', Math.round(p.pickup) + ' Pixel', src(['Elsternblick', I('magnet'), x(Math.pow(1.3, I('magnet')))], ['Lange Finger', m.magnet | 0, pc(.1 * (m.magnet | 0))]));
@@ -2822,22 +3109,23 @@ class Game {
     row('Leben', x(c.lvlMul * (1 + (c.time + c.tOff) / BAL.hpRamp)), 'wächst mit der Zeit'); row('Schaden', x(c.dmgLvl), '');
   }
   resume() { this.userPaused = false; this.last = 0; document.getElementById('pause').style.display = 'none'; }
-  refreshItems() { document.getElementById('hudItems').textContent = this.combat.itemList(); }
+  refreshItems() { const c = this.combat; document.getElementById('hudItems').textContent = c.itemList() + (c.pet ? ' · ' + PETS[c.pet.id].name + ' ' + ROMAN[c.pet.lvl] : ''); }
   toast(msg) { const el = document.getElementById('toast'); el.textContent = msg; el.style.opacity = 1; clearTimeout(this.toastT); this.toastT = setTimeout(() => { el.style.opacity = 0; }, 2800); }
   nextLevel() {                                  // neue Welt aus WorldSeed + Ebene, Spieler behält alles
     const cb = this.combat; if (this.player.hp < this.player.maxHp * .2) ACH.give('faden'); if (cb.dark > 0) ACH.give('nacht'); else if (cb.gateT < 3) ACH.give('knapp');
+    if (this.level === 3 && !this.endless) ACH.give('gruen');
     if (this.level >= LAST_LEVEL && !this.endless) { this.finish(); return; }
     this.paused = true; this.transition = true; const L = document.getElementById('loading'); L.style.display = 'flex';
     setTimeout(() => {
-      this.level++; this.world = WorldGenerator.generate(this.seed, this.level);
+      const bio0 = this.world.biome; this.level++; this.world = WorldGenerator.generate(this.seed, this.level, biomeOf(this.seed, this.level, this.endless));
       this.player.x = this.world.spawn.x; this.player.y = this.world.spawn.y;
-      this.combat.setupLevel(); L.style.display = 'none'; this.paused = false; this.transition = false; this.last = 0; this.toast('Ebene ' + this.level);
+      this.combat.setupLevel(); L.style.display = 'none'; this.paused = false; this.transition = false; this.last = 0; this.toast(this.world.biome !== bio0 && this.world.biome === 'wueste' ? 'Ebene ' + this.level + ' · Hinter dem Tor beginnt die Wüste' : 'Ebene ' + this.level + (this.world.biome === 'wueste' ? ' · Wüste' : ''));
       this.save(); SAVE.bump({highestLevel: this.level});
     }, 60);
   }
   askSmith() {                                   // Schmied: zwei Waffen (beide mind. Stufe III) verschmelzen zu einem Werk; die Zutaten sind danach weg
     this.paused = true; const c = this.combat, box = document.getElementById('smithCards'), rec = c.recipes(); box.textContent = '';
-    document.getElementById('smithText').textContent = 'Der Schmied verschmilzt zwei Waffen ab Stufe ' + ROMAN[FORGE_MIN] + ' zu einem Werk. Die beiden gehen dabei verloren und kommen in diesem Lauf nicht wieder. ' + FORGE_COST + ' Gold, ein Werk je Ebene. Du trägst ' + c.gold + ' Gold.';
+    document.getElementById('smithText').textContent = (rec.length ? '' : 'Du besitzt noch keinen Bauplan – die gibt es beim Krämer in der Waffenkammer. ') + 'Der Schmied verschmilzt zwei Waffen ab Stufe ' + ROMAN[FORGE_MIN] + ' zu einem Werk. Die beiden gehen dabei verloren und kommen in diesem Lauf nicht wieder. ' + FORGE_COST + ' Gold, ein Werk je Ebene. Du trägst ' + c.gold + ' Gold.';
     rec.sort((a, b) => (b.ok - a.ok) || ((b.la > 0) + (b.lb > 0)) - ((a.la > 0) + (a.lb > 0)));
     for (const r of rec) { const W = WEAPONS[r.id], b = document.createElement('button'), tag = document.createElement('small'), t = document.createElement('b'), x = document.createElement('span'); b.className = 'card';
       const part = (id, l) => (WEAPONS[id] || PASSIVES[id]).name + (l ? ' ' + ROMAN[l] : ' (fehlt)') + (l && l < FORGE_MIN ? ' – braucht ' + ROMAN[FORGE_MIN] : '');
@@ -2886,25 +3174,25 @@ class Game {
     if (c.autoPick && offs.every(o => o.kind === 'x')) { c.choose(offs.find(o => o.id === c.autoPick) || offs[0]); this.refreshItems(); return; }   // „Immer wählen“: ohne Nachfrage
     this.showChoice('Stufe ' + this.player.level + ' erreicht', offs.every(o => o.kind === 'x') ? 'Alles ausgebaut' : 'Wähle', offs, true); }
   bossReward() {                                 // Lohn für den Boss: eine von drei Kräften, neu oder eine Stufe stärker
-    const c = this.combat, offs = ['seuche', 'kette', 'flamme'].filter(id => !c.spent[id]).map(id => ({id, kind: 'w', lvl: (c.items[id] | 0) + 1})).filter(o => o.lvl <= 5);
-    if (!offs.length) { for (let i = 0; i < 12; i++) c.coin(this.player.x + (Math.random() - .5) * 40, this.player.y + (Math.random() - .5) * 30, 4); return; }
+    const c = this.combat, offs = ['seuche', 'kette', 'flamme'].filter(id => !c.spent[id] && (ARMORY.has(id) || c.items[id])).map(id => ({id, kind: 'w', lvl: (c.items[id] | 0) + 1})).filter(o => o.lvl <= 5);
+    if (!offs.length) { if (!['seuche', 'kette', 'flamme'].some(id => ARMORY.has(id))) this.toast('Boss-Kräfte gibt es erst beim Krämer – bis dahin zahlt der Boss in Gold.'); for (let i = 0; i < 12; i++) c.coin(this.player.x + (Math.random() - .5) * 40, this.player.y + (Math.random() - .5) * 30, 4); return; }
     this.showChoice((this.lastBoss || 'Der Knochenkönig') + ' ist gefallen', 'Wähle eine Kraft', offs);
   }
   finish() {                                     // durch das letzte Tor: geschafft
     this.dead = true; const c = this.combat, hn = heroName(), on = document.getElementById('finName'); on.textContent = hn; on.style.fontSize = hn.length > 9 ? '22px' : hn.length > 5 ? '28px' : '';
-    document.getElementById('finText').textContent = `${hn} schritt durch das letzte Tor. ${LAST_LEVEL} Ebenen, ${c.kills} gefallene Feinde, Stufe ${this.player.level}, ${c.gold} Goldstücke – und der Kakodämon ist gebannt. Doch das ist noch nicht das Ende: Diese Legende wird weitergeschrieben.`;
-    document.getElementById('fin').style.display = 'flex'; ACH.give('fin');
+    document.getElementById('finText').textContent = `${hn} schritt durch das letzte Tor. ${LAST_LEVEL} Ebenen, ${c.kills} gefallene Feinde, Stufe ${this.player.level}, ${c.gold} Goldstücke – durch Grünland und Wüste, und das Wüstenauge ist geschlossen. Doch das ist noch nicht das Ende: Diese Legende wird weitergeschrieben.`;
+    document.getElementById('fin').style.display = 'flex'; ACH.give('fin'); this.bankPet();
     SAVE.del('runs', 'active'); SAVE.bump({totalKills: c.kills, highestLevel: this.level, gold: c.goldPending, goldEarned: c.earnPending, totalWins: 1}); c.goldPending = 0; c.earnPending = 0;
   }
   gameOver() {
-    this.dead = true; const c = this.combat, tt = c.time | 0; ACH.give('nachruf'); if (this.level === 1 && tt < 60) ACH.give('kurz'); if (c.dark > 0) ACH.give('lichtscheu');
+    this.dead = true; const c = this.combat, tt = c.time | 0; ACH.give('nachruf'); this.bankPet(); if (this.level === 1 && tt < 60) ACH.give('kurz'); if (c.dark > 0) ACH.give('lichtscheu');
     const hn = heroName(), on = document.getElementById('overName'); on.textContent = '† ' + hn + ' †'; on.style.fontSize = hn.length > 9 ? '22px' : hn.length > 5 ? '28px' : '';
     document.getElementById('overText').textContent = `${hn} fiel durch ${c.lastSrc || 'einen Feind'} in Ebene ${this.level} nach ${tt / 60 | 0} Min. ${tt % 60} Sek. auf Stufe ${this.player.level}. ${c.kills} Feinde fielen zuvor. Zurück bleiben ${c.gold} Goldstücke – und eine Legende.`;
     document.getElementById('over').style.display = 'flex';
     SAVE.del('runs', 'active'); SAVE.bump({totalKills: c.kills, highestLevel: this.level, gold: c.goldPending, goldEarned: c.earnPending}); c.goldPending = 0; c.earnPending = 0;
   }
   loop(now) {
-    ACH.check(this); MUSIC.sync(!this.stopped && !this.dead && !this.userPaused && document.visibilityState !== 'hidden', this.combat.time);
+    ACH.check(this); MUSIC.track(this.world.biome === 'wueste' ? 'music2.mp3' : 'musik.mp3'); MUSIC.sync(!this.stopped && !this.dead && !this.userPaused && document.visibilityState !== 'hidden', this.combat.time);
     if (this.stopped) return;
     requestAnimationFrame(this.loop);
     if (document.visibilityState === 'hidden') return;
@@ -2985,15 +3273,15 @@ class Game {
     $('loading').style.display = 'flex';
     try { history.replaceState(null, '', seedUrl(seed)); } catch (e) {}
     setTimeout(async () => {
-      const meta = (await SAVE.profile()).metaUpgrades || {};
+      const prS = await SAVE.profile(), meta = prS.metaUpgrades || {}; ARMORY.load(prS); PET.load(prS);
       if (q.get('map') === '1') {                       // nur Weltkarte, kein Gameplay
-        const w = WorldGenerator.generate(seed, parseInt(q.get('level'), 10) || 1);
+        const lv = parseInt(q.get('level'), 10) || 1, w = WorldGenerator.generate(seed, lv, biomeOf(seed, lv, false));
         WorldGenerator.drawMap(w, $('map')); $('map').style.display = 'block'; window.world = w;
       } else {
         let g = null;
         const pre = ms.seed === seed ? ms.world : null; ms.world = null; ms.seed = null;   // Vorschau-Welt wiederverwenden statt neu erzeugen
         if (save) { try { g = new Game(seed, Math.max(1, save.level | 0), save, meta, (save.level | 0) <= 1 ? pre : null); } catch (e) { console.warn('Spielstand unbrauchbar', e); g = null; } }   // kaputter Save darf nie abstürzen
-        if (!g) { SAVE.del('runs', 'active'); SAVE.bump({totalRuns: 1}); lastSeed = seed; saveSettings(); g = new Game(seed, 1, null, meta, pre); }
+        if (!g) { SAVE.del('runs', 'active'); SAVE.bump({totalRuns: 1}); lastSeed = seed; saveSettings(); const sl = START_LVL.v; g = new Game(seed, sl, null, meta, sl <= 1 ? pre : null); }
         window.game = g;
       }
       menu.style.display = 'none'; $('loading').style.display = 'none';
@@ -3008,31 +3296,64 @@ class Game {
     $('btnStart').className = activeRun ? '' : 'big';
     const pr = await SAVE.profile();
     if (pr.goldEarned === undefined) { const est = earnedOf(pr); SAVE.update(cur => { if (cur.goldEarned === undefined) cur.goldEarned = est; }); }
-    $('btnShop').textContent = 'Krämer · ' + pr.gold + ' Gold'; ACH.load(pr); $('btnAch').textContent = 'Erfolge · ' + ACH.count() + '/' + ACH.list.length;
+    $('btnShop').textContent = 'Krämer · ' + pr.gold + ' Gold'; ACH.load(pr); ARMORY.load(pr); PET.load(pr); $('btnPets').textContent = PET.active ? 'Tiere · ' + PETS[PET.active].name : 'Tierhandlung'; $('btnAch').textContent = 'Erfolge · ' + ACH.count() + '/' + ACH.list.length;
+    $('lvlNote').textContent = START_LVL.v > 1 ? 'Zum Testen: Neues Spiel beginnt auf Ebene ' + ROMAN[START_LVL.v] + (START_LVL.v >= 4 ? ' (Wüste)' : '') + '.' : '';
     $('menuWarn').textContent = SAVE.volatile ? 'Hier lässt sich nichts dauerhaft speichern (Vorschau/privater Modus). Gold, Käufe und Spielstand gelten nur, bis die Seite geschlossen wird.' : '';
     $('menuStats').textContent = pr.totalRuns ? `Läufe ${pr.totalRuns} · Höchste Ebene ${Math.max(1, pr.highestLevel)} · Feinde ${pr.totalKills} · Bosse ${pr.totalBossKills}` : '';
   }
+  let shopTab = 'meta';
   async function renderShop() {
-    const pr = await SAVE.profile(), box = $('shopCards'); box.textContent = '';
+    const pr = await SAVE.profile(), box = $('shopCards'); box.textContent = ''; ARMORY.load(pr);
     $('shopGold').textContent = pr.gold + ' Goldstücke im Beutel' + (pr.gold < 20 ? ' – Münzen fallen von Feinden, aus Truhen und vom Boss' : '');
-    for (const id in META) {
-      const m = META[id], L = pr.metaUpgrades[id] | 0, maxed = L >= m.max, cost = maxed ? 0 : metaCost(id, L);
-      const b = document.createElement('button'); b.className = 'card';
-      const tag = document.createElement('small'), t = document.createElement('b'), x = document.createElement('span');
-      const earned = earnedOf(pr), locked = !maxed && m.need && earned < m.need;
-      tag.textContent = maxed ? 'Ausgebaut' : locked ? 'Erst ab ' + m.need + ' insgesamt verdientem Gold · bisher ' + earned : cost + ' Gold' + (pr.gold < cost ? ' · es fehlen ' + (cost - pr.gold) : ' · kaufen'); t.textContent = m.name + (L ? ' ' + ROMAN[L] : '') + (m.max > 1 ? '  (' + L + '/' + m.max + ')' : ''); x.textContent = m.desc;
-      b.append(tag, t, x); b.disabled = maxed || locked || pr.gold < cost;
-      b.addEventListener('click', async () => {
-        await SAVE.update(cur => { const l = cur.metaUpgrades[id] | 0; if (l >= m.max || cur.gold < metaCost(id, l) || (m.need && earnedOf(cur) < m.need)) return false; cur.gold -= metaCost(id, l); cur.metaUpgrades[id] = l + 1; ACH.give('kunde'); });
-        renderShop();
-      });
-      box.appendChild(b);
+    const goods = ARMORY.goods(), nOwn = goods.filter(id => ARMORY.owned[id]).length;
+    $('tabMeta').className = shopTab === 'meta' ? 'on' : ''; $('tabArm').className = shopTab === 'arm' ? 'on' : ''; $('tabArm').textContent = 'Waffenkammer · ' + nOwn + '/' + goods.length;
+    const card = (tagT, name, desc, dis, own, buy) => { const b = document.createElement('button'); b.className = 'card' + (own ? ' own' : '');
+      const tag = document.createElement('small'), t = document.createElement('b'), x = document.createElement('span'); tag.textContent = tagT; t.textContent = name; x.textContent = desc; b.append(tag, t, x); b.disabled = dis;
+      if (buy) b.addEventListener('click', buy); box.appendChild(b); };
+    const el = (tg, txt, cls) => { const e = document.createElement(tg); e.textContent = txt; if (cls) e.className = cls; box.appendChild(e); };
+    if (shopTab === 'meta') {
+      for (const id in META) {
+        const m = META[id], L = pr.metaUpgrades[id] | 0, maxed = L >= m.max, cost = maxed ? 0 : metaCost(id, L), earned = earnedOf(pr), locked = !maxed && m.need && earned < m.need;
+        card(maxed ? 'Ausgebaut' : locked ? 'Erst ab ' + m.need + ' insgesamt verdientem Gold · bisher ' + earned : cost + ' Gold' + (pr.gold < cost ? ' · es fehlen ' + (cost - pr.gold) : ' · kaufen'), m.name + (L ? ' ' + ROMAN[L] : '') + (m.max > 1 ? '  (' + L + '/' + m.max + ')' : ''), m.desc, maxed || locked || pr.gold < cost, false,
+          async () => { await SAVE.update(cur => { const l = cur.metaUpgrades[id] | 0; if (l >= m.max || cur.gold < metaCost(id, l) || (m.need && earnedOf(cur) < m.need)) return false; cur.gold -= metaCost(id, l); cur.metaUpgrades[id] = l + 1; ACH.give('kunde'); }); renderShop(); });
+      }
+      return;
     }
+    el('p', 'Im Lauf taucht nur auf, was hier gekauft ist – beim Stufenaufstieg, als Fund und als Bossbeute. Immer dabei ist das Startpaket: ' + STARTER.map(id => (WEAPONS[id] || PASSIVES[id]).name).join(', ') + '.', 'hint');
+    const buyCard = (id, desc) => { const own = !!ARMORY.owned[id], cost = ARMORY.price(id), d = WEAPONS[id] || PASSIVES[id];
+      card(own ? 'Gekauft' : cost + ' Gold' + (pr.gold < cost ? ' · es fehlen ' + (cost - pr.gold) : ' · kaufen'), d.name, desc, own || pr.gold < cost, own,
+        async () => { await SAVE.update(cur => { cur.owned = cur.owned || {}; if (cur.owned[id] || cur.gold < cost || !ARMORY.ready(id)) return false; cur.gold -= cost; cur.owned[id] = 1; }); ACH.give('kunde'); const pr2 = await SAVE.profile(); ARMORY.load(pr2); if (ARMORY.full()) ACH.give('kammer'); renderShop(); }); };
+    el('h2', 'Waffen'); for (const id of goods) { const w = WEAPONS[id]; if (w && !w.found && !w.forge) buyCard(id, w.desc[0]); }
+    el('h2', 'Fähigkeiten'); for (const id of goods) { const a = PASSIVES[id]; if (a) buyCard(id, a.desc); }
+    el('h2', 'Kräfte der Bosse'); el('p', 'Gekaufte Kräfte bietet dir der besiegte Boss zur Wahl an.', 'hint'); for (const id of goods) { const w = WEAPONS[id]; if (w && w.found) buyCard(id, w.desc[0]); }
+    el('h2', 'Baupläne für den Schmied'); let hidden = 0;
+    for (const id of goods) { const w = WEAPONS[id]; if (!w || !w.forge) continue; if (!ARMORY.ready(id) && !ARMORY.owned[id]) { hidden++; continue; } buyCard(id, w.forge.map(q => (WEAPONS[q] || PASSIVES[q]).name).join(' + ') + ': ' + w.desc[0]); }
+    if (hidden) el('p', (hidden === 1 ? 'Ein weiterer Bauplan erscheint' : 'Noch ' + hidden + ' Baupläne erscheinen') + ', sobald du beide Zutaten gekauft hast.', 'hint');
   }
+  async function renderPets() {                      // Tierhandlung: kaufen, mitnehmen, füttern
+    const pr = await SAVE.profile(), box = $('petCards'); box.textContent = ''; PET.load(pr);
+    $('petGold').textContent = pr.gold + ' Goldstücke im Beutel' + (activeRun ? ' · ein Wechsel gilt ab dem nächsten neuen Lauf' : '');
+    $('petHint').textContent = 'Immer nur ein Tier ist dabei – eines je Lauf. Es lernt mit: ' + Math.round(PET_SHARE * 100) + ' % deiner Erfahrung gehen auch an dein Tier, und seine Stufe bleibt. Futter für ' + FOOD_COST + ' Gold bringt ' + FOOD_XP + ' Erfahrung.';
+    for (const id in PETS) { const D = PETS[id], own = PET.owns(id), xp = PET.xp(id), L = petLevel(xp), act = PET.active === id;
+      const card = document.createElement('div'); card.className = 'pcard' + (act ? ' on' : ''); const top = document.createElement('div'); top.className = 'top';
+      const pic = document.createElement('div'); pic.className = 'pic'; pic.appendChild(icon(D.spr[0], 4)); const tx = document.createElement('div');
+      const sm = document.createElement('small'), b = document.createElement('b'); sm.textContent = D.role; b.textContent = D.name + (own ? ' ' + ROMAN[L] : ''); tx.append(sm, b); top.append(pic, tx); card.appendChild(top);
+      const info = document.createElement('p'); info.textContent = (own ? '' : 'Auf Stufe I: ') + D.info(own ? L : 1) + (own && L < 10 ? '. Auf Stufe ' + ROMAN[L + 1] + ': ' + D.info(L + 1) : '') + '.'; card.appendChild(info);
+      if (own) { const lo = 20 * (L - 1) * L, hi = 20 * L * (L + 1), bar = document.createElement('div'), fill = document.createElement('i'), xl = document.createElement('div'); bar.className = 'bar'; xl.className = 'xpl';
+        fill.style.width = (L >= 10 ? 100 : Math.round((xp - lo) / (hi - lo) * 100)) + '%'; bar.appendChild(fill); xl.textContent = L >= 10 ? 'Höchste Stufe erreicht' : 'Erfahrung ' + xp + ' / ' + hi + ' bis Stufe ' + ROMAN[L + 1]; card.append(bar, xl); }
+      const row = document.createElement('div'); row.className = 'row';
+      const btn = (t, dis, fn, on) => { const e = document.createElement('button'); e.textContent = t; e.disabled = dis; if (on) e.className = 'on'; e.addEventListener('click', fn); row.appendChild(e); };
+      if (!own) btn('Kaufen · ' + D.price + ' Gold', pr.gold < D.price, async () => { await SAVE.update(cur => { cur.pets = cur.pets || {}; if (cur.pets[id] || cur.gold < D.price) return false; cur.gold -= D.price; cur.pets[id] = {xp: 0}; if (!cur.pet) cur.pet = id; }); ACH.give('tier'); renderPets(); });
+      else { btn(act ? 'Ist dabei' : 'Mitnehmen', false, async () => { await SAVE.update(cur => { cur.pet = cur.pet === id ? '' : id; }); renderPets(); }, act);
+        btn(L >= 10 ? 'Satt' : 'Füttern · ' + FOOD_COST + ' Gold', L >= 10 || pr.gold < FOOD_COST, async () => { let up = false; await SAVE.update(cur => { const st = cur.pets && cur.pets[id]; if (!st || cur.gold < FOOD_COST || (st.xp | 0) >= PET_MAXXP) return false; const l0 = petLevel(st.xp | 0); cur.gold -= FOOD_COST; st.xp = Math.min(PET_MAXXP, (st.xp | 0) + FOOD_XP); up = petLevel(st.xp) > l0; if (st.xp >= PET_MAXXP) ACH.give('treue'); }); renderPets(); }); }
+      card.appendChild(row); box.appendChild(card); }
+  }
+  $('btnPets').addEventListener('click', () => { renderPets(); const pg = $('pets'); pg.style.display = 'flex'; pg.scrollTop = 0; });
+  $('btnPetsBack').addEventListener('click', () => { $('pets').style.display = 'none'; refreshMenu(); });
   function toMenu() {                                   // zurück ins Menü ohne Seitenwechsel (kein Neuladen -> kein 404)
     if (window.game && window.game.stop) window.game.stop();
     window.game = null;
-    for (const id of ['over', 'fin', 'ach', 'log', 'hud', 'lvl', 'arrow', 'pause', 'pauseBtn', 'shop', 'mapBtn', 'mapPage', 'joy', 'stallPage', 'smithPage', 'wiki', 'opts', 'testShop']) $(id).style.display = 'none';
+    for (const id of ['over', 'fin', 'ach', 'log', 'pets', 'hud', 'lvl', 'arrow', 'pause', 'pauseBtn', 'shop', 'mapBtn', 'mapPage', 'joy', 'stallPage', 'smithPage', 'wiki', 'opts', 'testShop']) $(id).style.display = 'none';
     $('vignette').classList.remove('dread'); $('vignette').style.background = ''; $('toast').style.opacity = 0;
     try { const u = new URL(location.href); u.searchParams.delete('seed'); history.replaceState(null, '', u.toString()); } catch (e) {}
     input.value = randomSeed(); note.textContent = ''; menu.style.display = 'flex'; menuPreview(curSeed(), 200);
@@ -3096,19 +3417,29 @@ class Game {
     const R = mulberry32(7);
     h2('So wird gespielt');
     para('Du läufst mit dem Daumen, deine Waffen feuern von selbst. Besiegte Feinde lassen rote Splitter (Erfahrung) und Münzen (Gold) fallen.');
-    para('Die Uhr zählt fünf Minuten herunter. Dann erwacht der Knochenkönig irgendwo in der Welt und kommt zu dir; der rote Pfeil zeigt, wo er ist. Fällt er, wählst du eine Kraft, und in der Nähe öffnet sich ein Tor – wieder zeigt der Pfeil den Weg. Du hast 25 Sekunden, um hindurchzugehen; danach kommt die Dunkelheit. Durch das Tor geht es in die nächste, härtere Ebene.');
+    para('Die Uhr zählt fünf Minuten herunter. Dann erwacht der Boss der Ebene irgendwo in der Welt und kommt zu dir; der rote Pfeil zeigt, wo er ist. Fällt er, wählst du eine Kraft, und in der Nähe öffnet sich ein Tor – wieder zeigt der Pfeil den Weg. Du hast 25 Sekunden, um hindurchzugehen; danach kommt die Dunkelheit. Durch das Tor geht es in die nächste, härtere Ebene.');
     para('Beim Stufenaufstieg darfst du in jedem Lauf dreimal neu würfeln und zweimal eine Karte verbannen – die verbannte Waffe oder Fähigkeit taucht in diesem Lauf nicht mehr auf.');
+    para('Zu Beginn hast du nur das Startpaket: ' + STARTER.map(id => (WEAPONS[id] || PASSIVES[id]).name).join(', ') + '. Alles Weitere kaufst du beim Krämer in der Waffenkammer – erst dann taucht es im Lauf auf. Das gilt auch für die Kräfte der Bosse und die Baupläne des Schmieds.');
     para('Höchstens zehn Waffen und Fähigkeiten zusammen. Flüsse kannst du mit halbem Tempo durchwaten, Seen und Berge nicht. Auf Straßen und Brücken bist du schneller. Die Karte hält das Spiel an.');
-    h2('Waffen'); for (const id in WEAPONS) { const w = WEAPONS[id]; if (!w.found && !w.forge) entry(w.name, 'Stufe I bis V', w.desc.map((d, i) => ROMAN[i + 1] + ' ' + d).join(' · ')); }
-    h2('Schmiedewerke'); for (const id in WEAPONS) { const w = WEAPONS[id]; if (w.forge) entry(w.name, w.forge.map(q => (WEAPONS[q] || PASSIVES[q]).name).join(' + '), w.desc.map((d, i) => ROMAN[i + 1] + ' ' + d).join(' · ')); }
-    h2('Fähigkeiten'); for (const id in PASSIVES) { const a = PASSIVES[id]; entry(a.name, a.found ? 'nur als Fund in der Welt, danach ausbaubar' : 'bis Stufe ' + ROMAN[a.max || 5], a.desc); }
-    h2('Kräfte der Bosse'); para('Wer den Boss besiegt, wählt eine dieser drei – neu oder eine Stufe stärker. Hast du eine, taucht sie auch beim Stufenaufstieg auf.');
-    for (const id in WEAPONS) { const w = WEAPONS[id]; if (w.found) entry(w.name, 'Stufe I bis V', w.desc.map((d, i) => ROMAN[i + 1] + ' ' + d).join(' · ')); }
+    h2('Waffen'); for (const id in WEAPONS) { const w = WEAPONS[id]; if (!w.found && !w.forge) entry(w.name, 'Stufe I bis V · ' + (ARMORY.free(id) ? 'Startpaket' : 'Krämer, ' + ARMORY.price(id) + ' Gold'), w.desc.map((d, i) => ROMAN[i + 1] + ' ' + d).join(' · ')); }
+    h2('Schmiedewerke'); for (const id in WEAPONS) { const w = WEAPONS[id]; if (w.forge) entry(w.name, w.forge.map(q => (WEAPONS[q] || PASSIVES[q]).name).join(' + ') + ' · Bauplan ' + ARMORY.price(id) + ' Gold', w.desc.map((d, i) => ROMAN[i + 1] + ' ' + d).join(' · ')); }
+    h2('Fähigkeiten'); for (const id in PASSIVES) { const a = PASSIVES[id]; entry(a.name, a.found ? 'nur als Fund in der Welt, danach ausbaubar' : 'bis Stufe ' + ROMAN[a.max || 5] + ' · ' + (ARMORY.free(id) ? 'Startpaket' : 'Krämer, ' + ARMORY.price(id) + ' Gold'), a.desc); }
+    h2('Kräfte der Bosse'); para('Wer den Boss besiegt, wählt eine dieser drei – neu oder eine Stufe stärker, aber nur unter denen, die du beim Krämer gekauft hast; sonst zahlt der Boss in Gold. Hast du eine, taucht sie auch beim Stufenaufstieg auf.');
+    for (const id in WEAPONS) { const w = WEAPONS[id]; if (w.found) entry(w.name, 'Stufe I bis V · Krämer, ' + ARMORY.price(id) + ' Gold', w.desc.map((d, i) => ROMAN[i + 1] + ' ' + d).join(' · ')); }
+    h2('Haustiere'); para('Kauf sie in der Tierhandlung im Hauptmenü. Eines begleitet dich je Lauf, lernt mit ' + Math.round(PET_SHARE * 100) + ' % deiner Erfahrung und behält seine Stufe (I bis X). Feinde greifen Tiere nicht an.');
+    for (const id in PETS) { const D = PETS[id]; entry(D.name, D.role + ' · ' + D.price + ' Gold', 'Auf Stufe I: ' + D.info(1) + '. Auf Stufe X: ' + D.info(10) + '.', D.spr[0]); }
     h2('Gegner'); for (const e of ENEMY_TYPES) entry(e.name, fmtFrom(e), ENEMY_INFO[e.name] || '', e.spr);
     para('Werte gelten für Ebene 1 zu Beginn. Mit der Zeit und mit jeder Ebene werden alle zäher und schlagen härter zu. Ab Ebene 2 brechen zusätzlich alle 38 Sekunden Horden hervor.');
+    h2('In der Wüste'); para('Ab Ebene 4 geht es durch die Wüste: Sand und Dünen, Oasen mit Palmen, trockene Flussbetten, rote Felsplateaus, Lehmhäuser und manchmal eine Pyramide; am Rand türmen sich hohe Dünen. Statt Kirche und Kapelle heilen Grabstätte und Nomadenzelt (rote Lichter statt Fenster), statt Friedhof gibt es Wüstengräber, statt Mühle eine Zisterne. Die Gegner haben dort eine andere Gestalt.');
+    entry('Grabstätte und Nomadenzelt', 'drei kleine Heilungen', 'Wie Kirche und Kapelle: Stell dich davor, ein rotes Licht erlischt und heilt 10 Leben.', SHRINE_SPR['Grabstätte'][3]);
+    for (const e of ENEMY_TYPES) if (e.dspr) entry(e.dname, 'statt ' + e.name, '', e.dspr);
     h2('Große Gegner');
     entry(BOSS.name, 'erscheint nach 5 Minuten', 'Wechselt zwischen Geschosskranz, gerufenen Schlurfern und Ansturm; aus der Nähe schlägt er mit dem Schwert weit in Blickrichtung. Boss der ersten Ebene. Im Endlosmodus kehrt er wieder und steht dann zweimal auf.', BOSS_ANIM.walk[0][0]);
     entry(BOSS3.name, 'Boss der dritten Ebene', 'Schwebt über Wasser und Berge hinweg. Stürzt sich mit offenem Maul auf dich, spuckt drei schnelle Feuersalven und ruft jede vierte Aktion einen Schwarm im Feuerkranz. Ab der Hälfte seines Lebens regnet es zusätzlich Bomben: Lauf aus den roten Kreisen, bevor sie sich schließen.', CACO_ANIM.idle[0][0]);
+    entry(BOSS4.name, 'Boss der vierten Ebene · Wüste', 'Schreitet mit Schwert und Schild. Aus der Nähe ein weiter Hieb; dazu Wirbelhieb mit Knochenkranz, ein Ansturm und der erhobene Schild – dahinter steckt er kaum etwas ein, und aus dem Sand steigen Mumien.', MON.skel.idle[0][0]);
+    entry(BOSS5.name, 'Boss der fünften Ebene · Wüste', 'Flink und hinterhältig: Dolchstiche, Wurfmesser im Fächer, blitzschnelle Sprints und Bomben, die mit roten Kreisen angekündigt werden. Ab der Hälfte wirft er mehr davon.', MON.gob.idle[0][0]);
+    entry(BOSS6.name, 'Boss der sechsten Ebene · Wüste', 'Schwebt über alles hinweg und hält Abstand. Beißt im Sturzflug, dreht sich zu einer Geschossspirale und ruft Geier samt Geschosskranz.', MON.eye.walk[0][0]);
+    entry(BOSS7.name, 'nur im Endlosmodus', 'Langsam und zäh. Kopfstoß aus der Nähe, Sporenwolken (rote Kreise) rund um dich und ein Ansturm, der in einem Geschosskranz endet.', MON.pilz.idle[0][0]);
     entry(BOSS2.name, 'Boss der zweiten Ebene', 'Wirft Geschossfächer. Jede dritte Aktion lädt er sichtbar auf, gleitet auf deine Höhe und feuert einen langen waagrechten Strahl in Blickrichtung – weiche nach oben oder unten aus, sobald die gestrichelte Linie steht.', SPIRIT_ANIM.walk[0][0]);
     entry(GOBLIN.name, 'bewacht den Goldfluss', 'Erscheint am riesigen Wahrzeichen, sobald du dich seinem Sack näherst – aber nur, wenn der Goldfluss beim Krämer freigeschaltet ist. Springt dich an und wirft mit Münzen. Fällt er, liegt der Sack frei: Goldfluss, eine Stufe je Welt.', GOBLIN_SPR[0]);
     entry(GUARD.name, 'bewacht den Opferaltar', 'Halb so zäh wie der Boss. Rollt in gerader Bahn an und trudelt aus – weich seitlich aus.', BALL_SPR[0]);
@@ -3139,6 +3470,8 @@ class Game {
   $('btnWiki').addEventListener('click', openWiki); $('btnWiki2').addEventListener('click', openWiki);
   $('btnWikiBack').addEventListener('click', () => { $('wiki').style.display = 'none'; });
   $('btnShopBack').addEventListener('click', () => { $('shop').style.display = 'none'; refreshMenu(); });
+  $('tabMeta').addEventListener('click', () => { shopTab = 'meta'; renderShop(); });
+  $('tabArm').addEventListener('click', () => { shopTab = 'arm'; renderShop(); $('shop').scrollTop = 0; });
   $('pauseBtn').addEventListener('click', () => { if (window.game && window.game.pause) window.game.pause(); });
   $('mapBtn').addEventListener('click', () => { if (window.game && window.game.openMap) window.game.openMap(); });
   $('btnMapBack').addEventListener('click', () => { if (window.game && window.game.closeMap) window.game.closeMap(); });
@@ -3147,6 +3480,10 @@ class Game {
   $('btnNoHorse').addEventListener('click', () => { if (window.game && window.game.stallAnswer) window.game.stallAnswer(false); });
   $('ver').textContent = VERSION; { const v = document.createElement('p'); v.innerHTML = '<i>' + VERSION + '</i>'; $('rollIn').insertBefore(v, $('rollIn').children[2]); }
   $('btnOpts').addEventListener('click', () => { ACH.unlock(); $('optNote').textContent = ''; $('opts').style.display = 'flex'; $('opts').scrollTop = 0; });
+  const lvBtns = () => { const box = $('lvlPick'); box.textContent = ''; for (let l = 1; l <= 6; l++) { const b = document.createElement('button'); b.textContent = ROMAN[l]; b.style.minHeight = '38px'; if (l === START_LVL.v) { b.style.background = '#2a242b'; b.style.color = '#e8e6d2'; }
+      b.addEventListener('click', () => { START_LVL.v = l; try { localStorage.setItem('loStartLvl', String(l)); } catch (e) {} lvBtns(); refreshMenu(); }); box.appendChild(b); } }; lvBtns();
+  const sdBtn = () => { $('btnSand').textContent = 'Sandverwehungen (Wüste): ' + (SANDFX.on ? 'an' : 'aus'); }; sdBtn();
+  $('btnSand').addEventListener('click', () => { SANDFX.on = !SANDFX.on; try { localStorage.setItem('loSand', SANDFX.on ? '1' : '0'); } catch (e) {} sdBtn(); });
   const cBtn = () => { $('btnClouds').textContent = 'Wolken: ' + (CLOUDS.on ? 'an' : 'aus'); }; cBtn();
   $('btnClouds').addEventListener('click', () => { CLOUDS.on = !CLOUDS.on; try { localStorage.setItem('loClouds', CLOUDS.on ? '1' : '0'); } catch (e) {} cBtn(); });
   const sBtn = () => { $('btnShadow').textContent = 'Schatten: ' + (SHADOWS.on ? 'an' : 'aus'); }; sBtn();
