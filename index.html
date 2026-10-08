@@ -1987,7 +1987,7 @@ const META = {
 };
 const CHANGELOG = [                                // neueste Version oben; n = neu, g = geändert, e = entfernt
   ['V0.999', {n: ['Bloom: helle Stellen strahlen weich in die dunklen hinein, in den Einstellungen an- und abschaltbar.', 'Die zweite Startwaffe vom Krämer lässt sich in den Einstellungen abschalten.', 'Fortschritt zurücksetzen in den Einstellungen – Einstellungen und Name bleiben.', 'Nach dem Tod gibt es eine Übersicht über den Lauf und gleich einen neuen Lauf.'],
-             g: ['Der Farbmodus wird erst nach Ebene 6 freigeschaltet.', 'Im Pausemenü sind die Werte eingeklappt und lassen sich aufklappen.', 'Todesbildschirm, Pause, Ladebild und Abspann haben neue Texte; zwei Erfolge heißen anders.']}],
+             g: ['Der Farbmodus wird erst nach Ebene 6 freigeschaltet.', 'Im Pausemenü sind die Werte eingeklappt und lassen sich aufklappen.', 'Die Werte im Pausemenü zeigen aktive Schrein-Gaben und rechnen sie mit ein: doppelter Schaden (auch beim Waffenschaden), doppelte Erfahrung, doppeltes Gold und den Fluch.', 'Todesbildschirm, Pause, Ladebild und Abspann haben neue Texte; zwei Erfolge heißen anders.']}],
   ['V0.998', {g: ['Die Gaben der Schreine sind gleichmäßig verteilt – vorher kam der Rüstungsfluch fast auf jeder Ebene.', 'Alles durchgesehen, kleinere Fehler behoben.']}],
   ['V0.997', {n: ['Die Schreine sind auf der Karte eingetragen (rotes Kreuz), solange sie noch etwas bergen.'],
              g: ['Rings um die Wüste stehen hohe, geschichtete Felswände statt Dünen.', 'Behoben: In V0.996 kamen keine Gegner mehr.']}],
@@ -3164,26 +3164,28 @@ class Game {
     const I = id => it[id] | 0, row = (name, val, from) => { const d = document.createElement('div'), b = document.createElement('b'), sp = document.createElement('span'); b.textContent = name; sp.textContent = val; if (from) { const sm = document.createElement('small'); sm.textContent = from; sp.appendChild(sm); } d.append(b, sp); box.appendChild(d); };
     const h2 = t => { const e = document.createElement('h2'); e.textContent = t; box.appendChild(e); };
     h2(heroName() + ' · Stufe ' + p.level);
+    const bf = c.buf || {}, on = k => bf[k] > 0, sd = on('dmg') ? 2 : 1, sx = on('xp') ? 2 : 1, sg = on('gold') ? 2 : 1, left = k => 'Schrein, noch ' + Math.ceil(bf[k]) + ' s', plus = (...a) => a.filter(Boolean).join(' · ');   // Gaben der Schreine zählen mit
+    for (const k of ['dmg', 'xp', 'gold', 'inv', 'curse']) if (on(k)) row(k === 'curse' ? 'Fluch' : 'Gabe', BLESS[k].name, left(k) + (k === 'curse' ? ' · Treffer gegen dich +25 %' : ''));
     row('Leben', Math.ceil(p.hp) + ' / ' + p.maxHp, src(['Zähes Herz', I('herz'), '+' + 20 * I('herz')], ['Eiserne Ration', m.vita | 0, '+' + 10 * (m.vita | 0)]));
-    row('Schaden', x(p.dmgMul), src(['Wetzstein', I('kraft'), pc(.1 * I('kraft'))], ['Schleifstein', m.kraft | 0, pc(.05 * (m.kraft | 0))]));
+    row('Schaden', x(p.dmgMul * sd), plus(src(['Wetzstein', I('kraft'), pc(.1 * I('kraft'))], ['Schleifstein', m.kraft | 0, pc(.05 * (m.kraft | 0))]), sd > 1 ? 'Schrein ×2' : ''));
     row('Kritische Treffer', Math.round(p.crit * 100) + ' %', src(['Scharfes Auge', I('auge'), pc(.08 * I('auge'))]));
     row('Waffen bereit', x(p.cdMul) + ' Wartezeit', src(['Stundenglas', I('eile'), pc(Math.pow(.92, I('eile')) - 1)]));
     row('Reichweite und Fläche', x(p.area), src(['Langer Arm', I('weite'), pc(.1 * I('weite'))]));
-    row('Rüstung', (p.armor ? '−' + p.armor : '0') + ' je Treffer', src(['Lederwams', I('wams'), '−' + I('wams')], ['Kettenhemd', Math.min(m.wams | 0, META.wams.max), '−' + Math.min(m.wams | 0, META.wams.max)]) + (p.armor ? ' · ein Viertel kommt immer durch' : ''));
+    row('Rüstung', (p.armor ? '−' + p.armor : '0') + ' je Treffer', plus(on('curse') ? 'Fluch des Schreins: Treffer +25 %' : '', src(['Lederwams', I('wams'), '−' + I('wams')], ['Kettenhemd', Math.min(m.wams | 0, META.wams.max), '−' + Math.min(m.wams | 0, META.wams.max)]) + (p.armor ? ' · ein Viertel kommt immer durch' : '')));
     if (c.pet) { const D = PETS[c.pet.id]; row('Haustier', D.name + ' ' + ROMAN[c.pet.lvl], D.role + ' · ' + D.info(c.pet.lvl)); }
     row('Lauftempo', x(p.speedMul * (p.horse > 0 ? 1.5 : 1)), src(['Wanderstiefel', I('stiefel'), pc(.08 * I('stiefel'))], ['Gute Sohlen', m.tempo | 0, pc(.03 * (m.tempo | 0))]) + (p.horse > 0 ? ' · zu Pferd ×1,5 (noch ' + p.horse + ' Treffer)' : ''));
-    row('Erfahrung', x(p.xpMul), src(['Fibel', I('fibel'), pc(.12 * I('fibel'))], ['Lesebrille', m.lehre | 0, pc(.05 * (m.lehre | 0))]));
+    row('Erfahrung', x(p.xpMul * sx), plus(src(['Fibel', I('fibel'), pc(.12 * I('fibel'))], ['Lesebrille', m.lehre | 0, pc(.05 * (m.lehre | 0))]), sx > 1 ? 'Schrein ×2' : ''));
     row('Sammelreichweite', Math.round(p.pickup) + ' Pixel', src(['Elsternblick', I('magnet'), x(Math.pow(1.3, I('magnet')))], ['Lange Finger', m.magnet | 0, pc(.1 * (m.magnet | 0))]));
-    row('Gold', x(c.goldMul || 1), src(['Geldkatze', m.gier | 0, pc(.15 * (m.gier | 0))]));
+    row('Gold', x((c.goldMul || 1) * sg), plus(src(['Geldkatze', m.gier | 0, pc(.15 * (m.gier | 0))]), sg > 1 ? 'Schrein ×2' : ''));
     if (p.goldFlow > 0) row('Goldfluss', Math.round(Math.min(.75, p.goldFlow) * 100) + ' % der Erfahrung', src(['Goldfluss', I('goldfluss'), 'wird zu Gold, 2 : 1']));
     if (p.leech > 0) row('Lebensraub', Math.round(p.leech * 100) + ' % des Schadens', src(['Blutdurst', I('blut'), 'höchstens ' + 2 * I('blut') + ' Leben/s']));
     if (I('blutpest')) row('Blutpest', Math.round((.1 + .03 * I('blutpest')) * 100) + ' % des Seuchenschadens', 'höchstens ' + (2 + I('blutpest')) + ' Leben/s');
     if (p.twin > 0) row('Zwillingswurf', Math.round(Math.min(1, p.twin) * 100) + ' %', src(['Zwillingswurf', I('doppel'), '']));
     if (p.shield > 0) row('Schutzschild', p.shieldT > 0 ? 'lädt noch ' + Math.ceil(p.shieldT) + ' s' : 'bereit', src(['Schutzschild', I('schild'), 'lädt in ' + (13.5 - 1.5 * p.shield).toFixed(1).replace('.', ',') + ' s']));
-    if (p.thorns > 0) row('Dornenpanzer', Math.round(6 * p.thorns * p.dmgMul) + ' Schaden zurück', src(['Dornenpanzer', I('dornen'), '']));
+    if (p.thorns > 0) row('Dornenpanzer', Math.round(6 * p.thorns * p.dmgMul * sd) + ' Schaden zurück', src(['Dornenpanzer', I('dornen'), '']));
     if (p.lure > 0) row('Unheilsglocke', pc(.2 * p.lure) + ' Feinde', src(['Unheilsglocke', I('glocke'), '']));
     if (c.autoPick) { row('Beim Stufenaufstieg', 'immer ' + (c.autoPick === 'goldsack' ? 'Goldsack' : 'Proviant'), ''); const ub = document.createElement('button'); ub.textContent = 'Wieder fragen'; ub.style.margin = '6px 0'; ub.addEventListener('click', () => { c.autoPick = ''; this.showStats(); }); box.appendChild(ub); }
-    h2('Waffen');
+    h2('Waffen'); const DM = p.dmgMul * sd;   // Schadensfaktor samt Schrein
     // Schaden je Treffer: Grundwert der Stufe × Schadensbonus; kritische Treffer verdoppeln. Die Tabelle spiegelt die Werte der Waffenlogik (dort bei Änderungen mitziehen)
     const pl = Math.max(I('seuche'), I('pest'), I('pestfeuer'), I('blutpest')), g = (L, n) => L >= n ? 1 : 0;
     const WI = { // [Grundschaden, Wartezeit in s (0 = dauernd), Text zur Anzahl/Art]
@@ -3196,21 +3198,21 @@ class Game {
       kette: L => [11 + 2 * L, 2.7 - .15 * L, 'über ' + (2 + L) + ' Feinde, je Sprung 10 % weniger'], flamme: L => [2.5 + 1.3 * L, .35, 'je Feind im Feuer'],
       pest: L => [9 + 3 * L, 0, 'je Explosion; dazu Seuche ' + (1.5 + pl).toFixed(1).replace('.', ',') + ' alle halbe Sekunde'], dampf: L => [4 + L, .5, 'heiße Phase, doppelt gegen Unterkühlte; kalte Phase ' + (2 + .5 * L).toFixed(1).replace('.', ',')],
       gewitter: L => [24 + 4 * L, 2.5 - .12 * L, (1 + g(L, 3) + g(L, 5)) + ' Einschläge, je Sprung 10 % weniger'], hagel: L => [8 + 2 * g(L, 2) + 3 * g(L, 4), L >= 5 ? 1.05 : L >= 3 ? 1.25 : 1.5, (5 + L) + ' Klingen'],
-      hellebarde: L => [13 + 3 * (L - 1), L >= 3 ? 1.7 : 2.1, 'Rundschlag; Stoß ' + Math.round((15 + 3 * (L - 1)) * p.dmgMul)], totenvogel: L => [8 + 2 * L, 0, (2 + g(L, 3) + g(L, 5)) + ' Raben, je Hieb; Irrlicht ' + Math.round((7 + 2 * L) * p.dmgMul)],
+      hellebarde: L => [13 + 3 * (L - 1), L >= 3 ? 1.7 : 2.1, 'Rundschlag; Stoß ' + Math.round((15 + 3 * (L - 1)) * DM)], totenvogel: L => [8 + 2 * L, 0, (2 + g(L, 3) + g(L, 5)) + ' Raben, je Hieb; Irrlicht ' + Math.round((7 + 2 * L) * DM)],
       beben: L => [9 + 3 * g(L, 2) + 3 * g(L, 4) + 3 * g(L, 5), L >= 5 ? 3.4 : 4.2, 'je Welle, ' + (L >= 3 ? 4 : 3) + ' Wellen'], pestfeuer: L => [4 + 1.3 * L, .35, 'je Feind im Feuer; dazu Seuche'],
       nekro: L => [5 + 2 * L, .55, (L >= 5 ? 3 : L >= 3 ? 2 : 1) + ' Skelette je Beschwörung, je Hieb, ' + (9 + L) + ' s lang'], meteor: L => [34 + 10 * g(L, 2) + 14 * g(L, 5), L >= 5 ? 4.2 : 5.5, (L >= 4 ? 2 : 1) + ' Brocken, Flächenschaden'],
       feuersturm: L => [14 + 4 * g(L, 2) + 5 * g(L, 4), L >= 3 ? .3 : .42, 'je Einschlag, Flächenschaden' + (L >= 5 ? ', zwei Spiralen' : '')], seuchenheer: L => [7 + 2 * L, .55, (L >= 5 ? 4 : L >= 3 ? 3 : 2) + ' Skelette, je Hieb, stecken an, ' + (10 + L) + ' s lang'],
-      donnerspeer: L => [11 + 4 * g(L, 2) + 4 * g(L, 4), 1.5, 'je Durchbohrtem; dazu Blitz ' + Math.round(9 * p.dmgMul) + ' auf bis zu ' + (L >= 4 ? 5 : 3) + ' Feinde'], wirbel: L => [7 + 2 * g(L, 2) + 3 * g(L, 4), 0, (L >= 5 ? '9 + 5' : L >= 3 ? '7 + 4' : '5 + 3') + ' Klingen, je Treffer'],
+      donnerspeer: L => [11 + 4 * g(L, 2) + 4 * g(L, 4), 1.5, 'je Durchbohrtem; dazu Blitz ' + Math.round(9 * DM) + ' auf bis zu ' + (L >= 4 ? 5 : 3) + ' Feinde'], wirbel: L => [7 + 2 * g(L, 2) + 3 * g(L, 4), 0, (L >= 5 ? '9 + 5' : L >= 3 ? '7 + 4' : '5 + 3') + ' Klingen, je Treffer'],
       komet: L => [60 + 16 * g(L, 2) + 20 * g(L, 4), L >= 4 ? 5.2 : 6.5, (L >= 5 ? 2 : 1) + ' Komet, großer Flächenschaden, bremst'],
-      eislanze: L => [11 + 3 * g(L, 2) + 3 * g(L, 4) + 3 * g(L, 5), L >= 5 ? 1.1 : 1.4, 'Splitter ' + Math.round(8 * p.dmgMul) + ' Flächenschaden'], kugel: L => [5 + 2 * L, 4.5, 'neue Kugel; je Blitz, etwa drei Blitze je Sekunde auf bis zu 3 Feinde'],
+      eislanze: L => [11 + 3 * g(L, 2) + 3 * g(L, 4) + 3 * g(L, 5), L >= 5 ? 1.1 : 1.4, 'Splitter ' + Math.round(8 * DM) + ' Flächenschaden'], kugel: L => [5 + 2 * L, 4.5, 'neue Kugel; je Blitz, etwa drei Blitze je Sekunde auf bis zu 3 Feinde'],
       blutpest: L => [1.5 + pl + .5 * L, .5, 'je Angesteckten, alle halbe Sekunde'] };
     const num = v => (Math.round(v * 10) / 10).toString().replace('.', ',');
     for (const w of c.weapons) { const W = WEAPONS[w.id], f = WI[w.id], q = f ? f(w.lvl) : null, kind = W.forge ? 'Schmiedewerk' : W.found ? 'Kraft' : 'Waffe';
       if (!q) { row(W.name + ' ' + ROMAN[w.lvl], kind, ''); continue; }
       const cont = q[1] === 0 || ['ring', 'seuche', 'flamme', 'dampf', 'pestfeuer', 'blutpest', 'nekro', 'seuchenheer', 'feuersturm'].includes(w.id);
-      row(W.name + ' ' + ROMAN[w.lvl], num(q[0] * p.dmgMul) + ' Schaden', kind + ' · Grundwert ' + num(q[0]) + ' ' + x(p.dmgMul) + (p.crit > 0 ? ' · kritisch ' + num(q[0] * p.dmgMul * 2) : '') + (q[1] ? (cont ? ' · alle ' + num(q[1]) + ' s' : ' · alle ' + num(q[1] * p.cdMul) + ' s') : '') + ' · ' + q[2]); }
+      row(W.name + ' ' + ROMAN[w.lvl], num(q[0] * DM) + ' Schaden', kind + ' · Grundwert ' + num(q[0]) + ' ' + x(DM) + (p.crit > 0 ? ' · kritisch ' + num(q[0] * DM * 2) : '') + (q[1] ? (cont ? ' · alle ' + num(q[1]) + ' s' : ' · alle ' + num(q[1] * p.cdMul) + ' s') : '') + ' · ' + q[2]); }
     h2('Gegner in Ebene ' + this.level);
-    row('Leben', x(c.lvlMul * (1 + (c.time + c.tOff) / BAL.hpRamp)), 'wächst mit der Zeit'); row('Schaden', x(c.dmgLvl), '');
+    row('Leben', x(c.lvlMul * (1 + (c.time + c.tOff) / BAL.hpRamp)), 'wächst mit der Zeit'); row('Schaden', x(c.dmgLvl * (on('curse') ? 1.25 : 1)), on('curse') ? 'Fluch des Schreins: +25 %' : '');
   }
   resume() { this.userPaused = false; this.last = 0; document.getElementById('pause').style.display = 'none'; }
   refreshItems() { const c = this.combat; document.getElementById('hudItems').textContent = c.itemList() + (c.pet ? ' · ' + PETS[c.pet.id].name + ' ' + ROMAN[c.pet.lvl] : ''); }
