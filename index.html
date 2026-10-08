@@ -263,7 +263,7 @@ html,body{overscroll-behavior:none;touch-action:none;
   <button id="btnMusic">Musik: an</button>
   <button id="btnLens">W&ouml;lbung: an</button>
   <button id="btnWiki2">Almanach</button>
-  <button id="btnTest">Testh&auml;ndler (nur zum Probieren)</button>
+  <button id="btnTest" style="display:none">Testh&auml;ndler (nur zum Probieren)</button>
   <button id="btnQuit">Speichern &amp; zum Men&uuml;</button>
 </div></div>
 <div id="stallPage" class="page" style="display:none"><div class="sheet">
@@ -348,9 +348,9 @@ html,body{overscroll-behavior:none;touch-action:none;
   <button id="btnColor"></button>
   <button id="btnTurbo"></button>
   <button id="btnEndless"></button>
-  <h2>Zum Testen</h2>
+  <div id="adminBox" style="display:none"><h2>Zum Testen</h2>
   <div class="sub" id="lvlPickNote" style="margin-bottom:6px">Neues Spiel beginnt auf Ebene</div>
-  <div class="row" id="lvlPick"></div>
+  <div class="row" id="lvlPick"></div></div>
   <h2>Diese Welt teilen</h2>
   <div class="row"><button id="btnCopy">Seed kopieren</button><button id="btnLink">Link kopieren</button></div>
   <div id="optNote"></div>
@@ -398,8 +398,10 @@ const TINT_OF_TYPE = new Uint8Array([1, 2, 3, 4, 4, 5, 6, 6, 7, 8, 9, 10, 2, 19]
 const TINT_DESERT = new Uint8Array([14, 2, 1, 15, 15, 5, 6, 16, 17, 18, 9, 9, 2, 19]);   // Sand, Oase, grüner Uferrand, helle Piste, roter Fels, Ocker-Geröll, Dünen, Lehm   // Reihenfolge wie T
 const COLOR = { on: false, free: false };
 const LENS = { on: true }; try { LENS.on = localStorage.getItem('loLens') !== '0'; } catch (e) {}
-const VERSION = 'V0.997';
+const VERSION = 'V0.998';
 const ANKH = { has: false, price: 500, load(pr) { this.has = !!(pr && pr.ankh); } };   // Ankh: einmal wiederauferstehen, dann neu kaufen
+const ADMIN = { on: false, sync() { for (const id of ['adminBox', 'btnTest']) { const e = document.getElementById(id); if (e) e.style.display = this.on ? '' : 'none'; } } };   // Werkzeuge zum Testen: nur nach dem Zauberwort sichtbar
+try { ADMIN.on = localStorage.getItem('loAdmin') === '1'; } catch (e) {}
 const START_LVL = { v: 1 }; try { START_LVL.v = Math.max(1, Math.min(6, parseInt(localStorage.getItem('loStartLvl'), 10) || 1)); } catch (e) {}   // nur zum Testen: auf welcher Ebene ein neues Spiel beginnt
 const SANDFX = { on: true }; try { SANDFX.on = localStorage.getItem('loSand') !== '0'; } catch (e) {}
 const CLOUDS = { on: true, els: null, TW: 1150, TH: 1500,
@@ -1950,6 +1952,8 @@ const META = {
   zweit:  {name: 'Zweite Waffe',   desc: 'Jeder Lauf beginnt mit einer zufälligen zweiten Waffe aus deiner Waffenkammer', max: 1, base: 150}
 };
 const CHANGELOG = [                                // neueste Version oben; n = neu, g = geändert, e = entfernt
+  ['V0.998', {n: ['Zauberwort „admin“ (Cheats im Abspann) blendet die Testwerkzeuge ein und aus: Startebene und Testhändler.'],
+             g: ['Startebene und Testhändler sind ohne das Zauberwort versteckt; ohne sie beginnt jeder Lauf auf Ebene I.', 'Die Gaben der Schreine sind gleichmäßig verteilt – vorher kam der Rüstungsfluch fast auf jeder Ebene.']}],
   ['V0.997', {n: ['Die Schreine sind auf der Karte eingetragen (rotes Kreuz), solange sie noch etwas bergen.'],
              g: ['Rings um die Wüste stehen hohe, geschichtete Felswände statt Dünen.', 'Behoben: In V0.996 kamen keine Gegner mehr.']}],
   ['V0.996', {n: ['Ankh beim Krämer (500 Gold): einmal wiederauferstehen mit 75 % Leben, danach neu kaufen.', 'Erfolg „Zweites Leben“.'],
@@ -2119,7 +2123,7 @@ class Combat {
   }
   placeWayShrines() {                            // drei Schreine (Wegkreuz bzw. kleiner Obelisk) an zufälligen, erreichbaren Stellen; die Gabe zeigt sich erst beim Berühren
     const g = this.g, w = g.world, R = mulberry32((Math.imul(levelSeed(g.seed, g.level), 2654435761) ^ 0xC5A1E) >>> 0), keys = Object.keys(BLESS); for (let i = 0; i < 7; i++) R(); this.wsh = []; this.buf = this.buf || {xp: 0, inv: 0, gold: 0, dmg: 0, curse: 0};
-    for (let i = keys.length - 1; i > 0; i--) { const j = R() * (i + 1) | 0; [keys[i], keys[j]] = [keys[j], keys[i]]; }
+    { const ls = levelSeed(g.seed, g.level) | 0, hv = keys.map((k, i) => hash2(i * 7919 + 13, ls, 0x5EED + i * 31)); const ord = keys.map((k, i) => i).sort((a, b) => hv[a] - hv[b]); const k2 = ord.map(i => keys[i]); keys.length = 0; keys.push(...k2); }   // gleichmäßig gemischt: jede Gabe gleich oft
     const spr = WAYSHRINE[w.biome] || WAYSHRINE.gruen;
     for (let tries = 0; tries < 900 && this.wsh.length < 3; tries++) { const x = 160 + R() * (WORLD - 320) | 0, y = 160 + R() * (WORLD - 320) | 0, t = w.typeAt(x, y);
       if (!(t === T.GRASS || (t === T.FOREST && w.biome === 'wueste') || t === T.FIELD_A || t === T.FIELD_B) || w.objAt && false || w.blocked(x, y) || w.blocked(x, y - 6) || !w.reachable(x, y + 3)) continue;
@@ -3078,7 +3082,7 @@ class Game {
     this.world = world || WorldGenerator.generate(this.seed, this.level, biomeOf(this.seed, this.level, this.endless));   // das Menü reicht die schon erzeugte Vorschau-Welt weiter
     this.player = new Player(this.world.spawn.x, this.world.spawn.y);
     this.dir = {x: 0, y: 0};
-    this.combat = new Combat(this, q.get('weapons') === 'all'); this.dead = false; this.paused = false; this.userPaused = false; this.transition = false; this.saveT = 0; this.hudT = 0;
+    this.combat = new Combat(this, ADMIN.on && q.get('weapons') === 'all'); this.dead = false; this.paused = false; this.userPaused = false; this.transition = false; this.saveT = 0; this.hudT = 0;
     if (save) this.combat.restore(save);
     this.refreshItems();
     document.getElementById('hud').style.display = 'block'; document.getElementById('pauseBtn').style.display = 'block'; document.getElementById('joy').style.display = 'block'; document.getElementById('mapBtn').style.display = 'block';
@@ -3116,7 +3120,7 @@ class Game {
   bank() { const c = this.combat, n = c.goldPending, e = c.earnPending; if (n !== 0 || e) { c.goldPending = 0; c.earnPending = 0; SAVE.bump({gold: n, goldEarned: e}); } this.bankPet(); }
   bankPet() { const c = this.combat, n = c.petPending | 0; if (!c.pet || n < 1) return; c.petPending -= n; const id = c.pet.id;   // Erfahrung des Tiers wandert laufend ins Profil
     SAVE.update(pr => { pr.pets = pr.pets || {}; const st = pr.pets[id]; if (!st) return false; st.xp = Math.min(PET_MAXXP, (st.xp | 0) + n); }); }   // Gold wandert laufend ins Profil
-  pause() { if (this.dead) return; if (this.userPaused) { this.save(); return; } this.userPaused = true; this.showStats(); const pg = document.getElementById('pause'); pg.style.display = 'flex'; pg.scrollTop = 0; this.save(); }
+  pause() { if (this.dead) return; ADMIN.sync(); if (this.userPaused) { this.save(); return; } this.userPaused = true; this.showStats(); const pg = document.getElementById('pause'); pg.style.display = 'flex'; pg.scrollTop = 0; this.save(); }
   showStats() {                                  // aktuelle Werte samt Herkunft: Fähigkeiten im Lauf (Stufe) und Krämer-Käufe
     const p = this.player, c = this.combat, it = c.items, m = this.meta || {}, box = document.getElementById('stats'); box.textContent = '';
     const pc = v => (v >= 0 ? '+' : '−') + Math.round(Math.abs(v) * 100) + ' %', x = v => '×' + v.toFixed(2).replace('.', ',');
@@ -3345,7 +3349,7 @@ class Game {
         let g = null;
         const pre = ms.seed === seed ? ms.world : null; ms.world = null; ms.seed = null;   // Vorschau-Welt wiederverwenden statt neu erzeugen
         if (save) { try { g = new Game(seed, Math.max(1, save.level | 0), save, meta, (save.level | 0) <= 1 ? pre : null); } catch (e) { console.warn('Spielstand unbrauchbar', e); g = null; } }   // kaputter Save darf nie abstürzen
-        if (!g) { SAVE.del('runs', 'active'); SAVE.bump({totalRuns: 1}); lastSeed = seed; saveSettings(); const sl = START_LVL.v; g = new Game(seed, sl, null, meta, sl <= 1 ? pre : null); }
+        if (!g) { SAVE.del('runs', 'active'); SAVE.bump({totalRuns: 1}); lastSeed = seed; saveSettings(); const sl = ADMIN.on ? START_LVL.v : 1; g = new Game(seed, sl, null, meta, sl <= 1 ? pre : null); }
         window.game = g;
       }
       menu.style.display = 'none'; $('loading').style.display = 'none';
@@ -3361,7 +3365,7 @@ class Game {
     const pr = await SAVE.profile();
     if (pr.goldEarned === undefined) { const est = earnedOf(pr); SAVE.update(cur => { if (cur.goldEarned === undefined) cur.goldEarned = est; }); }
     $('btnShop').textContent = 'Krämer · ' + pr.gold + ' Gold'; ACH.load(pr); ARMORY.load(pr); PET.load(pr); ANKH.load(pr); $('btnPets').textContent = PET.active ? 'Tiere · ' + PETS[PET.active].name : 'Tierhandlung'; $('btnAch').textContent = 'Erfolge · ' + ACH.count() + '/' + ACH.list.length;
-    $('lvlNote').textContent = START_LVL.v > 1 ? 'Zum Testen: Neues Spiel beginnt auf Ebene ' + ROMAN[START_LVL.v] + (START_LVL.v >= 4 ? ' (Wüste)' : '') + '.' : '';
+    ADMIN.sync(); $('lvlNote').textContent = ADMIN.on && START_LVL.v > 1 ? 'Zum Testen: Neues Spiel beginnt auf Ebene ' + ROMAN[START_LVL.v] + (START_LVL.v >= 4 ? ' (Wüste)' : '') + '.' : '';
     $('menuWarn').textContent = SAVE.volatile ? 'Hier lässt sich nichts dauerhaft speichern (Vorschau/privater Modus). Gold, Käufe und Spielstand gelten nur, bis die Seite geschlossen wird.' : '';
     $('menuStats').textContent = pr.totalRuns ? `Läufe ${pr.totalRuns} · Höchste Ebene ${Math.max(1, pr.highestLevel)} · Feinde ${pr.totalKills} · Bosse ${pr.totalBossKills}` : '';
   }
@@ -3453,7 +3457,8 @@ class Game {
       iambabo: () => { CHEAT.god = !CHEAT.god; return CHEAT.god ? 'Unverwundbar – bis die Seite neu geladen wird.' : 'Wieder sterblich.'; },
       color: () => { CHEAT.color = true; try { localStorage.setItem('loCheatColor', '1'); } catch (e) {} ACH.unlock(); COLOR.on = true; try { localStorage.setItem('loColor', '1'); } catch (e) {} ACH.unlock(); return 'Farbdruck freigeschaltet.'; },
       turbo: () => { CHEAT.turbo = true; try { localStorage.setItem('loCheatTurbo', '1'); localStorage.setItem('loTurbo', '1'); } catch (e) {} ACH.unlock(); TURBO.on = true; ACH.unlock(); return 'Turbo freigeschaltet und eingeschaltet.'; },
-      giveall: () => { for (const a of ACH.list) ACH.give(a[0]); return 'Alle ' + ACH.list.length + ' Erfolge errungen.'; } };
+      giveall: () => { for (const a of ACH.list) ACH.give(a[0]); return 'Alle ' + ACH.list.length + ' Erfolge errungen.'; },
+      admin: () => { ADMIN.on = !ADMIN.on; try { localStorage.setItem('loAdmin', ADMIN.on ? '1' : '0'); } catch (e) {} ADMIN.sync(); return ADMIN.on ? 'Werkzeuge an: Startebene in den Einstellungen, Testhändler im Pausemenü.' : 'Werkzeuge wieder versteckt.'; } };
     cin.addEventListener('keydown', async e => { if (e.key !== 'Enter') return; const w = cin.value.trim().toLowerCase(); cin.value = ''; const f = CHEATS[w];
       msg.textContent = f ? await f() : w ? '„' + w + '“ – nichts geschieht.' : ''; if (f) cin.blur(); }); }
   $('btnAchBack').addEventListener('click', () => { $('ach').style.display = 'none'; });
@@ -3547,7 +3552,7 @@ class Game {
   $('btnNoSmith').addEventListener('click', () => { if (window.game && window.game.smithClose) window.game.smithClose(); });
   $('btnNoHorse').addEventListener('click', () => { if (window.game && window.game.stallAnswer) window.game.stallAnswer(false); });
   $('ver').textContent = VERSION; { const v = document.createElement('p'); v.innerHTML = '<i>' + VERSION + '</i>'; $('rollIn').insertBefore(v, $('rollIn').children[2]); }
-  $('btnOpts').addEventListener('click', () => { ACH.unlock(); $('optNote').textContent = ''; $('opts').style.display = 'flex'; $('opts').scrollTop = 0; });
+  $('btnOpts').addEventListener('click', () => { ACH.unlock(); ADMIN.sync(); $('optNote').textContent = ''; $('opts').style.display = 'flex'; $('opts').scrollTop = 0; });
   const lvBtns = () => { const box = $('lvlPick'); box.textContent = ''; for (let l = 1; l <= 6; l++) { const b = document.createElement('button'); b.textContent = ROMAN[l]; b.style.minHeight = '38px'; if (l === START_LVL.v) { b.style.background = '#2a242b'; b.style.color = '#e8e6d2'; }
       b.addEventListener('click', () => { START_LVL.v = l; try { localStorage.setItem('loStartLvl', String(l)); } catch (e) {} lvBtns(); refreshMenu(); }); box.appendChild(b); } }; lvBtns();
   const sdBtn = () => { $('btnSand').textContent = 'Sandverwehungen (Wüste): ' + (SANDFX.on ? 'an' : 'aus'); }; sdBtn();
