@@ -399,7 +399,7 @@ const TINT_DESERT = new Uint8Array([14, 2, 1, 15, 15, 5, 6, 16, 17, 18, 9, 9, 2,
 const COLOR = { on: false, free: false };
 const LENS = { on: true }; try { LENS.on = localStorage.getItem('loLens') !== '0'; } catch (e) {}
 const VERSION = 'V0.994';
-const START_LVL = { v: 1 }; try { START_LVL.v = clamp(parseInt(localStorage.getItem('loStartLvl'), 10) || 1, 1, 6); } catch (e) {}   // nur zum Testen: auf welcher Ebene ein neues Spiel beginnt
+const START_LVL = { v: 1 }; try { START_LVL.v = Math.max(1, Math.min(6, parseInt(localStorage.getItem('loStartLvl'), 10) || 1)); } catch (e) {}   // nur zum Testen: auf welcher Ebene ein neues Spiel beginnt
 const SANDFX = { on: true }; try { SANDFX.on = localStorage.getItem('loSand') !== '0'; } catch (e) {}
 const CLOUDS = { on: true, els: null, TW: 1150, TH: 1500,
   // Kachel aus sechs Wolken, die sich endlos wiederholt; jede hat Ort, Größe und eigenes Tempo
@@ -1923,7 +1923,7 @@ const META = {
   zweit:  {name: 'Zweite Waffe',   desc: 'Jeder Lauf beginnt mit einer zufälligen zweiten Waffe aus deiner Waffenkammer', max: 1, base: 150}
 };
 const CHANGELOG = [                                // neueste Version oben; n = neu, g = geändert, e = entfernt
-  ['V0.994', {n: ['Sandverwehungen in der Wüste, in den Einstellungen abschaltbar.', 'Zum Testen: In den Einstellungen lässt sich die Startebene wählen.'],
+  ['V0.994', {n: ['Im Endlosmodus beginnt mit jedem Wechsel der Landschaft ein neuer Tag.', 'Sandverwehungen in der Wüste, in den Einstellungen abschaltbar.', 'Zum Testen: In den Einstellungen lässt sich die Startebene wählen.'],
              g: ['Die Randdünen sind steile, dunkel umrandete Wände – erkennbar unbegehbar.', 'Die Wüstenmusik liegt jetzt bei.']}],
   ['V0.993', {n: ['Eigene Musik für die Wüste (Ebene 4 bis 6).', 'Eigene Wüstenbauten: Grabstätte mit kleinen Säulen statt Kirche, Nomadenzelt statt Kapelle, Wüstengrab statt Friedhof, Zisterne statt Mühle.', 'Ruinen und Nekropolen der Wüste mit kleinen, oft abgebrochenen Säulen.'],
              g: ['Am Rand der Wüste stehen hohe Dünen statt Berge.']}],
@@ -2036,7 +2036,8 @@ class Combat {
     document.getElementById('vignette').classList.remove('dread');
     this.time = 0; this.spawnT = 1.5; this.alive = 0;
     for (const pool of [this.enemies, this.proj, this.drops, this.fx, this.flames, this.smoke]) for (const o of pool) { o.alive = false; o.pull = false; }
-    { const st = g.endless ? g.level : (g.level - 1) % 3 + 1; this.darkLv = st <= 1 ? 0 : Math.min(.8, .3 + .32 * (st - 2)); } this.desert = w.biome === 'wueste';   // jede Ebene dunkler: I hell, II Dämmerung, III Nacht; im Endlosmodus bis fast schwarz
+    { let st = (g.level - 1) % 3 + 1; if (g.endless) { st = 1; for (let l = g.level - 1; l >= 1 && biomeOf(g.seed, l, true) === biomeOf(g.seed, g.level, true); l--) st++; }   // jede neue Landschaft beginnt mit einem neuen Tag
+      this.darkLv = st <= 1 ? 0 : Math.min(.8, .3 + .32 * (st - 2)); } this.desert = w.biome === 'wueste';   // jede Ebene dunkler: I hell, II Dämmerung, III Nacht; im Endlosmodus bis fast schwarz
     this.lvlMul = (1 + BAL.lvlHp * (g.level - 1)) * BAL.eHp; this.dmgLvl = (1 + BAL.lvlDmg * (g.level - 1)) * BAL.eDmg; this.tOff = Math.min(180, 50 * (g.level - 1));
     this.graves = w.pois.filter(o => o.kind === 'Friedhof' || o.kind === 'Nekropole'); this.ruins = w.pois.filter(o => o.kind === 'Ruine' || o.kind === 'Burgruine');
     const spot = this.spot = (x, y) => { for (let r = 0; r < 70; r += 3) for (let a = 0; a < 6.28; a += .7) { const px = x + Math.cos(a) * r, py = y + 10 + Math.sin(a) * r; if (!w.blocked(px, py) && !w.blocked(px + 2, py) && !w.blocked(px - 2, py) && w.reachable(px | 0, py | 0)) return {x: px | 0, y: py | 0, ok: true}; } return {x, y: y + 10, ok: false}; };
@@ -2994,10 +2995,14 @@ const ACH = { got: {}, q: [], busy: false, t: 0,
     if (it.seuche && it.kette && it.flamme) this.give('kraefte'); if (c.gold >= 100) this.give('gold100');
     if (g.level >= 2) this.give('ebene2'); if (g.level >= 3) this.give('ebene3'); if (MUSIC.plays >= 2) this.give('ohrwurm'); } };
 // Musik: musik.mp3 liegt neben der index.html (zu groß zum Einbetten). Fehlt die Datei, bleibt es einfach still. Läuft als Schleife, solange der Lauf läuft.
-const MUSIC = { a: null, on: true, want: false, busy: false, plays: 0, lastT: 0, cur: 'musik.mp3', bad: {},
+const MUSIC = { a: null, on: true, want: false, busy: false, plays: 0, lastT: 0, cur: 'musik.mp3', want2: 'gruen', bad: {},
+  FILES: {gruen: ['musik.mp3'], wueste: ['music2.mp3', 'Music2.mp3']},           // Wüste: erst music2.mp3, dann die groß geschriebene Variante, sonst die alte Musik
+  fileFor(b) { for (const f of this.FILES[b] || this.FILES.gruen) if (!this.bad[f]) return f; return 'musik.mp3'; },
   init() { if (this.a) return; try { this.on = localStorage.getItem('loMusic') !== '0'; } catch (e) {} const a = this.a = new Audio(this.cur); a.loop = true; a.preload = 'auto'; a.volume = .55;
-    a.addEventListener('error', () => { if (this.cur !== 'musik.mp3') { this.bad[this.cur] = 1; this.track('musik.mp3', true); } }); },   // fehlt music2.mp3, läuft einfach die alte Musik weiter
-  track(f, force) { if (this.bad[f]) f = 'musik.mp3'; if (f === this.cur && !force) return; this.cur = f; if (!this.a) return; const a = this.a, was = !a.paused; a.pause(); a.src = f; a.currentTime = 0; this.lastT = 0; this.busy = false; if (was) this.sync(true); },   // Grünland: musik.mp3, Wüste: music2.mp3
+    a.addEventListener('error', () => { if (this.cur === 'musik.mp3') return; this.bad[this.cur] = 1; const nf = this.fileFor(this.want2);
+      if (nf === 'musik.mp3' && window.game && window.game.toast) window.game.toast('Die Wüstenmusik (music2.mp3) wurde nicht gefunden – es läuft die alte Musik.'); this.load(nf); }); },
+  load(f) { const a = this.a, was = this.want && this.on; this.cur = f; try { a.pause(); a.src = f; a.load(); } catch (e) {} this.lastT = 0; this.busy = false; if (was) this.sync(true); },
+  track(b) { this.want2 = b; const f = this.fileFor(b); if (f === this.cur) return; if (!this.a) { this.cur = f; return; } this.load(f); },   // je Landschaft ihre Musik
   unlock() { if (this.want) this.sync(true); },                                                    // iOS erlaubt Ton erst nach einer Berührung
   sync(run) { this.init(); this.want = run; const a = this.a; if (a.currentTime < this.lastT - 5) this.plays++; this.lastT = a.currentTime;
     if (!(run && this.on)) { if (!a.paused) a.pause(); return; }
@@ -3192,7 +3197,7 @@ class Game {
     SAVE.del('runs', 'active'); SAVE.bump({totalKills: c.kills, highestLevel: this.level, gold: c.goldPending, goldEarned: c.earnPending}); c.goldPending = 0; c.earnPending = 0;
   }
   loop(now) {
-    ACH.check(this); MUSIC.track(this.world.biome === 'wueste' ? 'music2.mp3' : 'musik.mp3'); MUSIC.sync(!this.stopped && !this.dead && !this.userPaused && document.visibilityState !== 'hidden', this.combat.time);
+    ACH.check(this); MUSIC.track(this.world.biome); MUSIC.sync(!this.stopped && !this.dead && !this.userPaused && document.visibilityState !== 'hidden', this.combat.time);
     if (this.stopped) return;
     requestAnimationFrame(this.loop);
     if (document.visibilityState === 'hidden') return;
