@@ -398,7 +398,8 @@ const TINT_OF_TYPE = new Uint8Array([1, 2, 3, 4, 4, 5, 6, 6, 7, 8, 9, 10, 2, 19]
 const TINT_DESERT = new Uint8Array([14, 2, 1, 15, 15, 5, 6, 16, 17, 18, 9, 9, 2, 19]);   // Sand, Oase, grüner Uferrand, helle Piste, roter Fels, Ocker-Geröll, Dünen, Lehm   // Reihenfolge wie T
 const COLOR = { on: false, free: false };
 const LENS = { on: true }; try { LENS.on = localStorage.getItem('loLens') !== '0'; } catch (e) {}
-const VERSION = 'V0.995';
+const VERSION = 'V0.996';
+const ANKH = { has: false, price: 500, load(pr) { this.has = !!(pr && pr.ankh); } };   // Ankh: einmal wiederauferstehen, dann neu kaufen
 const START_LVL = { v: 1 }; try { START_LVL.v = Math.max(1, Math.min(6, parseInt(localStorage.getItem('loStartLvl'), 10) || 1)); } catch (e) {}   // nur zum Testen: auf welcher Ebene ein neues Spiel beginnt
 const SANDFX = { on: true }; try { SANDFX.on = localStorage.getItem('loSand') !== '0'; } catch (e) {}
 const CLOUDS = { on: true, els: null, TW: 1150, TH: 1500,
@@ -1841,7 +1842,7 @@ const DESERT_FORMS = {Schlurfer: ['Mumie', ['.###.', '#www#', '#w#w#', '.www.', 
 for (const ty of ENEMY_TYPES) { const f = DESERT_FORMS[ty.name]; if (f) { ty.dname = f[0]; ty.dspr = ES(f[1]); } }
 // ---- Waffen (je 5 Stufen, jede Stufe ändert etwas anderes) und passive Fähigkeiten. w = Gewicht im Angebot (selten = stark)
 // ---- Stellschrauben der Balance an einer Stelle
-const BAL = {eHp: 2.3, eDmg: 2.4, gateTime: 25, darkTime: 25, lvlHp: .6, lvlDmg: .35, hpRamp: 200, spawnMin: .2, capMax: 180, spawnRate: 1.5, bossSpawnMul: 2.2, afterBossMul: 3, lvlHeal: 5};
+const BAL = {eHp: 2.3, eDmg: 2.4, gateTime: 25, darkTime: 25, lvlHp: .6, lvlDmg: .35, lvlHp2: .35, lvlDmg2: .2, hpRamp: 200, spawnMin: .2, capMax: 180, spawnRate: 1.5, bossSpawnMul: 2.2, afterBossMul: 3, lvlHeal: 5};
 const HERO = {name: ''};                      // der Name hinter "Legend of _"
 const heroName = () => HERO.name || 'Der Namenlose';
 const ROMAN = Array.from({length: 100}, (_, n) => ['', 'X', 'XX', 'XXX', 'XL', 'L', 'LX', 'LXX', 'LXXX', 'XC'][n / 10 | 0] + ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX'][n % 10]);
@@ -1942,6 +1943,8 @@ const META = {
   zweit:  {name: 'Zweite Waffe',   desc: 'Jeder Lauf beginnt mit einer zufälligen zweiten Waffe aus deiner Waffenkammer', max: 1, base: 150}
 };
 const CHANGELOG = [                                // neueste Version oben; n = neu, g = geändert, e = entfernt
+  ['V0.996', {n: ['Ankh beim Krämer (500 Gold): einmal wiederauferstehen mit 75 % Leben, danach neu kaufen.', 'Erfolg „Zweites Leben“.'],
+             g: ['Ab Ebene 3 wachsen Leben und Schaden der Gegner langsamer – die späteren Ebenen sind spürbar leichter.']}],
   ['V0.995', {n: ['Drei Schreine je Ebene – Wegkreuz im Grünland, kleiner Obelisk in der Wüste – mit zufälliger Gabe: doppelte Erfahrung, Unverwundbarkeit, doppeltes Gold, doppelter Schaden, eine Feindeswelle oder ein Rüstungsfluch.', 'Erfolg „Wegzehrung“.']}],
   ['V0.994', {n: ['Im Endlosmodus beginnt mit jedem Wechsel der Landschaft ein neuer Tag.', 'Sandverwehungen in der Wüste, in den Einstellungen abschaltbar.', 'Zum Testen: In den Einstellungen lässt sich die Startebene wählen.'],
              g: ['Die Randdünen sind steile, dunkel umrandete Wände – erkennbar unbegehbar.', 'Die Wüstenmusik liegt jetzt bei.']}],
@@ -2058,7 +2061,7 @@ class Combat {
     for (const pool of [this.enemies, this.proj, this.drops, this.fx, this.flames, this.smoke]) for (const o of pool) { o.alive = false; o.pull = false; }
     { let st = (g.level - 1) % 3 + 1; if (g.endless) { st = 1; for (let l = g.level - 1; l >= 1 && biomeOf(g.seed, l, true) === biomeOf(g.seed, g.level, true); l--) st++; }   // jede neue Landschaft beginnt mit einem neuen Tag
       this.darkLv = st <= 1 ? 0 : Math.min(.8, .3 + .32 * (st - 2)); } this.desert = w.biome === 'wueste';   // jede Ebene dunkler: I hell, II Dämmerung, III Nacht; im Endlosmodus bis fast schwarz
-    this.lvlMul = (1 + BAL.lvlHp * (g.level - 1)) * BAL.eHp; this.dmgLvl = (1 + BAL.lvlDmg * (g.level - 1)) * BAL.eDmg; this.tOff = Math.min(180, 50 * (g.level - 1));
+    { const a = Math.min(g.level, 2) - 1, b = Math.max(0, g.level - 2); this.lvlMul = (1 + BAL.lvlHp * a + BAL.lvlHp2 * b) * BAL.eHp; this.dmgLvl = (1 + BAL.lvlDmg * a + BAL.lvlDmg2 * b) * BAL.eDmg; }   // ab Ebene 3 wachsen Leben und Schaden langsamer this.tOff = Math.min(180, 50 * (g.level - 1));
     this.graves = w.pois.filter(o => o.kind === 'Friedhof' || o.kind === 'Nekropole'); this.ruins = w.pois.filter(o => o.kind === 'Ruine' || o.kind === 'Burgruine');
     const spot = this.spot = (x, y) => { for (let r = 0; r < 70; r += 3) for (let a = 0; a < 6.28; a += .7) { const px = x + Math.cos(a) * r, py = y + 10 + Math.sin(a) * r; if (!w.blocked(px, py) && !w.blocked(px + 2, py) && !w.blocked(px - 2, py) && w.reachable(px | 0, py | 0)) return {x: px | 0, y: py | 0, ok: true}; } return {x, y: y + 10, ok: false}; };
     // Kapellen und Kirche: je drei Kerzen = drei kleine Heilungen
@@ -2149,7 +2152,7 @@ class Combat {
       bossState: this.bossState, bossHP: b ? b.hp : 0, bossX: b ? b.x : 0, bossY: b ? b.y : 0, bossRev: b ? b.revived | 0 : 0, exitState: this.exitOpen ? 1 : 0, exitX: this.exit.x, exitY: this.exit.y, gateT: this.gateT,
       bell: this.bell && this.bell.taken ? 1 : 0,
       altar: this.altar ? (this.altar.taken ? 3 : this.altar.state === 2 ? 2 : 0) : 0, hoard: this.hoard ? (this.hoard.state >= 2 ? this.hoard.state : 0) : 0,
-      wsh: (this.wsh || []).map(S => S.used ? 1 : 0), buf: this.buf, shrines: this.shrines.map(s => s.left), caches: this.caches.map(c => c.open ? 1 : 0)};
+      ankhUsed: this.ankhUsed ? 1 : 0, wsh: (this.wsh || []).map(S => S.used ? 1 : 0), buf: this.buf, shrines: this.shrines.map(s => s.left), caches: this.caches.map(c => c.open ? 1 : 0)};
   }
   // Lauf wiederherstellen: Welt ist schon aus Seed + Ebene neu erzeugt, hier wird nur der Zustand eingesetzt
   restore(d) {
@@ -2161,6 +2164,7 @@ class Combat {
     for (const id in all) { const kind = WEAPONS[id] ? 'w' : PASSIVES[id] ? 'p' : null; if (!kind) continue; const L = clamp(all[id] | 0, 1, (WEAPONS[id] || PASSIVES[id]).inf || (WEAPONS[id] || PASSIVES[id]).max || 5); for (let l = 1; l <= L; l++) this.choose({id, kind, lvl: l}); }
     if (!this.weapons.length) this.choose({id: 'messer', kind: 'w', lvl: 1});
     this.time = Math.max(0, +d.elapsedTime || 0); this.kills = d.kills | 0; this.gold = d.gold | 0; p.horse = clamp(d.horse | 0, 0, 3);
+    this.ankhUsed = !!d.ankhUsed;
     if (Array.isArray(d.wsh) && this.wsh && d.wsh.length === this.wsh.length) this.wsh.forEach((S, i) => { if (d.wsh[i]) { S.used = true; S.spr = S.sprU; } });
     if (d.buf && typeof d.buf === 'object') for (const k in this.buf) this.buf[k] = Math.max(0, +d.buf[k] || 0);
     if (Array.isArray(d.shrines) && d.shrines.length === this.shrines.length) { this.shrines.forEach((s, i) => { s.left = clamp(d.shrines[i] | 0, 0, 3); }); this.shrineLook(); }
@@ -2215,7 +2219,11 @@ class Combat {
     if (p.horse > 0 && --p.horse === 0) this.g.toast('Dein Pferd geht durch. Du läufst wieder zu Fuß.');                          // drei Treffer, dann ist das Pferd weg
     const hitD = d * this.dmgLvl * (this.buf && this.buf.curse > 0 ? 1.25 : 1), dm = Math.max(1, hitD * .25, hitD - p.armor); p.hp -= dm; this.lastSrc = src || 'einen Feind'; if (this.onHurt) this.onHurt(dm, this.lastSrc); p.inv = .6;
     if (p.thorns > 0) { this.boom(p.x, p.y - 3, 14, 0); this.aoe(p.x, p.y - 3, 17 * p.area, 6 * p.thorns, 2.5); }   // Dornenpanzer schlägt zurück
-    if (p.hp <= 0) { p.hp = 0; this.g.gameOver(); } }
+    if (p.hp <= 0) { if (ANKH.has && !this.ankhUsed) this.ankhRise(); else { p.hp = 0; this.g.gameOver(); } } }
+  ankhRise() {                                   // das Ankh zerfällt: Aufstehen mit drei Vierteln des Lebens, kurze Schonfrist, Druckwelle
+    const p = this.g.player; this.ankhUsed = true; ANKH.has = false; SAVE.update(pr => { pr.ankh = 0; });
+    p.hp = Math.round(p.maxHp * .75); p.inv = 3; this.blast(p.x, p.y - 3, 36, 3.5, 1.1); this.boom(p.x, p.y - 3, 60, 5); this.boom(p.x, p.y - 3, 14, 4); this.aoe(p.x, p.y - 3, 52, 10, 7);
+    this.g.toast('Das Ankh zerfällt zu Staub – du stehst wieder auf.'); ACH.give('ankh'); this.g.save(); }
   spawn(t) {
     const g = this.g, p = g.player, w = g.world, R = Math.hypot(g.renderer.bw, g.renderer.bh) / 2 + 12;
     let x = 0, y = 0, ty = T.MOUNT;
@@ -3003,6 +3011,7 @@ const ACH = { got: {}, q: [], busy: false, t: 0,
     ['kammer', 'Volle Waffenkammer', 'Alles in der Waffenkammer kaufen'],
     ['tier', 'Bester Freund', 'Ein Haustier kaufen'],
     ['schrein', 'Wegzehrung', 'Einen Schrein am Wegesrand berühren'],
+    ['ankh', 'Zweites Leben', 'Mit dem Ankh von den Toten aufstehen'],
     ['treue', 'Treue bis X', 'Ein Haustier auf Stufe X bringen'],
     ['faden', 'Am seidenen Faden', 'Das Tor mit weniger als einem Fünftel des Lebens erreichen'],
     ['unbelehrbar', 'Unbelehrbar', 'Zehn Läufe beginnen'],
@@ -3264,7 +3273,7 @@ class Game {
         const bb = document.getElementById(id + 'Bar');
         if (big && big.alive) { bb.style.display = 'block'; document.getElementById(id + 'Name').textContent = big.type.name; document.getElementById(id + 'Fill').style.width = clamp(big.hp / (big.type.hp * c.lvlMul) * 100, 0, 100) + '%'; } else bb.style.display = 'none'; }
       const left = Math.ceil(Math.max(0, 300 - c.time)), clock = c.bossState === 3 ? (c.gateT > 0 ? 'Tor: ' + Math.ceil(c.gateT) + ' s' : 'Dunkelheit: ' + Math.max(0, Math.ceil(BAL.darkTime - c.dark)) + ' s') : c.bossState === 2 ? 'Boss!' : String(left / 60 | 0).padStart(2, '0') + ':' + String(left % 60).padStart(2, '0');   // läuft rückwärts bis zum Boss
-      document.getElementById('hudText').textContent = `Ebene ${this.level} · Stufe ${p.level} · ${clock} · ${c.kills} † · ${c.gold} Gold${p.horse > 0 ? ' · Pferd ' + '♞'.repeat(p.horse) : ''}${c.buffText() ? ' · ' + c.buffText() : ''}`; }
+      document.getElementById('hudText').textContent = `Ebene ${this.level} · Stufe ${p.level} · ${clock} · ${c.kills} † · ${c.gold} Gold${p.horse > 0 ? ' · Pferd ' + '♞'.repeat(p.horse) : ''}${ANKH.has && !c.ankhUsed ? ' · ☥' : ''}${c.buffText() ? ' · ' + c.buffText() : ''}`; }
     if (this.debug && dt) {
       this.fps += (1 / dt - this.fps) * .05;
       if ((this.dbgT += dt) > .25) {
@@ -3319,7 +3328,7 @@ class Game {
     $('loading').style.display = 'flex';
     try { history.replaceState(null, '', seedUrl(seed)); } catch (e) {}
     setTimeout(async () => {
-      const prS = await SAVE.profile(), meta = prS.metaUpgrades || {}; ARMORY.load(prS); PET.load(prS);
+      const prS = await SAVE.profile(), meta = prS.metaUpgrades || {}; ARMORY.load(prS); PET.load(prS); ANKH.load(prS);
       if (q.get('map') === '1') {                       // nur Weltkarte, kein Gameplay
         const lv = parseInt(q.get('level'), 10) || 1, w = WorldGenerator.generate(seed, lv, biomeOf(seed, lv, false));
         WorldGenerator.drawMap(w, $('map')); $('map').style.display = 'block'; window.world = w;
@@ -3342,7 +3351,7 @@ class Game {
     $('btnStart').className = activeRun ? '' : 'big';
     const pr = await SAVE.profile();
     if (pr.goldEarned === undefined) { const est = earnedOf(pr); SAVE.update(cur => { if (cur.goldEarned === undefined) cur.goldEarned = est; }); }
-    $('btnShop').textContent = 'Krämer · ' + pr.gold + ' Gold'; ACH.load(pr); ARMORY.load(pr); PET.load(pr); $('btnPets').textContent = PET.active ? 'Tiere · ' + PETS[PET.active].name : 'Tierhandlung'; $('btnAch').textContent = 'Erfolge · ' + ACH.count() + '/' + ACH.list.length;
+    $('btnShop').textContent = 'Krämer · ' + pr.gold + ' Gold'; ACH.load(pr); ARMORY.load(pr); PET.load(pr); ANKH.load(pr); $('btnPets').textContent = PET.active ? 'Tiere · ' + PETS[PET.active].name : 'Tierhandlung'; $('btnAch').textContent = 'Erfolge · ' + ACH.count() + '/' + ACH.list.length;
     $('lvlNote').textContent = START_LVL.v > 1 ? 'Zum Testen: Neues Spiel beginnt auf Ebene ' + ROMAN[START_LVL.v] + (START_LVL.v >= 4 ? ' (Wüste)' : '') + '.' : '';
     $('menuWarn').textContent = SAVE.volatile ? 'Hier lässt sich nichts dauerhaft speichern (Vorschau/privater Modus). Gold, Käufe und Spielstand gelten nur, bis die Seite geschlossen wird.' : '';
     $('menuStats').textContent = pr.totalRuns ? `Läufe ${pr.totalRuns} · Höchste Ebene ${Math.max(1, pr.highestLevel)} · Feinde ${pr.totalKills} · Bosse ${pr.totalBossKills}` : '';
@@ -3358,6 +3367,8 @@ class Game {
       if (buy) b.addEventListener('click', buy); box.appendChild(b); };
     const el = (tg, txt, cls) => { const e = document.createElement(tg); e.textContent = txt; if (cls) e.className = cls; box.appendChild(e); };
     if (shopTab === 'meta') {
+      { const own = !!pr.ankh; card(own ? 'Im Beutel · wartet auf deinen Tod' : ANKH.price + ' Gold' + (pr.gold < ANKH.price ? ' · es fehlen ' + (ANKH.price - pr.gold) : ' · kaufen'), 'Ankh ☥', 'Stirbst du, stehst du einmal wieder auf – mit drei Vierteln deines Lebens. Danach zerfällt es und muss neu gekauft werden.', own || pr.gold < ANKH.price, own,
+          async () => { await SAVE.update(cur => { if (cur.ankh || cur.gold < ANKH.price) return false; cur.gold -= ANKH.price; cur.ankh = 1; }); ACH.give('kunde'); renderShop(); }); }
       for (const id in META) {
         const m = META[id], L = pr.metaUpgrades[id] | 0, maxed = L >= m.max, cost = maxed ? 0 : metaCost(id, L), earned = earnedOf(pr), locked = !maxed && m.need && earned < m.need;
         card(maxed ? 'Ausgebaut' : locked ? 'Erst ab ' + m.need + ' insgesamt verdientem Gold · bisher ' + earned : cost + ' Gold' + (pr.gold < cost ? ' · es fehlen ' + (cost - pr.gold) : ' · kaufen'), m.name + (L ? ' ' + ROMAN[L] : '') + (m.max > 1 ? '  (' + L + '/' + m.max + ')' : ''), m.desc, maxed || locked || pr.gold < cost, false,
@@ -3466,6 +3477,7 @@ class Game {
     para('Die Uhr zählt fünf Minuten herunter. Dann erwacht der Boss der Ebene irgendwo in der Welt und kommt zu dir; der rote Pfeil zeigt, wo er ist. Fällt er, wählst du eine Kraft, und in der Nähe öffnet sich ein Tor – wieder zeigt der Pfeil den Weg. Du hast 25 Sekunden, um hindurchzugehen; danach kommt die Dunkelheit. Durch das Tor geht es in die nächste, härtere Ebene.');
     para('Beim Stufenaufstieg darfst du in jedem Lauf dreimal neu würfeln und zweimal eine Karte verbannen – die verbannte Waffe oder Fähigkeit taucht in diesem Lauf nicht mehr auf.');
     para('Zu Beginn hast du nur das Startpaket: ' + STARTER.map(id => (WEAPONS[id] || PASSIVES[id]).name).join(', ') + '. Alles Weitere kaufst du beim Krämer in der Waffenkammer – erst dann taucht es im Lauf auf. Das gilt auch für die Kräfte der Bosse und die Baupläne des Schmieds.');
+    para('Beim Krämer gibt es für ' + ANKH.price + ' Gold ein Ankh (☥ oben in der Leiste): Stirbst du, stehst du einmal mit drei Vierteln deines Lebens wieder auf. Danach ist es fort und muss neu gekauft werden. Gegen die Dunkelheit hinter dem Tor hilft es nicht.');
     para('Höchstens zehn Waffen und Fähigkeiten zusammen. Flüsse kannst du mit halbem Tempo durchwaten, Seen und Berge nicht. Auf Straßen und Brücken bist du schneller. Die Karte hält das Spiel an.');
     h2('Waffen'); for (const id in WEAPONS) { const w = WEAPONS[id]; if (!w.found && !w.forge) entry(w.name, 'Stufe I bis V · ' + (ARMORY.free(id) ? 'Startpaket' : 'Krämer, ' + ARMORY.price(id) + ' Gold'), w.desc.map((d, i) => ROMAN[i + 1] + ' ' + d).join(' · ')); }
     h2('Schmiedewerke'); for (const id in WEAPONS) { const w = WEAPONS[id]; if (w.forge) entry(w.name, w.forge.map(q => (WEAPONS[q] || PASSIVES[q]).name).join(' + ') + ' · Bauplan ' + ARMORY.price(id) + ' Gold', w.desc.map((d, i) => ROMAN[i + 1] + ' ' + d).join(' · ')); }
