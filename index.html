@@ -60,6 +60,7 @@ html,body{overscroll-behavior:none;touch-action:none;
 .page button.big{background:#2a242b;color:#e8e6d2;font-size:15px;min-height:50px}
 .page button:active{background:#2a242b;color:#e8e6d2}
 .page .row{display:flex;gap:8px}
+.kv{text-align:left;font-size:12px;margin:-4px 0 16px}.kv div{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px solid rgba(42,36,43,.3)}.kv div b{flex:none;font-weight:400;font-style:italic}.kv div span{font-weight:700;text-align:right}
 #menuNote{min-height:14px;font-size:11px;font-style:italic;word-break:break-all}
 #map{display:none;position:fixed;inset:0;margin:auto;width:min(100vw,100vh);height:min(100vw,100vh);image-rendering:pixelated;z-index:3}
 
@@ -131,7 +132,8 @@ html,body{overscroll-behavior:none;touch-action:none;
 #logList p::before{content:"\2013";display:inline-block;width:12px;text-indent:0}
 #logList .note{font-style:italic;padding-left:0;text-indent:0;margin:2px 0 0}
 #logList .note::before{content:none}
-#stats{text-align:left;font-size:12px;margin:0 0 12px}
+#stats{text-align:left;font-size:12px;margin:-2px 0 14px}
+#btnStats{font-size:11px;min-height:40px}#btnStats.on{background:#2a242b;color:#e8e6d2}
 #stats div{display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-bottom:1px solid rgba(42,36,43,.3)}
 #stats div b{flex:none}
 #stats div span{text-align:right}
@@ -145,7 +147,8 @@ html,body{overscroll-behavior:none;touch-action:none;
 #opts h1{font-size:26px}
 #opts h2{font-size:11px;letter-spacing:.3em;text-transform:uppercase;border-bottom:1px solid #2a242b;padding:4px 0;margin:14px 0 8px}
 #opts button:disabled{opacity:.45}
-#optNote{min-height:16px;font-size:11px;font-style:italic;word-break:break-all}
+#btnReset.warn{background:#cf2a2a;border-color:#cf2a2a;color:#e8e6d2;letter-spacing:.08em}
+#optNote{min-height:16px;font-size:11px;font-style:italic;overflow-wrap:anywhere;margin-bottom:6px}
 #menuStats:empty,#menuNote:empty,#menuWarn:empty{display:none}
 #menuNote{min-height:0}
 /* Querformat am Telefon: Kopf und Bedienfeld als Spalte rechts, Landschaft links */
@@ -255,11 +258,12 @@ html,body{overscroll-behavior:none;touch-action:none;
   <button id="btnMapBack" class="big">Zur&uuml;ck</button>
 </div></div>
 <div id="pause" class="page" style="display:none"><div class="sheet">
-  <div class="kicker">Die Presse steht still</div>
+  <div class="kicker">Kurz verschnaufen</div>
   <h1>Pause</h1>
   <div class="sub">Der Stand ist gespeichert.</div>
-  <div id="stats"></div>
   <button id="btnResume" class="big">Weiter</button>
+  <button id="btnStats" class="fold">Werte &amp; Waffen &#9662;</button>
+  <div id="stats" style="display:none"></div>
   <button id="btnMusic">Musik: an</button>
   <button id="btnLens">W&ouml;lbung: an</button>
   <button id="btnWiki2">Almanach</button>
@@ -295,18 +299,21 @@ html,body{overscroll-behavior:none;touch-action:none;
   <label id="lvlAuto" style="display:none"><input type="checkbox" id="chkAuto"> Immer w&auml;hlen &ndash; nicht mehr fragen</label>
 </div></div>
 <div id="over" class="page" style="display:none"><div class="sheet">
-  <div class="kicker">Traueranzeige</div>
+  <div class="kicker">Gefallen</div>
   <h1 id="overName"></h1>
   <div class="sub" id="overText"></div>
-  <button id="btnAgain" class="big">Neue Ausgabe</button>
+  <div id="overStats" class="kv"></div>
+  <button id="btnRetry" class="big">Neuer Lauf</button>
+  <button id="btnAgain">Hauptmen&uuml;</button>
 </div></div>
 <div id="fin" class="page" style="display:none"><div class="sheet">
-  <div class="kicker">Letzte Seite</div>
+  <div class="kicker">Geschafft</div>
   <h1 id="finName"></h1>
   <div class="sub" id="finText"></div>
+  <div id="finStats" class="kv"></div>
   <h1 style="font-style:italic;letter-spacing:.3em;margin:18px 0 4px">Fin</h1>
   <div style="font-size:12px;font-style:italic;margin-bottom:16px">&hellip; vorerst. Fortsetzung folgt.</div>
-  <button id="btnFin" class="big">Zur&uuml;ck zum Titel</button>
+  <button id="btnFin" class="big">Hauptmen&uuml;</button>
 </div></div>
 <div id="ach" class="page" style="display:none;z-index:7"><div class="sheet">
   <div class="kicker">Ruhmestafel</div>
@@ -316,7 +323,7 @@ html,body{overscroll-behavior:none;touch-action:none;
   <button id="btnAchBack" class="big" style="position:sticky;bottom:0;margin-top:12px">Zur&uuml;ck</button>
 </div></div>
 <div id="roll" class="btn"><button id="rollClose">&#10005;</button><div id="rollIn">
-  <h1>Legend of _</h1><p><i>Ein Extrablatt in sechs Ebenen</i></p>
+  <h1>Legend of _</h1><p><i>Ein Abenteuer in sechs Ebenen</i></p>
   <small>Idee, Welt und Regie</small><p>Flo</p>
   <small>Programm</small><p>entstanden mit Claude</p>
   <small>Musik</small><p>&bdquo;Shadow Riff&ldquo;</p><p><i>erzeugt mit Suno</i></p>
@@ -325,13 +332,13 @@ html,body{overscroll-behavior:none;touch-action:none;
   <small>Der Kakod&auml;mon</small><p>Cacodaemon Sprites</p><p><i>von Elthen</i></p>
   <small>Grabw&auml;chter, Sandgoblin, W&uuml;stenauge, Pilzf&uuml;rst</small><p>Monsters Creatures Fantasy</p><p><i>von Luiz Melo</i></p>
   <small>In weiteren Rollen</small><p>Die Fleischkugel</p><p>Schlurfer, L&auml;ufer, Hetzer</p><p>Der Schmied</p><p>Ein Pferd (dreimal getroffen)</p>
-  <small>Gedruckt in</small><p>Schwarz, Grau, Papier</p><p><i>und ein wenig Rot</i></p>
+  <small>Gezeichnet in</small><p>Schwarz, Grau, Papier</p><p><i>und ein wenig Rot</i></p>
   <small>Zu finden unter</small><p><a href="https://loo-pixel.github.io/legend/" target="_blank" rel="noopener">loo-pixel.github.io/legend</a></p>
   <div class="gap"></div><p><i>Kein Schlurfer kam bei den Dreharbeiten dauerhaft zu Schaden.</i></p>
   <div id="cheatBox"><b>Cheats</b><input id="cheatIn" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="20" placeholder="Zauberwort"><div id="cheatMsg"></div></div>
 </div></div>
 <div id="log" class="page" style="display:none;z-index:7"><div class="sheet">
-  <div class="kicker">Aus der Setzerei</div>
+  <div class="kicker">Von Version zu Version</div>
   <h1>Changelog</h1>
   <div class="sub">Was neu ist, was sich geändert hat und was gestrichen wurde</div>
   <div id="logList"></div>
@@ -343,7 +350,9 @@ html,body{overscroll-behavior:none;touch-action:none;
   <h2>Bild und Ton</h2>
   <div class="row"><button id="btnMusic2"></button><button id="btnLens2"></button></div>
   <div class="row"><button id="btnShadow"></button><button id="btnClouds"></button></div>
-  <button id="btnSand"></button>
+  <div class="row"><button id="btnBloom"></button><button id="btnSand"></button></div>
+  <h2>Lauf</h2>
+  <button id="btnZweit"></button>
   <h2>Freischaltbar</h2>
   <button id="btnColor"></button>
   <button id="btnTurbo"></button>
@@ -353,6 +362,8 @@ html,body{overscroll-behavior:none;touch-action:none;
   <div class="row" id="lvlPick"></div></div>
   <h2>Diese Welt teilen</h2>
   <div class="row"><button id="btnCopy">Seed kopieren</button><button id="btnLink">Link kopieren</button></div>
+  <h2>Spielstand</h2>
+  <button id="btnReset">Fortschritt zur&uuml;cksetzen</button>
   <div id="optNote"></div>
   <button id="btnOptsBack" class="big">Zur&uuml;ck</button>
 </div></div>
@@ -380,7 +391,7 @@ html,body{overscroll-behavior:none;touch-action:none;
   <div id="petCards"></div>
   <button id="btnPetsBack" class="big">Zur&uuml;ck</button>
 </div></div>
-<div id="loading"><span>Die Druckplatte<br>wird gesetzt</span></div>
+<div id="loading"><span>Die Welt<br>entsteht</span></div>
 
 <script>
 'use strict';
@@ -398,12 +409,14 @@ const TINT_OF_TYPE = new Uint8Array([1, 2, 3, 4, 4, 5, 6, 6, 7, 8, 9, 10, 2, 19]
 const TINT_DESERT = new Uint8Array([14, 2, 1, 15, 15, 5, 6, 16, 17, 18, 9, 9, 2, 19]);   // Sand, Oase, grüner Uferrand, helle Piste, roter Fels, Ocker-Geröll, Dünen, Lehm   // Reihenfolge wie T
 const COLOR = { on: false, free: false };
 const LENS = { on: true }; try { LENS.on = localStorage.getItem('loLens') !== '0'; } catch (e) {}
-const VERSION = 'V0.998';
+const VERSION = 'V0.999';
 const ANKH = { has: false, price: 500, load(pr) { this.has = !!(pr && pr.ankh); } };   // Ankh: einmal wiederauferstehen, dann neu kaufen
 const ADMIN = { on: false, sync() { for (const id of ['adminBox', 'btnTest']) { const e = document.getElementById(id); if (e) e.style.display = this.on ? '' : 'none'; } } };   // Werkzeuge zum Testen: nur nach dem Zauberwort sichtbar
 try { ADMIN.on = localStorage.getItem('loAdmin') === '1'; } catch (e) {}
 const START_LVL = { v: 1 }; try { START_LVL.v = Math.max(1, Math.min(6, parseInt(localStorage.getItem('loStartLvl'), 10) || 1)); } catch (e) {}   // nur zum Testen: auf welcher Ebene ein neues Spiel beginnt
 const SANDFX = { on: true }; try { SANDFX.on = localStorage.getItem('loSand') !== '0'; } catch (e) {}
+const BLOOM = { on: false, k: .46 }; try { BLOOM.on = localStorage.getItem('loBloom') === '1'; } catch (e) {}   // Bloom: helle Stellen strahlen weich in die dunklen hinein
+const ZWEIT = { on: true }; try { ZWEIT.on = localStorage.getItem('loZweit') !== '0'; } catch (e) {}   // gekaufte zweite Startwaffe: abschaltbar
 const CLOUDS = { on: true, els: null, TW: 1150, TH: 1500,
   // Kachel aus sechs Wolken, die sich endlos wiederholt; jede hat Ort, Größe und eigenes Tempo
   defs: [[80, 140, 1.25, 1], [640, 420, .9, 1.25], [300, 760, 1.5, .85], [900, 980, 1.05, 1.1], [120, 1220, .8, 1.3], [760, 80, .7, .95]],
@@ -429,18 +442,38 @@ const TURBO = { on: false, free: false, mul: 1.5 };   // Turbo: das ganze Spiel 
 const CHEAT = { god: false, color: false, turbo: false }; try { CHEAT.color = localStorage.getItem('loCheatColor') === '1'; CHEAT.turbo = localStorage.getItem('loCheatTurbo') === '1'; } catch (e) {}
 // Wölbung (Versuch): leichte Fischaugen-Optik. Das fertige, scharfe Bild wird von der Grafikkarte in voller Bildschirmauflösung gewölbt –
 // jedes Spielpixel bleibt ein sauberes Kästchen, nur seine Kanten biegen sich. (In der kleinen Spielauflösung selbst gäbe es Nähte oder Matsch.)
-const LENSGL = { gl: null, cv: null, fail: false, shown: false, tw: 0, th: 0,
+const LENSGL = { gl: null, cv: null, fail: false, bfail: false, shown: false, fw: 0, fh: 0,
+  // Hauptdurchgang: Wölbung (abschaltbar) und Bloom-Licht darüber. Bloom: helle Stellen in halber Auflösung herausfiltern, waagrecht und senkrecht weichzeichnen
   init() { if (this.gl || this.fail) return; try { const cv = this.cv = document.getElementById('gl'), gl = cv.getContext('webgl', {antialias: false, alpha: false, preserveDrawingBuffer: true}); if (!gl) throw 0;
-      const sh = (t, src) => { const o = gl.createShader(t); gl.shaderSource(o, src); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) throw 0; return o; }, pr = gl.createProgram();
-      gl.attachShader(pr, sh(gl.VERTEX_SHADER, 'attribute vec2 p;varying vec2 v;void main(){v=vec2(p.x*.5+.5,.5-p.y*.5);gl_Position=vec4(p,0.,1.);}'));
-      gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, '#ifdef GL_FRAGMENT_PRECISION_HIGH\nprecision highp float;\n#else\nprecision mediump float;\n#endif\nuniform sampler2D t;uniform vec2 res;varying vec2 v;void main(){vec2 c=(v-.5)*res;float m=.86+.14*dot(c,c)/dot(res*.5,res*.5);gl_FragColor=texture2D(t,c*m/res+.5);}'));
-      gl.linkProgram(pr); if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw 0; gl.useProgram(pr);
-      gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW); const lp = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(lp); gl.vertexAttribPointer(lp, 2, gl.FLOAT, false, 0, 0);
-      gl.bindTexture(gl.TEXTURE_2D, gl.createTexture()); for (const [k, val] of [[gl.TEXTURE_MIN_FILTER, gl.NEAREST], [gl.TEXTURE_MAG_FILTER, gl.NEAREST], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, k, val);
-      this.uRes = gl.getUniformLocation(pr, 'res'); this.gl = gl; cv.addEventListener('webglcontextlost', () => { this.gl = null; this.fail = true; this.hide(); }); } catch (e) { this.fail = true; this.gl = null; } },
+      const PREC = '#ifdef GL_FRAGMENT_PRECISION_HIGH\nprecision highp float;\n#else\nprecision mediump float;\n#endif\n';
+      const sh = (t, src) => { const o = gl.createShader(t); gl.shaderSource(o, src); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) throw 0; return o; };
+      const prog = fs => { const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, 'attribute vec2 p;varying vec2 v;void main(){v=vec2(p.x*.5+.5,.5-p.y*.5);gl_Position=vec4(p,0.,1.);}')); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, PREC + fs)); gl.bindAttribLocation(pr, 0, 'p'); gl.linkProgram(pr); if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw 0; return pr; };
+      this.pMain = prog('uniform sampler2D t;uniform sampler2D b;uniform vec2 res;uniform float lens;uniform float bs;varying vec2 v;void main(){vec2 c=(v-.5)*res;float m=mix(1.,.86+.14*dot(c,c)/dot(res*.5,res*.5),lens);vec2 u=c*m/res+.5;vec3 col=texture2D(t,u).rgb;if(bs>0.){vec3 g=min(texture2D(b,u).rgb*bs,1.);col=1.-(1.-col)*(1.-g);}gl_FragColor=vec4(col,1.);}');
+      try { this.pBlur = prog('uniform sampler2D t;uniform vec2 dir;uniform float bright;varying vec2 v;vec3 bp(vec3 c){float l=dot(c,vec3(.299,.587,.114));float r=max(0.,c.r-max(c.g,c.b));return c*smoothstep(.6,.93,l)+vec3(1.,.32,.26)*r*2.4;}vec3 s(float o){vec3 c=texture2D(t,v+dir*o).rgb;return bright>.5?bp(c):c;}void main(){vec3 a=s(0.)*.227027+(s(1.)+s(-1.))*.1945946+(s(2.)+s(-2.))*.1216216+(s(3.)+s(-3.))*.054054+(s(4.)+s(-4.))*.016216;gl_FragColor=vec4(a,1.);}');
+        this.uB = {t: gl.getUniformLocation(this.pBlur, 't'), dir: gl.getUniformLocation(this.pBlur, 'dir'), bright: gl.getUniformLocation(this.pBlur, 'bright')}; } catch (e) { this.bfail = true; }
+      gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+      this.tex = this.mkTex(gl, gl.NEAREST);
+      gl.useProgram(this.pMain); this.uM = {res: gl.getUniformLocation(this.pMain, 'res'), lens: gl.getUniformLocation(this.pMain, 'lens'), bs: gl.getUniformLocation(this.pMain, 'bs')}; gl.uniform1i(gl.getUniformLocation(this.pMain, 't'), 0); gl.uniform1i(gl.getUniformLocation(this.pMain, 'b'), 1);
+      this.gl = gl; cv.addEventListener('webglcontextlost', () => { this.gl = null; this.fail = true; this.hide(); }); } catch (e) { this.fail = true; this.gl = null; } },
+  mkTex(gl, filt) { const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t); for (const [k, val] of [[gl.TEXTURE_MIN_FILTER, filt], [gl.TEXTURE_MAG_FILTER, filt], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, k, val); return t; },
+  bloom(bw, bh) {                                // zwei kleine Puffer: A = Lichter waagrecht verwischt, B = dazu senkrecht verwischt
+    const gl = this.gl, fw = Math.max(1, Math.ceil(bw / 2)), fh = Math.max(1, Math.ceil(bh / 2));
+    if (fw !== this.fw || fh !== this.fh) { this.fw = fw; this.fh = fh; if (!this.bt) { this.bt = [this.mkTex(gl, gl.LINEAR), this.mkTex(gl, gl.LINEAR)]; this.fb = [gl.createFramebuffer(), gl.createFramebuffer()]; }
+      for (let i = 0; i < 2; i++) { gl.bindTexture(gl.TEXTURE_2D, this.bt[i]); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, fw, fh, 0, gl.RGBA, gl.UNSIGNED_BYTE, null); gl.bindFramebuffer(gl.FRAMEBUFFER, this.fb[i]); gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.bt[i], 0);
+        if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) { this.bfail = true; gl.bindFramebuffer(gl.FRAMEBUFFER, null); return false; } } }
+    gl.useProgram(this.pBlur); gl.uniform1i(this.uB.t, 0); gl.viewport(0, 0, fw, fh); gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this.tex); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);   // je ein Abgriff mittelt 2×2 Spielpixel
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.fb[0]); gl.uniform2f(this.uB.dir, 1.5 / fw, 0); gl.uniform1f(this.uB.bright, 1); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.bindTexture(gl.TEXTURE_2D, this.bt[0]); gl.bindFramebuffer(gl.FRAMEBUFFER, this.fb[1]); gl.uniform2f(this.uB.dir, 0, 1.5 / fh); gl.uniform1f(this.uB.bright, 0); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null); return true; },
   draw(r) { this.init(); const gl = this.gl; if (!gl) return false; const cv = this.cv, cw = r.bw * r.scale, ch = r.bh * r.scale, dpr = Math.min(3, window.devicePixelRatio || 1), W = Math.round(cw * dpr), H = Math.round(ch * dpr);
     if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; cv.style.width = cw + 'px'; cv.style.height = ch + 'px'; }
-    gl.viewport(0, 0, W, H); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, r.img); gl.uniform2f(this.uRes, r.bw, r.bh); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, this.tex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, r.img);
+    const bl = BLOOM.on && !this.bfail && this.bloom(r.bw, r.bh);
+    gl.useProgram(this.pMain); gl.viewport(0, 0, W, H); gl.uniform2f(this.uM.res, r.bw, r.bh); gl.uniform1f(this.uM.lens, LENS.on ? 1 : 0); gl.uniform1f(this.uM.bs, bl ? BLOOM.k : 0);
+    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, bl ? this.bt[1] : this.tex); gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, this.tex);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     if (!this.shown) { this.shown = true; cv.style.display = 'block'; r.canvas.style.visibility = 'hidden'; } this.src = r.canvas; return true; },
   hide() { if (!this.shown) return; this.shown = false; this.cv.style.display = 'none'; if (this.src) this.src.style.visibility = ''; } };
 const RED = 1;                      // reservierter Wert im Graupuffer: einzige Schmuckfarbe (Rot)
@@ -518,6 +551,7 @@ class SaveManager {
   }
   // Profil ändern: immer nacheinander, damit sich zwei gleichzeitige Buchungen (Gold, Zähler, Kauf) nicht überschreiben
   update(fn) { const run = async () => { const pr = await this.profile(); const r = fn(pr); if (r === false) return false; return this.put('profile', 'main', pr); }; this.chain = this.chain.then(run, run); return this.chain; }
+  reset() { const run = async () => { await this.del('profile', 'main'); await this.del('runs', 'active'); return true; }; this.chain = this.chain.then(run, run); return this.chain; }   // Fortschritt zurücksetzen (Einstellungen bleiben)
   bump(d) { return this.update(pr => { for (const k in d) pr[k] = k.startsWith('highest') ? Math.max(pr[k] || 0, d[k]) : (pr[k] || 0) + d[k]; if (pr.gold < 0) pr.gold = 0; }); }   // Zähler addieren, "highest…" als Maximum
 }
 SaveManager.VERSION = 1;
@@ -1820,7 +1854,7 @@ class Renderer {
         out[i] = color ? CPAL[tb[i] * 3 + l] : PAL[l];
       }
     }
-    if (!(LENS.on && LENSGL.draw(this))) { LENSGL.hide(); this.ctx.putImageData(this.img, 0, 0); }
+    if (!((LENS.on || BLOOM.on) && LENSGL.draw(this))) { LENSGL.hide(); this.ctx.putImageData(this.img, 0, 0); }
   }
 }
 
@@ -1949,29 +1983,30 @@ const META = {
   gier:   {name: 'Geldkatze',      desc: '+15 % Gold je Stufe',                max: 5, base: 35},
   wams:   {name: 'Kettenhemd',     desc: 'Jeder Treffer 1 Schaden weniger je Stufe', max: 2, base: 90},
   goldfluss: {name: 'Goldfluss', desc: 'Schaltet die Fähigkeit Goldfluss frei: In Welten mit riesigem Wahrzeichen liegt sie dort als Goldsack – bewacht vom Goldgoblin. Sie macht aus Erfahrung Gold', max: 1, base: 500, need: 3000},
-  zweit:  {name: 'Zweite Waffe',   desc: 'Jeder Lauf beginnt mit einer zufälligen zweiten Waffe aus deiner Waffenkammer', max: 1, base: 150}
+  zweit:  {name: 'Zweite Waffe',   desc: 'Jeder Lauf beginnt mit einer zufälligen zweiten Waffe aus deiner Waffenkammer – in den Einstellungen abschaltbar', max: 1, base: 150}
 };
 const CHANGELOG = [                                // neueste Version oben; n = neu, g = geändert, e = entfernt
-  ['V0.998', {n: ['Zauberwort „admin“ (Cheats im Abspann) blendet die Testwerkzeuge ein und aus: Startebene und Testhändler.'],
-             g: ['Startebene und Testhändler sind ohne das Zauberwort versteckt; ohne sie beginnt jeder Lauf auf Ebene I.', 'Die Gaben der Schreine sind gleichmäßig verteilt – vorher kam der Rüstungsfluch fast auf jeder Ebene.']}],
+  ['V0.999', {n: ['Bloom: helle Stellen strahlen weich in die dunklen hinein, in den Einstellungen an- und abschaltbar.', 'Die zweite Startwaffe vom Krämer lässt sich in den Einstellungen abschalten.', 'Fortschritt zurücksetzen in den Einstellungen – Einstellungen und Name bleiben.', 'Nach dem Tod gibt es eine Übersicht über den Lauf und gleich einen neuen Lauf.'],
+             g: ['Der Farbmodus wird erst nach Ebene 6 freigeschaltet.', 'Im Pausemenü sind die Werte eingeklappt und lassen sich aufklappen.', 'Todesbildschirm, Pause, Ladebild und Abspann haben neue Texte; zwei Erfolge heißen anders.']}],
+  ['V0.998', {g: ['Die Gaben der Schreine sind gleichmäßig verteilt – vorher kam der Rüstungsfluch fast auf jeder Ebene.', 'Alles durchgesehen, kleinere Fehler behoben.']}],
   ['V0.997', {n: ['Die Schreine sind auf der Karte eingetragen (rotes Kreuz), solange sie noch etwas bergen.'],
              g: ['Rings um die Wüste stehen hohe, geschichtete Felswände statt Dünen.', 'Behoben: In V0.996 kamen keine Gegner mehr.']}],
   ['V0.996', {n: ['Ankh beim Krämer (500 Gold): einmal wiederauferstehen mit 75 % Leben, danach neu kaufen.', 'Erfolg „Zweites Leben“.'],
              g: ['Ab Ebene 3 wachsen Leben und Schaden der Gegner langsamer – die späteren Ebenen sind spürbar leichter.']}],
   ['V0.995', {n: ['Drei Schreine je Ebene – Wegkreuz im Grünland, kleiner Obelisk in der Wüste – mit zufälliger Gabe: doppelte Erfahrung, Unverwundbarkeit, doppeltes Gold, doppelter Schaden, eine Feindeswelle oder ein Rüstungsfluch.', 'Erfolg „Wegzehrung“.']}],
-  ['V0.994', {n: ['Im Endlosmodus beginnt mit jedem Wechsel der Landschaft ein neuer Tag.', 'Sandverwehungen in der Wüste, in den Einstellungen abschaltbar.', 'Zum Testen: In den Einstellungen lässt sich die Startebene wählen.'],
+  ['V0.994', {n: ['Im Endlosmodus beginnt mit jedem Wechsel der Landschaft ein neuer Tag.', 'Sandverwehungen in der Wüste, in den Einstellungen abschaltbar.'],
              g: ['Die Randdünen sind steile, dunkel umrandete Wände – erkennbar unbegehbar.', 'Die Wüstenmusik liegt jetzt bei.']}],
   ['V0.993', {n: ['Eigene Musik für die Wüste (Ebene 4 bis 6).', 'Eigene Wüstenbauten: Grabstätte mit kleinen Säulen statt Kirche, Nomadenzelt statt Kapelle, Wüstengrab statt Friedhof, Zisterne statt Mühle.', 'Ruinen und Nekropolen der Wüste mit kleinen, oft abgebrochenen Säulen.'],
              g: ['Am Rand der Wüste stehen hohe Dünen statt Berge.']}],
   ['V0.992', {n: ['Die Wüste: Ebene 4 bis 6 mit Sand, Dünen, Oasen, trockenen Flussbetten, Felsplateaus, Lehmhäusern, Palmen, Kakteen und Pyramiden.', 'Drei neue Bosse: der Grabwächter, der Sandgoblin und das Wüstenauge.', 'Im Endlosmodus: der Pilzfürst, alle sieben Bosse und ein zufälliges Biom je Ebene.', 'Wüstengegner: Mumie, Skorpion, Geier, Schakal, Sandgeist, Sandgolem und Skorpionkönigin.', 'Neue Erfolge für Grünland, Wüste und die neuen Bosse.'],
-             g: ['Fin kommt erst nach Ebene 6.', 'Farbdruck und Endlos gibt es weiterhin nach Ebene 3.', 'In der Wüste beginnt die Dunkelheit wieder hell und wird bis Ebene 6 Nacht.']}],
+             g: ['Fin kommt erst nach Ebene 6.', 'Farbmodus und Endlos gibt es weiterhin nach Ebene 3.', 'In der Wüste beginnt die Dunkelheit wieder hell und wird bis Ebene 6 Nacht.']}],
   ['V0.991', {n: ['Tierhandlung im Hauptmenü mit Katze, Hund, Lama und Schleim.', 'Dein Tier begleitet dich, sammelt Erfahrung oder Gold oder greift an, je nach Art.', 'Tiere lernen mit, behalten ihre Stufe bis X und wachsen mit Futter schneller.', 'Immer nur ein Tier je Lauf; ein angefangener Lauf behält sein Tier.', 'Zwei neue Erfolge rund um Haustiere.'],
              g: ['Das Hauptmenü hat eine Zeile mehr: Krämer und Tierhandlung, Almanach und Erfolge, darunter die Einstellungen.']}],
   ['V0.99', {n: ['Waffenkammer beim Krämer: Waffen, Fähigkeiten, Boss-Kräfte und Baupläne werden dort gekauft.', 'Erfolg „Volle Waffenkammer“.'],
              g: ['Zu Beginn gibt es nur ein Startpaket: Messer, Axt, Bogen, Irrlicht und vier Fähigkeiten.', 'Im Lauf, als Fund und als Bossbeute taucht nur auf, was gekauft ist.', 'Der Schmied schmiedet nur Werke, deren Bauplan du besitzt.', 'Die zweite Waffe vom Krämer kommt aus deiner Waffenkammer.']}],
   ['V0.98', {n: ['Fünf neue Schmiedewerke: Feuersturm, Seuchenheer, Donnerspeer, Klingenwirbel und Kometenschlag.', 'Beim Schmieden kreisen zwei Lichter ineinander, dann fällt der Hammer.', 'Dieser Changelog im Hauptmenü.'],
              g: ['Gegner haben doppelt so viel Leben und teilen doppelt so viel aus.']}],
-  ['V0.97', {n: ['Nekromantie: Skelette kämpfen eine Weile an deiner Seite.', 'Meteor: Brocken stürzen auf Gegner in deiner Nähe.', 'Dornenpanzer: Wer dich trifft, bekommt Schaden zurück.', 'Ein Testhändler im Pausemenü gibt alles her, nur zum Ausprobieren.'],
+  ['V0.97', {n: ['Nekromantie: Skelette kämpfen eine Weile an deiner Seite.', 'Meteor: Brocken stürzen auf Gegner in deiner Nähe.', 'Dornenpanzer: Wer dich trifft, bekommt Schaden zurück.'],
              g: ['Die Wolken sind jetzt richtige Haufenwolken statt Nebel.', 'Erdstoß und Erdbeben schleudern Erdbrocken.']}],
   ['V0.96', {n: ['Wolken ziehen über die Welt, mit Tiefenwirkung. Abschaltbar.'],
              g: ['Blitze schlagen in deiner Nähe ein statt außerhalb des Bildes.']}],
@@ -1981,21 +2016,21 @@ const CHANGELOG = [                                // neueste Version oben; n = 
   ['V0.93', {n: ['Schatten für Figuren, Bäume und Gebäude. Abschaltbar.', 'Häuser mit Dach und Tiefe statt flacher Zeichnung.'],
              g: ['Durch die Wurzeln des Weltenbaums kommt man nicht mehr hindurch.']}],
   ['V0.92', {n: ['Der Kakodämon lässt ab halber Kraft Bomben regnen.'],
-             g: ['Den Endlosmodus gibt es jetzt zusammen mit dem Farbdruck nach Ebene 3.']}],
+             g: ['Den Endlosmodus gibt es jetzt zusammen mit dem Farbmodus nach Ebene 3.']}],
   ['V0.91', {g: ['Goldfluss belegt keinen der zehn Plätze mehr.']}],
   ['V0.90', {n: ['Der Goldgoblin bewacht Goldfluss am riesigen Wahrzeichen.'],
              g: ['Goldfluss kommt nicht mehr beim Stufenaufstieg, man findet es am Wahrzeichen.']}],
   ['V0.89', {n: ['Gibt es nichts mehr zu verbessern, wählst du Proviant oder Goldsack.', '„Immer wählen“: Stufenaufstiege laufen dann ohne Tippen durch.']}],
-  ['V0.88', {g: ['Der Cheat motherlode zählt als verdientes Gold, Goldfluss lässt sich danach kaufen.']}],
+  ['V0.88', {g: ['Kleinere Korrekturen rund um Goldfluss.']}],
   ['V0.87', {n: ['Goldfluss beim Krämer ab 3000 verdientem Gold: Gold statt Erfahrung.', 'Karten neu würfeln, dreimal je Lauf.', 'Karten verbannen, zweimal je Lauf.']}],
   ['V0.86', {n: ['Im Pausemenü steht, wie viel Schaden jede Fähigkeit mit allen Boni macht.']}],
-  ['V0.85', {n: ['Dritter Boss: der Kakodämon, auch im Farbdruck.', 'Schmiedewerk Blutpest aus Seuche und Blutdurst.', 'Deine Werte im Pausemenü, mit der Herkunft jedes Bonus.'],
+  ['V0.85', {n: ['Dritter Boss: der Kakodämon, auch im Farbmodus.', 'Schmiedewerk Blutpest aus Seuche und Blutdurst.', 'Deine Werte im Pausemenü, mit der Herkunft jedes Bonus.'],
              g: ['Ebene 3 ist dunkler.', 'Das Tor leuchtet stärker.']}],
   ['V0.84', {n: ['Zweiter Boss: der Waldgeist.', 'Jede Ebene wird ein Stück dunkler.', 'Laternen an den Wegen.']}],
-  ['V0.83', {n: ['Eine eigene Seite für die Einstellungen.', 'Turbo-Modus, freigeschaltet durch den Sieg über den Knochenkönig oder per Cheat.', 'Die Versionsnummer steht im Hauptmenü.'],
-             g: ['Das Hauptmenü ist aufgeräumt; Musik, Wölbung, Farbdruck und Endlos stecken jetzt in den Einstellungen.']}],
+  ['V0.83', {n: ['Eine eigene Seite für die Einstellungen.', 'Turbo-Modus, freigeschaltet durch den Sieg über den Knochenkönig.', 'Die Versionsnummer steht im Hauptmenü.'],
+             g: ['Das Hauptmenü ist aufgeräumt; Musik, Wölbung, Farbmodus und Endlos stecken jetzt in den Einstellungen.']}],
   ['V0.82', {note: 'Die erste Version mit Nummer. Bis hierher kam unter anderem dazu:',
-             n: ['Musik im Lauf, in Dauerschleife.', 'Icon für den Homescreen, Vollbild ohne schwarzen Balken.', 'Spielbar auf iPad und PC, gleich pixelig, nur mit mehr Sicht.', 'Erfolge, auch ein paar lustige.', 'Nach Ebene 3 ist es geschafft: Fin.', 'Der Schmied verschmilzt zwei Waffen zu einem Werk.', 'Farbdruck nach Ebene 3, Endlosmodus mit allen Erfolgen.', 'Wölbung: Die Welt ist leicht gewölbt wie durch eine Linse.', 'Credits als Abspann, am Ende mit Cheats.'],
+             n: ['Musik im Lauf, in Dauerschleife.', 'Icon für den Homescreen, Vollbild ohne schwarzen Balken.', 'Spielbar auf iPad und PC, gleich pixelig, nur mit mehr Sicht.', 'Erfolge, auch ein paar lustige.', 'Nach Ebene 3 ist es geschafft: Fin.', 'Der Schmied verschmilzt zwei Waffen zu einem Werk.', 'Farbmodus nach Ebene 3, Endlosmodus mit allen Erfolgen.', 'Wölbung: Die Welt ist leicht gewölbt wie durch eine Linse.', 'Credits als Abspann.'],
              g: ['Nach dem Boss bleiben 25 Sekunden, dann kommt die Dunkelheit mit Massen an Gegnern.', 'Der Boss steht in späteren Ebenen wieder auf.', 'Mehr und stärkere Gegner.', 'Lederwams geht bis Stufe X.', 'Seuche ist deutlich besser zu sehen.', 'Erdstoß hebt und senkt den Boden, Bomben wachsen sichtbar mit.', 'Wege führen zu Turm und Burg.', 'Der Text auf dem Startbildschirm ist aufgeräumt.']}]
 ];
 const STARTER = ['messer', 'axt', 'bogen', 'magie', 'herz', 'stiefel', 'magnet', 'kraft'];   // Startpaket: immer dabei, muss nicht gekauft werden
@@ -2059,7 +2094,7 @@ class Combat {
     this.weapons = []; this.items = {}; this.aimX = 1; this.aimY = 0;
     this.gold = 0; this.goldPending = 0; this.earnPending = 0; this.gfAcc = 0; this.rerolls = 3; this.bans = 2; this.banned = {}; this.autoPick = ''; this.ebombs = []; this.allies = []; this.meteors = []; this.fuse = null; this.pet = null; this.petGain = 0; this.petPending = 0;
     this.choose({id: 'messer', kind: 'w', lvl: 1});
-    if ((game.meta.zweit | 0) > 0) { const ids = Object.keys(WEAPONS).filter(id => id !== 'messer' && !WEAPONS[id].found && !WEAPONS[id].forge && ARMORY.has(id)); this.choose({id: ids[Math.random() * ids.length | 0], kind: 'w', lvl: 1}); }
+    if ((game.meta.zweit | 0) > 0 && ZWEIT.on) { const ids = Object.keys(WEAPONS).filter(id => id !== 'messer' && !WEAPONS[id].found && !WEAPONS[id].forge && ARMORY.has(id)); this.choose({id: ids[Math.random() * ids.length | 0], kind: 'w', lvl: 1}); }
     if (allWeapons) for (const id in WEAPONS) if (!this.items[id]) this.choose({id, kind: 'w', lvl: 1});
     this.setupLevel();
   }
@@ -2983,6 +3018,7 @@ function viewSize() {
   return [vw, vh];
 }
 viewSize(); addEventListener('resize', viewSize); addEventListener('orientationchange', () => setTimeout(viewSize, 250));
+function runStats(id, rows) { const box = document.getElementById(id); box.textContent = ''; for (const [k, v] of rows) { const d = document.createElement('div'), b = document.createElement('b'), sp = document.createElement('span'); b.textContent = k; sp.textContent = v; d.append(b, sp); box.appendChild(d); } }   // Übersicht am Ende eines Laufs
 const LAST_LEVEL = 6;                                  // Grünland (1–3), Wüste (4–6): hinter dem Tor der sechsten Ebene ist Schluss
 // Erfolge: im Profil gespeichert, Meldung als eigenes Band, damit sie keine Spielmeldung verdrängt.
 const ACH = { got: {}, q: [], busy: false, t: 0,
@@ -3029,25 +3065,25 @@ const ACH = { got: {}, q: [], busy: false, t: 0,
     ['faden', 'Am seidenen Faden', 'Das Tor mit weniger als einem Fünftel des Lebens erreichen'],
     ['unbelehrbar', 'Unbelehrbar', 'Zehn Läufe beginnen'],
     ['totengraeber', 'Totengräber', 'Insgesamt 10 000 Feinde erlegen'],
-    ['nachruf', 'Erste Zeile im Nachruf', 'Zum ersten Mal sterben'],
+    ['nachruf', 'Ins Gras gebissen', 'Zum ersten Mal sterben'],
     ['lichtscheu', 'Lichtscheu', 'Von der Dunkelheit geholt werden'],
-    ['kurz', 'Kurzmeldung', 'In der ersten Minute sterben'],
+    ['kurz', 'Kurzer Auftritt', 'In der ersten Minute sterben'],
     ['ohrwurm', 'Ohrwurm', 'Die Musik zweimal am Stück ertragen'],
     ['erster', 'Aller Anfang', 'Den ersten Erfolg erringen']],
   load(pr) { this.got = Object.assign({}, pr.achievements, this.got); this.base = pr.totalKills | 0; if (pr.totalRuns >= 10) this.give('unbelehrbar'); if (HERO.name) this.give('name'); this.unlock(); },
-  unlock() {                                     // Farbdruck: wer Ebene 3 beendet hat. Endlos: wer alle Erfolge hat
-    if ((this.got.fin || this.got.gruen || CHEAT.color) && !COLOR.free) { COLOR.free = true; try { COLOR.on = localStorage.getItem('loColor') !== '0'; } catch (e) { COLOR.on = true; } }
+  unlock() {                                     // Farbmodus: wer Ebene 6 beendet hat. Endlos: wer Ebene 3 beendet hat
+    if ((this.got.fin || CHEAT.color) && !COLOR.free) { COLOR.free = true; try { COLOR.on = localStorage.getItem('loColor') !== '0'; } catch (e) { COLOR.on = true; } }
     if ((this.got.fin || this.got.gruen) && !ENDLESS.free) { ENDLESS.free = true; try { ENDLESS.on = localStorage.getItem('loEndless') === '1'; } catch (e) {} }
     if ((this.got.koenig || CHEAT.turbo) && !TURBO.free) { TURBO.free = true; try { TURBO.on = localStorage.getItem('loTurbo') === '1'; } catch (e) {} }
     const set = (id, o, name, how) => { const b = document.getElementById(id); if (b) { b.disabled = !o.free; b.textContent = o.free ? name + ': ' + (o.on ? 'an' : 'aus') : name + ' – ' + how; } };
-    set('btnColor', COLOR, 'Farbdruck', 'Ebene 3 beenden'); set('btnTurbo', TURBO, 'Turbo', 'den Knochenkönig besiegen'); set('btnEndless', ENDLESS, 'Endlos', 'Ebene 3 beenden'); },
+    set('btnColor', COLOR, 'Farbmodus', 'Ebene 6 beenden'); set('btnTurbo', TURBO, 'Turbo', 'den Knochenkönig besiegen'); set('btnEndless', ENDLESS, 'Endlos', 'Ebene 3 beenden'); },
   count() { return this.list.filter(a => this.got[a[0]]).length; },
   give(id) { if (this.got[id]) return; const a = this.list.find(x => x[0] === id); if (!a) return; this.got[id] = Date.now();
     SAVE.update(pr => { (pr.achievements = pr.achievements || {})[id] = this.got[id]; });
     this.q.push(a[1]); this.next(); if (id !== 'erster') this.give('erster'); { const ab = document.getElementById('btnAch'); if (ab) ab.textContent = 'Erfolge · ' + this.count() + '/' + this.list.length; }
     if (id === 'koenig' && !TURBO.free) { this.unlock(); this.q.push('Turbo freigeschaltet'); this.next(); }
-    if (id === 'gruen' && !COLOR.free) { this.unlock(); this.q.push('Farbdruck und Endlos freigeschaltet'); this.next(); }
-    if (id === 'fin' && (!COLOR.free || !ENDLESS.free)) { this.unlock(); this.q.push('Farbdruck und Endlosmodus freigeschaltet'); this.next(); } },
+    if (id === 'gruen' && !ENDLESS.free) { this.unlock(); this.q.push('Endlosmodus freigeschaltet'); this.next(); }
+    if (id === 'fin' && (!COLOR.free || !ENDLESS.free)) { const both = !ENDLESS.free && !COLOR.free; this.unlock(); this.q.push(both ? 'Farbmodus und Endlosmodus freigeschaltet' : 'Farbmodus freigeschaltet'); this.next(); } },
   next() { if (this.busy || !this.q.length) return; this.busy = true; const el = document.getElementById('achToast'); el.textContent = 'Erfolg · ' + this.q.shift(); el.style.opacity = 1;
     setTimeout(() => { el.style.opacity = 0; setTimeout(() => { this.busy = false; this.next(); }, 350); }, 2600); },
   check(g) { if (g.stopped || g.dead || performance.now() - this.t < 500) return; this.t = performance.now(); const c = g.combat, it = c.items;
@@ -3120,7 +3156,7 @@ class Game {
   bank() { const c = this.combat, n = c.goldPending, e = c.earnPending; if (n !== 0 || e) { c.goldPending = 0; c.earnPending = 0; SAVE.bump({gold: n, goldEarned: e}); } this.bankPet(); }
   bankPet() { const c = this.combat, n = c.petPending | 0; if (!c.pet || n < 1) return; c.petPending -= n; const id = c.pet.id;   // Erfahrung des Tiers wandert laufend ins Profil
     SAVE.update(pr => { pr.pets = pr.pets || {}; const st = pr.pets[id]; if (!st) return false; st.xp = Math.min(PET_MAXXP, (st.xp | 0) + n); }); }   // Gold wandert laufend ins Profil
-  pause() { if (this.dead) return; ADMIN.sync(); if (this.userPaused) { this.save(); return; } this.userPaused = true; this.showStats(); const pg = document.getElementById('pause'); pg.style.display = 'flex'; pg.scrollTop = 0; this.save(); }
+  pause() { if (this.dead) return; ADMIN.sync(); if (this.userPaused) { this.save(); return; } this.userPaused = true; this.showStats(); document.getElementById('stats').style.display = 'none'; { const bs = document.getElementById('btnStats'); bs.className = 'fold'; bs.textContent = 'Werte & Waffen ▾'; } const pg = document.getElementById('pause'); pg.style.display = 'flex'; pg.scrollTop = 0; this.save(); }
   showStats() {                                  // aktuelle Werte samt Herkunft: Fähigkeiten im Lauf (Stufe) und Krämer-Käufe
     const p = this.player, c = this.combat, it = c.items, m = this.meta || {}, box = document.getElementById('stats'); box.textContent = '';
     const pc = v => (v >= 0 ? '+' : '−') + Math.round(Math.abs(v) * 100) + ' %', x = v => '×' + v.toFixed(2).replace('.', ',');
@@ -3248,14 +3284,16 @@ class Game {
   }
   finish() {                                     // durch das letzte Tor: geschafft
     this.dead = true; const c = this.combat, hn = heroName(), on = document.getElementById('finName'); on.textContent = hn; on.style.fontSize = hn.length > 9 ? '22px' : hn.length > 5 ? '28px' : '';
-    document.getElementById('finText').textContent = `${hn} schritt durch das letzte Tor. ${LAST_LEVEL} Ebenen, ${c.kills} gefallene Feinde, Stufe ${this.player.level}, ${c.gold} Goldstücke – durch Grünland und Wüste, und das Wüstenauge ist geschlossen. Doch das ist noch nicht das Ende: Diese Legende wird weitergeschrieben.`;
+    document.getElementById('finText').textContent = `${hn} hat Grünland und Wüste durchquert – das Wüstenauge ist geschlossen.`;
+    runStats('finStats', [['Ebenen', LAST_LEVEL], ['Stufe', this.player.level], ['Feinde besiegt', c.kills], ['Gold eingesammelt', c.gold]]);
     document.getElementById('fin').style.display = 'flex'; ACH.give('fin'); this.bankPet();
     SAVE.del('runs', 'active'); SAVE.bump({totalKills: c.kills, highestLevel: this.level, gold: c.goldPending, goldEarned: c.earnPending, totalWins: 1}); c.goldPending = 0; c.earnPending = 0;
   }
   gameOver() {
     this.dead = true; const c = this.combat, tt = c.time | 0; ACH.give('nachruf'); this.bankPet(); if (this.level === 1 && tt < 60) ACH.give('kurz'); if (c.dark > 0) ACH.give('lichtscheu');
     const hn = heroName(), on = document.getElementById('overName'); on.textContent = '† ' + hn + ' †'; on.style.fontSize = hn.length > 9 ? '22px' : hn.length > 5 ? '28px' : '';
-    document.getElementById('overText').textContent = `${hn} fiel durch ${c.lastSrc || 'einen Feind'} in Ebene ${this.level} nach ${tt / 60 | 0} Min. ${tt % 60} Sek. auf Stufe ${this.player.level}. ${c.kills} Feinde fielen zuvor. Zurück bleiben ${c.gold} Goldstücke – und eine Legende.`;
+    document.getElementById('overText').textContent = 'Durch ' + (c.lastSrc || 'einen Feind') + '.';
+    runStats('overStats', [['Ebene', ROMAN[this.level] + (this.world.biome === 'wueste' ? ' · Wüste' : ' · Grünland')], ['Zeit auf der Ebene', (tt / 60 | 0) + ':' + String(tt % 60).padStart(2, '0')], ['Stufe', this.player.level], ['Feinde besiegt', c.kills], ['Gold eingesammelt', c.gold], ...(this.endless ? [['Modus', 'Endlos']] : [])]);
     document.getElementById('over').style.display = 'flex';
     SAVE.del('runs', 'active'); SAVE.bump({totalKills: c.kills, highestLevel: this.level, gold: c.goldPending, goldEarned: c.earnPending}); c.goldPending = 0; c.earnPending = 0;
   }
@@ -3329,7 +3367,7 @@ class Game {
   }
   function menuStop() { clearTimeout(ms.timer); cancelAnimationFrame(ms.raf); ms.raf = 0; }
   window.addEventListener('resize', () => { if (ms.raf && ms.renderer) ms.renderer.resize(); });
-  // Name der Legende: steht im Titel ("Legend of _") und später in der Traueranzeige
+  // Name der Legende: steht im Titel ("Legend of _") und später auf dem Todesbildschirm
   let lastSeed = 0;
   const nameInput = $('nameInput'), saveSettings = () => SAVE.put('settings', 'main', {saveVersion: SaveManager.VERSION, lastSeed, name: HERO.name});
   const fitName = () => { const m = document.createElement('span'); m.textContent = (nameInput.value || '_').toUpperCase(); m.style.cssText = 'visibility:hidden;position:absolute;white-space:pre'; nameInput.parentNode.appendChild(m); nameInput.style.width = (m.offsetWidth + 6) + 'px'; m.remove(); };
@@ -3438,6 +3476,7 @@ class Game {
   $('btnLink').addEventListener('click', () => copy(seedUrl(curSeed()), 'Link kopiert.'));
   input.addEventListener('keydown', e => { if (e.key === 'Enter') start(curSeed(), null); });
   $('btnAgain').addEventListener('click', toMenu); $('btnFin').addEventListener('click', toMenu);
+  $('btnRetry').addEventListener('click', () => { toMenu(); start(curSeed(), null); });   // gleich weiter: neue Welt, neuer Lauf
   $('btnAch').addEventListener('click', () => { const box = $('achList'); box.textContent = ''; $('achCount').textContent = ACH.count() + ' von ' + ACH.list.length + ' errungen';
     for (const [id, name, desc] of ACH.list) { const d = document.createElement('div'), m = document.createElement('i'), t = document.createElement('span'), b = document.createElement('b'); if (ACH.got[id]) d.className = 'got';
       m.textContent = ACH.got[id] ? '✓' : '·'; b.textContent = ACH.got[id] ? name : '???'; t.append(b, ACH.got[id] ? desc : 'Noch nicht entdeckt'); d.append(m, t); box.append(d); }
@@ -3455,7 +3494,7 @@ class Game {
     const CHEATS = {
       motherlode: async () => { await SAVE.update(pr => { const base = earnedOf(pr); pr.gold = (pr.gold | 0) + 10000; pr.goldEarned = base + 10000; }); return '+10 000 Gold im Beutel – zählt auch als verdient.'; },
       iambabo: () => { CHEAT.god = !CHEAT.god; return CHEAT.god ? 'Unverwundbar – bis die Seite neu geladen wird.' : 'Wieder sterblich.'; },
-      color: () => { CHEAT.color = true; try { localStorage.setItem('loCheatColor', '1'); } catch (e) {} ACH.unlock(); COLOR.on = true; try { localStorage.setItem('loColor', '1'); } catch (e) {} ACH.unlock(); return 'Farbdruck freigeschaltet.'; },
+      color: () => { CHEAT.color = true; try { localStorage.setItem('loCheatColor', '1'); } catch (e) {} ACH.unlock(); COLOR.on = true; try { localStorage.setItem('loColor', '1'); } catch (e) {} ACH.unlock(); return 'Farbmodus freigeschaltet.'; },
       turbo: () => { CHEAT.turbo = true; try { localStorage.setItem('loCheatTurbo', '1'); localStorage.setItem('loTurbo', '1'); } catch (e) {} ACH.unlock(); TURBO.on = true; ACH.unlock(); return 'Turbo freigeschaltet und eingeschaltet.'; },
       giveall: () => { for (const a of ACH.list) ACH.give(a[0]); return 'Alle ' + ACH.list.length + ' Erfolge errungen.'; },
       admin: () => { ADMIN.on = !ADMIN.on; try { localStorage.setItem('loAdmin', ADMIN.on ? '1' : '0'); } catch (e) {} ADMIN.sync(); return ADMIN.on ? 'Werkzeuge an: Startebene in den Einstellungen, Testhändler im Pausemenü.' : 'Werkzeuge wieder versteckt.'; } };
@@ -3552,10 +3591,22 @@ class Game {
   $('btnNoSmith').addEventListener('click', () => { if (window.game && window.game.smithClose) window.game.smithClose(); });
   $('btnNoHorse').addEventListener('click', () => { if (window.game && window.game.stallAnswer) window.game.stallAnswer(false); });
   $('ver').textContent = VERSION; { const v = document.createElement('p'); v.innerHTML = '<i>' + VERSION + '</i>'; $('rollIn').insertBefore(v, $('rollIn').children[2]); }
-  $('btnOpts').addEventListener('click', () => { ACH.unlock(); ADMIN.sync(); $('optNote').textContent = ''; $('opts').style.display = 'flex'; $('opts').scrollTop = 0; });
+  $('btnOpts').addEventListener('click', () => { ACH.unlock(); ADMIN.sync(); zwBtn(); $('optNote').textContent = ''; $('opts').style.display = 'flex'; $('opts').scrollTop = 0; });
   const lvBtns = () => { const box = $('lvlPick'); box.textContent = ''; for (let l = 1; l <= 6; l++) { const b = document.createElement('button'); b.textContent = ROMAN[l]; b.style.minHeight = '38px'; if (l === START_LVL.v) { b.style.background = '#2a242b'; b.style.color = '#e8e6d2'; }
       b.addEventListener('click', () => { START_LVL.v = l; try { localStorage.setItem('loStartLvl', String(l)); } catch (e) {} lvBtns(); refreshMenu(); }); box.appendChild(b); } }; lvBtns();
-  const sdBtn = () => { $('btnSand').textContent = 'Sandverwehungen (Wüste): ' + (SANDFX.on ? 'an' : 'aus'); }; sdBtn();
+  const sdBtn = () => { $('btnSand').textContent = 'Sand: ' + (SANDFX.on ? 'an' : 'aus'); }; sdBtn();
+  const blBtn = () => { $('btnBloom').textContent = 'Bloom: ' + (BLOOM.on ? 'an' : 'aus'); }; blBtn();
+  $('btnBloom').addEventListener('click', () => { BLOOM.on = !BLOOM.on; try { localStorage.setItem('loBloom', BLOOM.on ? '1' : '0'); } catch (e) {} blBtn(); if (BLOOM.on) LENSGL.init(); $('optNote').textContent = BLOOM.on && (!LENSGL.gl || LENSGL.bfail) ? 'Bloom braucht WebGL – auf diesem Gerät nicht verfügbar.' : ''; });
+  const zwBtn = async () => { const pr = await SAVE.profile(), own = ((pr.metaUpgrades || {}).zweit | 0) > 0, b = $('btnZweit'); b.disabled = !own; b.textContent = own ? 'Zweite Startwaffe: ' + (ZWEIT.on ? 'an' : 'aus') : 'Zweite Startwaffe – beim Krämer kaufen'; };
+  $('btnZweit').addEventListener('click', () => { ZWEIT.on = !ZWEIT.on; try { localStorage.setItem('loZweit', ZWEIT.on ? '1' : '0'); } catch (e) {} zwBtn(); });
+  let resetArm = false, resetT = 0; const rsBtn = () => { const b = $('btnReset'); b.className = resetArm ? 'warn' : ''; b.textContent = resetArm ? 'Wirklich löschen? Nochmal tippen' : 'Fortschritt zurücksetzen'; };
+  $('btnReset').addEventListener('click', async () => {        // zweimal tippen: Gold, Käufe, Tiere, Erfolge, Freischaltungen und der laufende Spielstand sind weg. Einstellungen und Name bleiben
+    if (!resetArm) { resetArm = true; rsBtn(); $('optNote').textContent = 'Gold, Käufe, Tiere, Erfolge, Freischaltungen und der laufende Lauf werden gelöscht.'; clearTimeout(resetT); resetT = setTimeout(() => { resetArm = false; rsBtn(); $('optNote').textContent = ''; }, 5000); return; }
+    resetArm = false; clearTimeout(resetT); rsBtn(); await SAVE.reset();
+    for (const k of ['loColor', 'loEndless', 'loTurbo', 'loCheatColor', 'loCheatTurbo', 'loZweit']) { try { localStorage.removeItem(k); } catch (e) {} }
+    ACH.got = {}; ACH.base = 0; ACH.q.length = 0; COLOR.free = COLOR.on = false; ENDLESS.free = ENDLESS.on = false; TURBO.free = TURBO.on = false; CHEAT.color = CHEAT.turbo = false; ZWEIT.on = true;
+    const pr = await SAVE.profile(); ACH.load(pr); ARMORY.load(pr); PET.load(pr); ANKH.load(pr); ACH.unlock(); zwBtn(); await refreshMenu();
+    $('optNote').textContent = 'Fortschritt gelöscht. Einstellungen und Name sind geblieben.'; });
   $('btnSand').addEventListener('click', () => { SANDFX.on = !SANDFX.on; try { localStorage.setItem('loSand', SANDFX.on ? '1' : '0'); } catch (e) {} sdBtn(); });
   const cBtn = () => { $('btnClouds').textContent = 'Wolken: ' + (CLOUDS.on ? 'an' : 'aus'); }; cBtn();
   $('btnClouds').addEventListener('click', () => { CLOUDS.on = !CLOUDS.on; try { localStorage.setItem('loClouds', CLOUDS.on ? '1' : '0'); } catch (e) {} cBtn(); });
@@ -3572,6 +3623,7 @@ class Game {
   addEventListener('pointerdown', () => MUSIC.unlock(), true);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') MUSIC.sync(false, 0); });   // im Hintergrund läuft kein Bild, also dort auch die Musik anhalten
   $('btnResume').addEventListener('click', () => { if (window.game && window.game.resume) window.game.resume(); });
+  $('btnStats').addEventListener('click', () => { const st = $('stats'), open = st.style.display === 'none'; st.style.display = open ? '' : 'none'; $('btnStats').className = open ? 'fold on' : 'fold'; $('btnStats').textContent = open ? 'Werte & Waffen ▴' : 'Werte & Waffen ▾'; });   // Werte nur auf Wunsch aufklappen
   $('btnQuit').addEventListener('click', async () => { if (window.game && window.game.save) await window.game.save(); toMenu(); });
   // Start: IndexedDB öffnen -> Profil/Lauf laden -> Fortsetzen anbieten. Seed in der URL wird automatisch verwendet.
   SAVE.open().then(async () => {
