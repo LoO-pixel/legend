@@ -324,13 +324,17 @@ html,body{overscroll-behavior:none;touch-action:none;
 </div></div>
 <div id="roll" class="btn"><button id="rollClose">&#10005;</button><div id="rollIn">
   <h1>Legend of _</h1><p><i>Ein Abenteuer in sechs Ebenen</i></p>
-  <small>Idee, Welt und Regie</small><p>Flo</p>
+  <small>Idee, Welt und Regie</small><p>Olfbert</p>
   <small>Programm</small><p>entstanden mit Claude</p>
-  <small>Musik</small><p>&bdquo;Shadow Riff&ldquo;</p><p><i>erzeugt mit Suno</i></p>
+  <small>Musik &middot; Gr&uuml;nland</small><p>&bdquo;Shadow Riff&ldquo;</p><p><i>erzeugt mit Suno AI</i></p>
+  <small>Musik &middot; W&uuml;ste</small><p>&bdquo;Descent of the Sands&ldquo;</p><p><i>erzeugt mit Suno AI</i></p>
   <small>Der Knochenk&ouml;nig</small><p>Sword Skeleton</p><p><i>Pixel Art Character von Sanctumpixel</i></p>
   <small>Der Waldgeist</small><p>The Forest Spirit</p><p><i>von pidroudays</i></p>
   <small>Der Kakod&auml;mon</small><p>Cacodaemon Sprites</p><p><i>von Elthen</i></p>
-  <small>Grabw&auml;chter, Sandgoblin, W&uuml;stenauge, Pilzf&uuml;rst</small><p>Monsters Creatures Fantasy</p><p><i>von Luiz Melo</i></p>
+  <small>Der Grabw&auml;chter</small><p>Skeleton</p><p><i>Monsters Creatures Fantasy von Luiz Melo</i></p>
+  <small>Der Sandgoblin</small><p>Goblin</p><p><i>Monsters Creatures Fantasy von Luiz Melo</i></p>
+  <small>Das W&uuml;stenauge</small><p>Flying Eye</p><p><i>Monsters Creatures Fantasy von Luiz Melo</i></p>
+  <small>Der Pilzf&uuml;rst</small><p>Mushroom</p><p><i>Monsters Creatures Fantasy von Luiz Melo</i></p>
   <small>In weiteren Rollen</small><p>Die Fleischkugel</p><p>Schlurfer, L&auml;ufer, Hetzer</p><p>Der Schmied</p><p>Ein Pferd (dreimal getroffen)</p>
   <small>Gezeichnet in</small><p>Schwarz, Grau, Papier</p><p><i>und ein wenig Rot</i></p>
   <small>Zu finden unter</small><p><a href="https://loo-pixel.github.io/legend/" target="_blank" rel="noopener">loo-pixel.github.io/legend</a></p>
@@ -415,7 +419,7 @@ const ADMIN = { on: false, sync() { for (const id of ['adminBox', 'btnTest']) { 
 try { ADMIN.on = localStorage.getItem('loAdmin') === '1'; } catch (e) {}
 const START_LVL = { v: 1 }; try { START_LVL.v = Math.max(1, Math.min(6, parseInt(localStorage.getItem('loStartLvl'), 10) || 1)); } catch (e) {}   // nur zum Testen: auf welcher Ebene ein neues Spiel beginnt
 const SANDFX = { on: true }; try { SANDFX.on = localStorage.getItem('loSand') !== '0'; } catch (e) {}
-const BLOOM = { on: false, k: .46 }; try { BLOOM.on = localStorage.getItem('loBloom') === '1'; } catch (e) {}   // Bloom: helle Stellen strahlen weich in die dunklen hinein
+const BLOOM = { on: false, k: .46 }; try { BLOOM.on = localStorage.getItem('loBloom2') === '1'; localStorage.removeItem('loBloom'); } catch (e) {}   // Bloom: helle Stellen strahlen weich in die dunklen hinein; ab Werk aus
 const ZWEIT = { on: true }; try { ZWEIT.on = localStorage.getItem('loZweit') !== '0'; } catch (e) {}   // gekaufte zweite Startwaffe: abschaltbar
 const CLOUDS = { on: true, els: null, TW: 1150, TH: 1500,
   // Kachel aus sechs Wolken, die sich endlos wiederholt; jede hat Ort, Größe und eigenes Tempo
@@ -1987,7 +1991,7 @@ const META = {
 };
 const CHANGELOG = [                                // neueste Version oben; n = neu, g = geändert, e = entfernt
   ['V0.999', {n: ['Bloom: helle Stellen strahlen weich in die dunklen hinein, in den Einstellungen an- und abschaltbar.', 'Die zweite Startwaffe vom Krämer lässt sich in den Einstellungen abschalten.', 'Fortschritt zurücksetzen in den Einstellungen – Einstellungen und Name bleiben.', 'Nach dem Tod gibt es eine Übersicht über den Lauf und gleich einen neuen Lauf.'],
-             g: ['Der Farbmodus wird erst nach Ebene 6 freigeschaltet.', 'Im Pausemenü sind die Werte eingeklappt und lassen sich aufklappen.', 'Die Werte im Pausemenü zeigen aktive Schrein-Gaben und rechnen sie mit ein: doppelter Schaden (auch beim Waffenschaden), doppelte Erfahrung, doppeltes Gold und den Fluch.', 'Todesbildschirm, Pause, Ladebild und Abspann haben neue Texte; zwei Erfolge heißen anders.']}],
+             g: ['Der Farbmodus wird erst nach Ebene 6 freigeschaltet.', 'Im Pausemenü sind die Werte eingeklappt und lassen sich aufklappen.', 'Die Werte im Pausemenü zeigen aktive Schrein-Gaben und rechnen sie mit ein: doppelter Schaden (auch beim Waffenschaden), doppelte Erfahrung, doppeltes Gold und den Fluch.', 'Todesbildschirm, Pause, Ladebild und Abspann haben neue Texte; zwei Erfolge heißen anders.', 'Im Abspann stehen die Wüstenmusik „Descent of the Sands“ und alle Bosse einzeln.']}],
   ['V0.998', {g: ['Die Gaben der Schreine sind gleichmäßig verteilt – vorher kam der Rüstungsfluch fast auf jeder Ebene.', 'Alles durchgesehen, kleinere Fehler behoben.']}],
   ['V0.997', {n: ['Die Schreine sind auf der Karte eingetragen (rotes Kreuz), solange sie noch etwas bergen.'],
              g: ['Rings um die Wüste stehen hohe, geschichtete Felswände statt Dünen.', 'Behoben: In V0.996 kamen keine Gegner mehr.']}],
@@ -3598,7 +3602,7 @@ class Game {
       b.addEventListener('click', () => { START_LVL.v = l; try { localStorage.setItem('loStartLvl', String(l)); } catch (e) {} lvBtns(); refreshMenu(); }); box.appendChild(b); } }; lvBtns();
   const sdBtn = () => { $('btnSand').textContent = 'Sand: ' + (SANDFX.on ? 'an' : 'aus'); }; sdBtn();
   const blBtn = () => { $('btnBloom').textContent = 'Bloom: ' + (BLOOM.on ? 'an' : 'aus'); }; blBtn();
-  $('btnBloom').addEventListener('click', () => { BLOOM.on = !BLOOM.on; try { localStorage.setItem('loBloom', BLOOM.on ? '1' : '0'); } catch (e) {} blBtn(); if (BLOOM.on) LENSGL.init(); $('optNote').textContent = BLOOM.on && (!LENSGL.gl || LENSGL.bfail) ? 'Bloom braucht WebGL – auf diesem Gerät nicht verfügbar.' : ''; });
+  $('btnBloom').addEventListener('click', () => { BLOOM.on = !BLOOM.on; try { localStorage.setItem('loBloom2', BLOOM.on ? '1' : '0'); } catch (e) {} blBtn(); if (BLOOM.on) LENSGL.init(); $('optNote').textContent = BLOOM.on && (!LENSGL.gl || LENSGL.bfail) ? 'Bloom braucht WebGL – auf diesem Gerät nicht verfügbar.' : ''; });
   const zwBtn = async () => { const pr = await SAVE.profile(), own = ((pr.metaUpgrades || {}).zweit | 0) > 0, b = $('btnZweit'); b.disabled = !own; b.textContent = own ? 'Zweite Startwaffe: ' + (ZWEIT.on ? 'an' : 'aus') : 'Zweite Startwaffe – beim Krämer kaufen'; };
   $('btnZweit').addEventListener('click', () => { ZWEIT.on = !ZWEIT.on; try { localStorage.setItem('loZweit', ZWEIT.on ? '1' : '0'); } catch (e) {} zwBtn(); });
   let resetArm = false, resetT = 0; const rsBtn = () => { const b = $('btnReset'); b.className = resetArm ? 'warn' : ''; b.textContent = resetArm ? 'Wirklich löschen? Nochmal tippen' : 'Fortschritt zurücksetzen'; };
