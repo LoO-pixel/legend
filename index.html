@@ -117,7 +117,20 @@ html,body{overscroll-behavior:none;touch-action:none;
 #cheatMsg{min-height:20px;font-size:13px;font-style:italic;margin-top:10px}
 #rollClose{position:absolute;right:14px;top:calc(env(safe-area-inset-top) + 12px);z-index:2;width:44px;height:44px;border:1px solid #e8e6d2;border-radius:50%;background:#2a242b;color:#e8e6d2;font:700 16px Georgia,serif}
 #foot{padding:6px 10px 0;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#2a242b}
-#credits{color:#2a242b}
+#credits,#changes{color:#2a242b}
+#log{align-items:flex-start}
+#log .sheet{margin:auto 0}
+#log h1{font-size:30px}
+#logList{text-align:left}
+#logList section{padding:2px 0 10px;border-bottom:1px solid rgba(42,36,43,.35)}
+#logList section:last-child{border-bottom:0}
+#logList h3{font-size:18px;font-weight:900;letter-spacing:.06em;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px;margin:12px 0 4px}
+#logList h3 small{font-size:10px;font-weight:400;font-style:italic;letter-spacing:.04em;color:#cf2a2a;margin-left:8px;text-decoration:none;display:inline-block}
+#logList h4{font-size:9px;font-weight:400;letter-spacing:.3em;text-transform:uppercase;margin:8px 0 2px}
+#logList p{font-size:12px;line-height:1.35;margin:0 0 3px;padding-left:12px;text-indent:-12px}
+#logList p::before{content:"\2013";display:inline-block;width:12px;text-indent:0}
+#logList .note{font-style:italic;padding-left:0;text-indent:0;margin:2px 0 0}
+#logList .note::before{content:none}
 #stats{text-align:left;font-size:12px;margin:0 0 12px}
 #stats div{display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-bottom:1px solid rgba(42,36,43,.3)}
 #stats div b{flex:none}
@@ -210,7 +223,7 @@ html,body{overscroll-behavior:none;touch-action:none;
     <div id="menuNote"></div>
     <div id="menuStats"></div>
     <div id="menuWarn"></div>
-    <div id="foot"><a id="credits" href="#">Credits</a> &middot; <span id="ver"></span></div>
+    <div id="foot"><a id="credits" href="#">Credits</a> &middot; <a id="changes" href="#">Changelog</a> &middot; <span id="ver"></span></div>
   </div></div>
 </div>
 <div id="hud"><div class="bar"><i id="hpFill"></i></div><div class="bar" id="xpBar"><i id="xpFill"></i></div><div id="hudText"></div><div id="saveWarn">Speichern gerade nicht m&ouml;glich</div><div id="hudItems"></div><div id="bossBar" class="bigbar"><span id="bossName"></span><div class="bar"><i id="bossFill"></i></div></div><div id="guardBar" class="bigbar"><span id="guardName"></span><div class="bar"><i id="guardFill"></i></div></div></div>
@@ -296,6 +309,13 @@ html,body{overscroll-behavior:none;touch-action:none;
   <div class="gap"></div><p><i>Kein Schlurfer kam bei den Dreharbeiten dauerhaft zu Schaden.</i></p>
   <div id="cheatBox"><b>Cheats</b><input id="cheatIn" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="20" placeholder="Zauberwort"><div id="cheatMsg"></div></div>
 </div></div>
+<div id="log" class="page" style="display:none;z-index:7"><div class="sheet">
+  <div class="kicker">Aus der Setzerei</div>
+  <h1>Changelog</h1>
+  <div class="sub">Was neu ist, was sich geändert hat und was gestrichen wurde</div>
+  <div id="logList"></div>
+  <button id="btnLogBack" class="big" style="position:sticky;bottom:0;margin-top:12px">Zur&uuml;ck</button>
+</div></div>
 <div id="opts" class="page" style="display:none;z-index:7"><div class="sheet">
   <div class="kicker">Stellschrauben</div>
   <h1>Einstellungen</h1>
@@ -343,7 +363,7 @@ const CPAL = new Uint32Array([0xFF2B242A,0xFF8F888F,0xFFD2E6E8,0xFF243A2B,0xFF5E
 const TINT_OF_TYPE = new Uint8Array([1, 2, 3, 4, 4, 5, 6, 6, 7, 8, 9, 10, 2]);   // Reihenfolge wie T
 const COLOR = { on: false, free: false };
 const LENS = { on: true }; try { LENS.on = localStorage.getItem('loLens') !== '0'; } catch (e) {}
-const VERSION = 'V0.97';
+const VERSION = 'V0.98';
 const CLOUDS = { on: true, els: null, TW: 1150, TH: 1500,
   // Kachel aus sechs Wolken, die sich endlos wiederholt; jede hat Ort, Größe und eigenes Tempo
   defs: [[80, 140, 1.25, 1], [640, 420, .9, 1.25], [300, 760, 1.5, .85], [900, 980, 1.05, 1.1], [120, 1220, .8, 1.3], [760, 80, .7, .95]],
@@ -1611,6 +1631,7 @@ class Renderer {
       if (lx >= 0 && ly >= 0 && lx < bw - 1 && ly < bh) { const k = ly * bw + lx; f[k] = 30; if (Math.sin(time * 9 + L.ph) > 0) f[k + 1] = 30; }
     }
     if (scene) scene.drawOver(this, cx, cy, time);
+    if (scene && scene.drawFuse) scene.drawFuse(this, cx, cy);
     if (scene && scene.quakes) scene.quakes(this, cx, cy);
     // 3. Raster: Grauwerte -> drei Druckfarben, Rastermatrix und Korn sind an der Welt verankert
     const D = scene && scene.darkLv || 0, lb = this.lb, DK = D * 256 | 0; if (D) { lb.fill(0); scene.lights(this, cx, cy); }
@@ -1656,7 +1677,7 @@ const ENEMY_TYPES = [
 ];
 // ---- Waffen (je 5 Stufen, jede Stufe ändert etwas anderes) und passive Fähigkeiten. w = Gewicht im Angebot (selten = stark)
 // ---- Stellschrauben der Balance an einer Stelle
-const BAL = {eHp: 1.15, eDmg: 1.2, gateTime: 25, darkTime: 25, lvlHp: .6, lvlDmg: .35, hpRamp: 200, spawnMin: .2, capMax: 180, spawnRate: 1.5, bossSpawnMul: 2.2, afterBossMul: 3, lvlHeal: 5};
+const BAL = {eHp: 2.3, eDmg: 2.4, gateTime: 25, darkTime: 25, lvlHp: .6, lvlDmg: .35, hpRamp: 200, spawnMin: .2, capMax: 180, spawnRate: 1.5, bossSpawnMul: 2.2, afterBossMul: 3, lvlHeal: 5};
 const HERO = {name: ''};                      // der Name hinter "Legend of _"
 const heroName = () => HERO.name || 'Der Namenlose';
 const ROMAN = Array.from({length: 100}, (_, n) => ['', 'X', 'XX', 'XXX', 'XL', 'L', 'LX', 'LXX', 'LXXX', 'XC'][n / 10 | 0] + ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX'][n % 10]);
@@ -1688,6 +1709,11 @@ const WEAPONS = {
   pestfeuer: {name: 'Pestfeuer',     w: 3, forge: ['flamme', 'seuche'],  desc: ['Deine Feuerspur verbrennt und steckt jeden an, der hindurchläuft', 'Heißer, brennt länger', 'Heißer, brennt länger', 'Heißer, brennt länger', 'Heißer, brennt länger']},
   eislanze:  {name: 'Eislanze',      w: 3, forge: ['frost', 'speer'],    desc: ['Durchbohrt eine Reihe und friert sie ein; schon Unterkühlte zersplittern mit Flächenschaden', 'Mehr Schaden', 'Auch nach hinten', 'Mehr Schaden', 'Schnellere Folge, mehr Schaden']},
   kugel:     {name: 'Kugelblitz',    w: 3, forge: ['magie', 'kette'],    desc: ['Eine langsame Kugel, die ständig Blitze auf Nahestehende abgibt', 'Mehr Schaden, hält länger', 'Mehr Schaden, hält länger', 'Zwei Kugeln', 'Mehr Schaden, hält länger']},
+  feuersturm:{name: 'Feuersturm',    w: 3, forge: ['meteor', 'ring'],    desc: ['Feuerbrocken regnen in einer Spirale um dich nieder und lassen den Boden brennen', 'Mehr Schaden', 'Dichterer Regen', 'Mehr Schaden, größere Einschläge', 'Zwei Spiralen gegenläufig']},
+  seuchenheer:{name: 'Seuchenheer',  w: 3, forge: ['nekro', 'seuche'],   desc: ['Zwei verseuchte Skelette: jeder Hieb steckt an, und wenn sie zerfallen, platzen sie in einer Seuchenwolke', 'Stärker, halten länger', 'Drei Skelette', 'Stärker, öfter beschworen', 'Vier Skelette']},
+  donnerspeer:{name: 'Donnerspeer',  w: 3, forge: ['blitz', 'speer'],    desc: ['Der Speer zieht Blitze nach: in jeden Durchbohrten schlägt es ein', 'Mehr Schaden', 'Auch nach hinten', 'Mehr Schaden, mehr Einschläge', 'In alle vier Richtungen']},
+  wirbel:    {name: 'Klingenwirbel', w: 3, forge: ['axt', 'messer'],     desc: ['Fünf Klingen kreisen außen, drei innen gegenläufig – ein Mahlwerk um dich', 'Mehr Schaden', 'Sieben und vier Klingen', 'Mehr Schaden, schneller', 'Neun und fünf Klingen']},
+  komet:     {name: 'Kometenschlag', w: 3, forge: ['meteor', 'stoss'],   desc: ['Ein gewaltiger Komet schlägt ein; die Erde wirft Wellen, alles ringsum wird fortgeschleudert und gebremst', 'Mehr Schaden', 'Größerer Krater', 'Mehr Schaden, schnellere Folge', 'Zwei Kometen']},
   blutpest:  {name: 'Blutpest',      w: 3, forge: ['seuche', 'blut'],    desc: ['Steckt an wie die Seuche – und was die Seuche zehrt, fließt dir als Leben zu', 'Mehr Schaden, mehr Leben', 'Steckt öfter neu an', 'Mehr Schaden, mehr Leben', 'Steckt noch öfter an, greift weiter um sich']},
   flamme:    {name: 'Flammenschritte', w: 3, found: true, desc: ['Du ziehst eine Feuerspur hinter dir her', 'Heißer, brennt länger', 'Heißer, brennt länger', 'Heißer, brennt länger', 'Heißer, brennt länger']}
 };
@@ -1738,6 +1764,36 @@ const META = {
   goldfluss: {name: 'Goldfluss', desc: 'Schaltet die Fähigkeit Goldfluss frei: In Welten mit riesigem Wahrzeichen liegt sie dort als Goldsack – bewacht vom Goldgoblin. Sie macht aus Erfahrung Gold', max: 1, base: 500, need: 3000},
   zweit:  {name: 'Zweite Waffe',   desc: 'Jeder Lauf beginnt mit einer zufälligen zweiten Waffe', max: 1, base: 150}
 };
+const CHANGELOG = [                                // neueste Version oben; n = neu, g = geändert, e = entfernt
+  ['V0.98', {n: ['Fünf neue Schmiedewerke: Feuersturm, Seuchenheer, Donnerspeer, Klingenwirbel und Kometenschlag.', 'Beim Schmieden kreisen zwei Lichter ineinander, dann fällt der Hammer.', 'Dieser Changelog im Hauptmenü.'],
+             g: ['Gegner haben doppelt so viel Leben und teilen doppelt so viel aus.']}],
+  ['V0.97', {n: ['Nekromantie: Skelette kämpfen eine Weile an deiner Seite.', 'Meteor: Brocken stürzen auf Gegner in deiner Nähe.', 'Dornenpanzer: Wer dich trifft, bekommt Schaden zurück.', 'Ein Testhändler im Pausemenü gibt alles her, nur zum Ausprobieren.'],
+             g: ['Die Wolken sind jetzt richtige Haufenwolken statt Nebel.', 'Erdstoß und Erdbeben schleudern Erdbrocken.']}],
+  ['V0.96', {n: ['Wolken ziehen über die Welt, mit Tiefenwirkung. Abschaltbar.'],
+             g: ['Blitze schlagen in deiner Nähe ein statt außerhalb des Bildes.']}],
+  ['V0.95', {g: ['Dächer gleiten ruhiger mit, statt zu zappeln.', 'Die Schmiede ist neu gezeichnet.', 'Vor der Kirche steht kein Haus mehr.']}],
+  ['V0.94', {n: ['Kirche, Kapellen und Stall haben Seitenwände.', 'Riesige Wahrzeichen werfen Schatten.', 'Dächer verschieben sich leicht mit dem Blick.'],
+             g: ['Häuser überlappen sich nicht mehr.', 'Das Irrlicht sieht schöner aus.', 'Blitze schlagen richtig ein und ändern ständig ihre Form.']}],
+  ['V0.93', {n: ['Schatten für Figuren, Bäume und Gebäude. Abschaltbar.', 'Häuser mit Dach und Tiefe statt flacher Zeichnung.'],
+             g: ['Durch die Wurzeln des Weltenbaums kommt man nicht mehr hindurch.']}],
+  ['V0.92', {n: ['Der Kakodämon lässt ab halber Kraft Bomben regnen.'],
+             g: ['Den Endlosmodus gibt es jetzt zusammen mit dem Farbdruck nach Ebene 3.']}],
+  ['V0.91', {g: ['Goldfluss belegt keinen der zehn Plätze mehr.']}],
+  ['V0.90', {n: ['Der Goldgoblin bewacht Goldfluss am riesigen Wahrzeichen.'],
+             g: ['Goldfluss kommt nicht mehr beim Stufenaufstieg, man findet es am Wahrzeichen.']}],
+  ['V0.89', {n: ['Gibt es nichts mehr zu verbessern, wählst du Proviant oder Goldsack.', '„Immer wählen“: Stufenaufstiege laufen dann ohne Tippen durch.']}],
+  ['V0.88', {g: ['Der Cheat motherlode zählt als verdientes Gold, Goldfluss lässt sich danach kaufen.']}],
+  ['V0.87', {n: ['Goldfluss beim Krämer ab 3000 verdientem Gold: Gold statt Erfahrung.', 'Karten neu würfeln, dreimal je Lauf.', 'Karten verbannen, zweimal je Lauf.']}],
+  ['V0.86', {n: ['Im Pausemenü steht, wie viel Schaden jede Fähigkeit mit allen Boni macht.']}],
+  ['V0.85', {n: ['Dritter Boss: der Kakodämon, auch im Farbdruck.', 'Schmiedewerk Blutpest aus Seuche und Blutdurst.', 'Deine Werte im Pausemenü, mit der Herkunft jedes Bonus.'],
+             g: ['Ebene 3 ist dunkler.', 'Das Tor leuchtet stärker.']}],
+  ['V0.84', {n: ['Zweiter Boss: der Waldgeist.', 'Jede Ebene wird ein Stück dunkler.', 'Laternen an den Wegen.']}],
+  ['V0.83', {n: ['Eine eigene Seite für die Einstellungen.', 'Turbo-Modus, freigeschaltet durch den Sieg über den Knochenkönig oder per Cheat.', 'Die Versionsnummer steht im Hauptmenü.'],
+             g: ['Das Hauptmenü ist aufgeräumt; Musik, Wölbung, Farbdruck und Endlos stecken jetzt in den Einstellungen.']}],
+  ['V0.82', {note: 'Die erste Version mit Nummer. Bis hierher kam unter anderem dazu:',
+             n: ['Musik im Lauf, in Dauerschleife.', 'Icon für den Homescreen, Vollbild ohne schwarzen Balken.', 'Spielbar auf iPad und PC, gleich pixelig, nur mit mehr Sicht.', 'Erfolge, auch ein paar lustige.', 'Nach Ebene 3 ist es geschafft: Fin.', 'Der Schmied verschmilzt zwei Waffen zu einem Werk.', 'Farbdruck nach Ebene 3, Endlosmodus mit allen Erfolgen.', 'Wölbung: Die Welt ist leicht gewölbt wie durch eine Linse.', 'Credits als Abspann, am Ende mit Cheats.'],
+             g: ['Nach dem Boss bleiben 25 Sekunden, dann kommt die Dunkelheit mit Massen an Gegnern.', 'Der Boss steht in späteren Ebenen wieder auf.', 'Mehr und stärkere Gegner.', 'Lederwams geht bis Stufe X.', 'Seuche ist deutlich besser zu sehen.', 'Erdstoß hebt und senkt den Boden, Bomben wachsen sichtbar mit.', 'Wege führen zu Turm und Burg.', 'Der Text auf dem Startbildschirm ist aufgeräumt.']}]
+];
 const FORGE_COST = 60, FORGE_MIN = 3;            // Schmied: Preis je Werk, Mindeststufe beider Zutaten
 const earnedOf = pr => pr.goldEarned !== undefined ? pr.goldEarned | 0 : (pr.gold | 0) + Object.keys(pr.metaUpgrades || {}).reduce((a, id) => { if (!META[id]) return a; for (let l = 0; l < (pr.metaUpgrades[id] | 0) && l < META[id].max; l++) a += metaCost(id, l); return a; }, 0);   // insgesamt verdientes Gold; für alte Profile aus Beutel + Käufen geschätzt
 const metaCost = (id, lvl) => Math.round(META[id].base * (META[id].mul || [1, 2, 3.5, 5.5, 8])[lvl]);
@@ -1746,6 +1802,7 @@ const GUARD = {name: 'Die Fleischkugel', ai: 'ball', guard: true, hp: BOSS.hp / 
 const GOBLIN_SPR = (() => { const a = ES(['..#...........#..', '.##...#####...##.', '.###.#######.###.', '..##o#######o##..', '...###w###w###...', '...###########...', '....##o###o##....', '....#########....', '..####ooooo####..', '.###.#######.###.', '.##..#######..##.', '.##..#######..###', '.....###.###...##', '.....###.###...##', '....####.####....']), b = ES(['.#.............#.', '.##...#####...##.', '.###.#######.###.', '..##o#######o##..', '...###w###w###...', '...###########...', '....##o###o##....', '....#########....', '..####ooooo####..', '.###.#######.###.', '###..#######..##.', '##...#######..##.', '##....##.###.....', '......##.####....', '.....###..###....']); return [a, b, a.flipped(), b.flipped()]; })();
 const GOBLIN = {name: 'Der Goldgoblin', ai: 'goblin', guard: true, hoard: true, hp: BOSS.hp * .6, sp: 28, dmg: 11, xp: 10, r: 7, spr: GOBLIN_SPR[0]};
 // beschworene Skelette (Nekromantie): zwei Schrittbilder, je nach Blickrichtung gespiegelt
+const SKEL2_SPR = (() => { const mk = rows => Sprite.fromRows(rows, {'#': 20, 'w': 236, 'r': RED, 'o': 110}, 3, rows.length - 1), a = mk(['..###..', '.#www#.', '.#r#r#.', '.#www#.', '..#w#..', '.#wow#.', '#.wow.#', '..w#w..', '.##.##.']), b = mk(['..###..', '.#www#.', '.#r#r#.', '.#www#.', '..#w#..', '#.wow.#', '.#wow#.', '..w#w..', '.#...#.']); return [a, b, a.flipped(), b.flipped()]; })();   // Seuchenheer: rote Augen, fleckiger Leib
 const SKEL_SPR = (() => { const a = ES(['..###..', '.#www#.', '.#w#w#.', '.#www#.', '..#w#..', '.#www#.', '#.www.#', '..w#w..', '.##.##.']), b = ES(['..###..', '.#www#.', '.#w#w#.', '.#www#.', '..#w#..', '#.www.#', '.#www#.', '..w#w..', '.#...#.']); return [a, b, a.flipped(), b.flipped()]; })();
 class Combat {
   constructor(game, allWeapons) {
@@ -1755,14 +1812,14 @@ class Combat {
     this.proj = Array.from({length: 160}, () => ({alive: false, x: 0, y: 0, vx: 0, vy: 0, g: 0, dmg: 0, life: 0, kind: 0, pierce: 0, rb: 0, target: null, hits: [], ret: 0}));
     this.drops = Array.from({length: 900}, () => ({alive: false, x: 0, y: 0, v: 0, gold: false, pull: false}));
     this.fx = Array.from({length: 48}, () => ({alive: false, x: 0, y: 0, x2: 0, y2: 0, t: 0, r: 0, kind: 0}));
-    this.flames = Array.from({length: 70}, () => ({alive: false, x: 0, y: 0, t: 0})); this.chainHit = []; this.spent = {}; this.pestQ = []; this.ptag = 0;
+    this.flames = Array.from({length: 130}, () => ({alive: false, x: 0, y: 0, t: 0})); this.chainHit = []; this.spent = {}; this.pestQ = []; this.ptag = 0;
     this.smoke = Array.from({length: 90}, () => ({alive: false, x: 0, y: 0, vx: 0, vy: 0, t: 0, life: 0, r: 0, spark: false}));
     this.dyn = []; this.playerVisible = true;
     game.player.horse = 0;
     const p = game.player; p.maxHp = 100; p.hp = 100; p.xp = 0; p.level = 1; p.xpNext = 5; p.inv = 0; p.pickup = 24;
     p.dmgMul = 1; p.cdMul = 1; p.area = 1; p.crit = 0; p.armor = 0; p.xpMul = 1; p.speedMul = 1; this.applyMeta();
     this.weapons = []; this.items = {}; this.aimX = 1; this.aimY = 0;
-    this.gold = 0; this.goldPending = 0; this.earnPending = 0; this.gfAcc = 0; this.rerolls = 3; this.bans = 2; this.banned = {}; this.autoPick = ''; this.ebombs = []; this.allies = []; this.meteors = [];
+    this.gold = 0; this.goldPending = 0; this.earnPending = 0; this.gfAcc = 0; this.rerolls = 3; this.bans = 2; this.banned = {}; this.autoPick = ''; this.ebombs = []; this.allies = []; this.meteors = []; this.fuse = null;
     this.choose({id: 'messer', kind: 'w', lvl: 1});
     if ((game.meta.zweit | 0) > 0) { const ids = Object.keys(WEAPONS).filter(id => id !== 'messer' && !WEAPONS[id].found && !WEAPONS[id].forge); this.choose({id: ids[Math.random() * ids.length | 0], kind: 'w', lvl: 1}); }
     if (allWeapons) for (const id in WEAPONS) if (!this.items[id]) this.choose({id, kind: 'w', lvl: 1});
@@ -1976,7 +2033,7 @@ class Combat {
     this.gold -= FORGE_COST; this.goldPending -= FORGE_COST;
     for (const k of f) { delete this.items[k]; this.spent[k] = 1; } this.weapons = this.weapons.filter(w => w.id !== f[0] && w.id !== f[1]);
     if (f.includes('blut')) this.g.player.leech = 0;                      // Blutdurst geht im Werk auf
-    this.choose({id, kind: 'w', lvl: 1}); if (this.smith) this.smith.used = true; return true;
+    this.choose({id, kind: 'w', lvl: 1}); if (this.smith) this.smith.used = true; this.fuse = {t: 0, id}; this.g.player.inv = Math.max(this.g.player.inv || 0, 2.2); return true;
   }
   itemList() { return Object.keys(this.items).map(id => (WEAPONS[id] || PASSIVES[id]).name + ' ' + ROMAN[this.items[id]]).join(' · '); }
   aoe(x, y, R, dmg, kb) { const E = this.enemies; for (let i = 0; i < E.length; i++) { const e = E[i]; if (!e.alive) continue; const ox = e.x - x, oy = e.y - 2 - y, d = Math.hypot(ox, oy) || 1; if (d < R + e.type.r) this.hit(e, this.dmg(dmg), ox / d * kb, oy / d * kb); } }
@@ -2094,7 +2151,7 @@ class Combat {
     this.dyn.length = 0; if (this.corpse) this.dyn.push(this.corpse);
     for (let i = this.ebombs.length - 1; i >= 0; i--) { const B = this.ebombs[i];      // Bomben des Dämons: angekündigt durch einen sich schließenden Kreis, dann Explosion
       if ((B.t -= dt) <= 0) { this.ebombs.splice(i, 1); this.blast(B.x, B.y, 19, 2.2, .8); if (Math.hypot(p.x - B.x, p.y - 2 - B.y) < 20) { this.hurt(18, 'eine Bombe des Kakodämons'); } } }
-    const plagueL = Math.max(this.items.seuche | 0, this.items.pest | 0, this.items.pestfeuer | 0, this.items.blutpest | 0), BP = this.items.blutpest | 0;
+    const plagueL = Math.max(this.items.seuche | 0, this.items.pest | 0, this.items.pestfeuer | 0, this.items.blutpest | 0, this.items.seuchenheer | 0), BP = this.items.blutpest | 0;
     if (BP && this.bpPool > 0) { const h = Math.min(this.bpPool, (2 + BP) * dt); this.bpPool -= h; if (this.bpPool > 12) this.bpPool = 12; if (p.hp < p.maxHp) { p.hp = Math.min(p.maxHp, p.hp + h); this.leechT = .25; } }   // Blutpest: gezehrtes Leben fließt gedeckelt zu
     if (this.pestQ.length) { const PL = this.items.pest | 0, R = (15 + 2 * (PL >= 2) + 3 * (PL >= 4)) * p.area, Q = this.pestQ.splice(0, 12);
       for (let k = 0; k < Q.length; k += 2) { const x = Q[k], y = Q[k + 1]; this.boom(x, y, R); this.boom(x, y, R * .6, 4);
@@ -2220,18 +2277,25 @@ class Combat {
       if (d < ty.r + 3 && ty.ai !== 'bomb' && !(e.frozT > 0) && !(ty.boss && e.state >= 3)) { this.hurt(ty.dmg, ty.boss ? ty.acc : 'einen ' + ty.name); if (ty.boss) p.inv = Math.max(p.inv, 1.1); }   // nach einem Boss-Treffer etwas länger unverwundbar
       if (Math.abs(e.x - p.x) < vx && Math.abs(e.y - p.y) < vy) this.dyn.push(e);
     }
+    if (this.fuse) { const F = this.fuse, t0 = F.t; F.t += dt;      // Verschmelzung: zwei Lichter kreisen sich ein, dann fällt der Hammer
+      if (t0 < 1.1 && F.t >= 1.1) { const X = p.x, Y = p.y - 3; this.blast(X, Y, 38, 4, 1.25); this.boom(X, Y, 74, 5); this.boom(X, Y, 48, 5); this.boom(X, Y, 54, 2); this.boom(X, Y, 30, 2); this.debris(X, Y, 14, 14); this.strike(X, Y + 3); this.aoe(X, Y, 58, 14, 6); }
+      if (F.t > 2) this.fuse = null; }
     // ---- Beschworene Skelette: suchen den nächsten Feind in deiner Nähe, schlagen zu, zerfallen nach ihrer Zeit
     for (let i = this.allies.length - 1; i >= 0; i--) { const a = this.allies[i];
-      if ((a.t -= dt) <= 0) { this.boom(a.x, a.y - 3, 6); this.allies.splice(i, 1); continue; }
+      if ((a.t -= dt) <= 0) { this.boom(a.x, a.y - 3, 6); if (a.plague && this.pestQ.length < 60) this.pestQ.push(a.x, a.y - 2); this.allies.splice(i, 1); continue; }
       a.cd -= dt; let tg = null, bd = 95 * 95;
       for (let j = 0; j < E.length; j++) { const e = E[j]; if (!e.alive || Math.abs(e.x - p.x) > 135 || Math.abs(e.y - p.y) > 150) continue; const q = (e.x - a.x) ** 2 + (e.y - a.y) ** 2; if (q < bd) { bd = q; tg = e; } }
       const gx = tg ? tg.x : p.x + a.ox, gy = tg ? tg.y : p.y + a.oy, ox = gx - a.x, oy = gy - a.y, dd = Math.hypot(ox, oy) || 1, reach = tg ? tg.type.r + 5 : 6;
       if (dd > reach) { const v = (tg ? 46 : 38) * dt; a.x += ox / dd * Math.min(v, dd); a.y += oy / dd * Math.min(v, dd); a.step += dt * 9; }
-      else if (tg && a.cd <= 0) { a.cd = .55; this.hit(tg, this.dmg(a.dmg), ox / dd, oy / dd); }
-      if (Math.abs(ox) > 1) a.face = ox > 0; a.spr = SKEL_SPR[(a.face ? 0 : 2) + ((a.step | 0) & 1)]; a.flash = a.t < 1.5 && ((a.t * 10 | 0) & 1) ? 1 : 0;   // blinkt, kurz bevor es zerfällt
+      else if (tg && a.cd <= 0) { a.cd = .55; if (a.plague && !(tg.plagueT > 0)) { tg.plagueT = 6; tg.plagueGen = 0; tg.plagueTick = .4; } this.hit(tg, this.dmg(a.dmg), ox / dd, oy / dd); }
+      if (Math.abs(ox) > 1) a.face = ox > 0; a.spr = (a.plague ? SKEL2_SPR : SKEL_SPR)[(a.face ? 0 : 2) + ((a.step | 0) & 1)]; a.flash = a.t < 1.5 && ((a.t * 10 | 0) & 1) ? 1 : 0;   // blinkt, kurz bevor es zerfällt
       if (Math.abs(a.x - p.x) < g.renderer.bw / 2 + 14 && Math.abs(a.y - p.y) < g.renderer.bh / 2 + 16) this.dyn.push(a); }
     // ---- Meteore: Schatten wächst, Brocken fällt, Einschlag
-    for (let i = this.meteors.length - 1; i >= 0; i--) { const M = this.meteors[i]; if ((M.t -= dt) <= 0) { this.meteors.splice(i, 1); this.aoe(M.x, M.y, M.R, M.dmg, 2.2); this.blast(M.x, M.y, M.R, 2.8, .72); this.debris(M.x, M.y, M.R * .8, 8); } }
+    for (let i = this.meteors.length - 1; i >= 0; i--) { const M = this.meteors[i]; if ((M.t -= dt) <= 0) { this.meteors.splice(i, 1); const kd = M.kind | 0;
+        if (kd === 1) { this.aoe(M.x, M.y, M.R, M.dmg, 1.2); this.boom(M.x, M.y, M.R); this.boom(M.x, M.y, M.R * .6, 4); this.debris(M.x, M.y, M.R * .7, 2); for (let j = 0; j < 4; j++) { const f = this.get(this.flames); if (!f) break; f.alive = true; f.x = M.x + (j ? Math.cos(j * 2.1) * 5 : 0); f.y = M.y + (j ? Math.sin(j * 2.1) * 4 : 0); f.t = 1.5 + j * .15; } }
+        else if (kd === 2) { this.aoe(M.x, M.y, M.R, M.dmg, 4.5); for (let j = 0; j < E.length; j++) { const e = E[j]; if (e.alive && Math.hypot(e.x - M.x, e.y - 2 - M.y) < M.R * 1.5 + e.type.r) e.slowT = Math.max(e.slowT, 3); }
+          this.blast(M.x, M.y, M.R, 4.2, 1.2); this.boom(M.x, M.y, M.R * 1.6, 5); this.boom(M.x, M.y, M.R * .9, 5); this.debris(M.x, M.y, M.R, 18); for (let j = 0; j < 12; j++) { const f = this.get(this.flames); if (!f) break; const a = j * .5236; f.alive = true; f.x = M.x + Math.cos(a) * M.R * .5; f.y = M.y + Math.sin(a) * M.R * .4; f.t = 1.6 + (j % 3) * .4; } }
+        else { this.aoe(M.x, M.y, M.R, M.dmg, 2.2); this.blast(M.x, M.y, M.R, 2.8, .72); this.debris(M.x, M.y, M.R * .8, 8); } } }
     // ---- Waffen feuern selbsttätig
     if (g.dir.x || g.dir.y) { const m = Math.hypot(g.dir.x, g.dir.y); this.aimX = g.dir.x / m; this.aimY = g.dir.y / m; }
     const A = p.area, px = p.x, py = p.y - 3;
@@ -2251,6 +2315,14 @@ class Combat {
           for (let i = 0; i < E.length; i++) { const e = E[i]; if (e.alive && e.axeT <= 0 && Math.abs(e.x - bx) < 5 && Math.abs(e.y - 3 - by) < 5) { e.axeT = .35; this.hit(e, this.dmg(8 + 2 * L), Math.cos(a), Math.sin(a));
             if (wp.wcd <= 0) { wp.wcd = L >= 4 ? .35 : L >= 2 ? .5 : .7; let tg = null; for (let tr = 0; tr < 10 && !tg; tr++) { const o = E[Math.random() * E.length | 0]; if (o.alive && o !== e && Math.abs(o.x - px) < 130 && Math.abs(o.y - py) < 130) tg = o; }
               this.shoot1(4, bx, by, Math.cos(a) * 60, Math.sin(a) * 60, 0, 7 + 2 * L, 2.5, 0, 3, tg); } } } }
+        continue;
+      }
+      if (wp.id === 'feuersturm' && (wp.ft = (wp.ft || 0) - dt) <= 0) { wp.ft = .35; const dm = 3 + L;
+        for (let i = 0; i < E.length; i++) { const e = E[i]; if (!e.alive) continue; for (const f of this.flames) if (f.alive && Math.abs(e.x - f.x) < 6 && Math.abs(e.y - 1 - f.y) < 6) { this.hit(e, this.dmg(dm), 0, 0); break; } } }
+      if (wp.id === 'wirbel') {                  // Klingenwirbel: äußerer Kranz und innerer Kranz gegenläufig
+        wp.ang += dt * (L >= 4 ? 5.2 : 4.2); const nO = L >= 5 ? 9 : L >= 3 ? 7 : 5, nI = L >= 5 ? 5 : L >= 3 ? 4 : 3, dm = 7 + 2 * (L >= 2) + 3 * (L >= 4);
+        for (let k = 0; k < nO + nI; k++) { const inner = k >= nO, a = inner ? -wp.ang * 1.3 + (k - nO) * 6.283 / nI : wp.ang + k * 6.283 / nO, R = (inner ? 13 : 27) * A, bx = px + Math.cos(a) * R, by = py + Math.sin(a) * R * .78;
+          for (let i = 0; i < E.length; i++) { const e = E[i]; if (e.alive && e.axeT <= 0 && Math.abs(e.x - bx) < 4 + e.type.r * .5 && Math.abs(e.y - 3 - by) < 4 + e.type.r * .5) { e.axeT = .22; this.hit(e, this.dmg(dm), Math.cos(a), Math.sin(a)); } } }
         continue;
       }
       if (wp.id === 'begleiter') {               // Raben kreisen ständig
@@ -2308,12 +2380,27 @@ class Combat {
         case 'blutpest': { let best = null, bd = (105 * A) ** 2;
           for (let i = 0; i < E.length; i++) { const e = E[i]; if (!e.alive || e.plagueT > 0) continue; const q = (e.x - px) ** 2 + (e.y - py) ** 2; if (q < bd) { bd = q; best = e; } }
           if (best) { best.plagueT = 6; best.plagueGen = L >= 5 ? -1 : 0; best.plagueTick = .3; wp.cd = (L >= 5 ? 2.2 : L >= 3 ? 2.8 : 3.6) * cdm; } else wp.cd = .4; break; }
+        case 'feuersturm': { wp.ang = (wp.ang || 0) + 1.1; const arms = L >= 5 ? 2 : 1;
+          for (let k = 0; k < arms; k++) { const a = k ? -wp.ang * 1.3 + 2 : wp.ang, R = (26 + ((wp.ang * 3 | 0) % 3) * 13) * A; this.meteors.push({x: px + Math.cos(a) * R, y: py + Math.sin(a) * R * .8, t: .5, T: .5, kind: 1, R: (13 + (L >= 4 ? 4 : 0)) * A, dmg: 14 + 4 * (L >= 2) + 5 * (L >= 4)}); }
+          wp.cd = (L >= 3 ? .3 : .42) * cdm; break; }
+        case 'seuchenheer': { const n = L >= 5 ? 4 : L >= 3 ? 3 : 2, room = 6 - this.allies.length;
+          for (let k = 0; k < Math.min(n, room); k++) { const a = Math.random() * 6.283, o = {x: px + Math.cos(a) * 14, y: p.y + Math.sin(a) * 11, t: 10 + L, cd: .5, dmg: 7 + 2 * L, ox: Math.cos(a) * 16, oy: Math.sin(a) * 13, step: 0, face: true, spr: SKEL2_SPR[0], flash: 0, plague: true};
+            this.allies.push(o); this.boom(o.x, o.y - 2, 6, 4); this.boom(o.x, o.y - 3, 8, 2); this.debris(o.x, o.y, 5, 3); }
+          wp.cd = (L >= 4 ? 8 : 10) * cdm; break; }
+        case 'donnerspeer': { const dirs = L >= 5 ? [[1, 0], [-1, 0], [0, 1], [0, -1]] : L >= 3 ? [[1, 0], [-1, 0]] : [[1, 0]], ax = this.aimX, ay = this.aimY; this.ptag = 'donner';
+          for (const [f, sd] of dirs) { const q = this.shoot1(5, px, py, (ax * f - ay * sd) * 185, (ay * f + ax * sd) * 185, 0, this.dmg(11 + 4 * (L >= 2) + 4 * (L >= 4)), .42 * A, 99, 0, null); if (q) q.zt = L >= 4 ? 5 : 3; }
+          this.ptag = 0; wp.cd = 1.5 * cdm; break; }
+        case 'komet': { const n = L >= 5 ? 2 : 1; let any = false;
+          for (let k = 0; k < n; k++) { let best = null, bn = -1; for (let tr = 0; tr < 10; tr++) { const e = E[Math.random() * E.length | 0]; if (!e.alive || Math.abs(e.x - px) > Math.min(85 * A, g.renderer.bw / 2 - 12) || Math.abs(e.y - py) > Math.min(110 * A, g.renderer.bh / 2 - 26)) continue;
+              let c2 = 0; for (let j = 0; j < E.length; j += 2) { const o = E[j]; if (o.alive && Math.abs(o.x - e.x) < 30 && Math.abs(o.y - e.y) < 26) c2++; } if (c2 > bn) { bn = c2; best = e; } }                       // zielt dorthin, wo am meisten los ist
+            if (best) { this.meteors.push({x: best.x, y: best.y - 2, t: 1.05 + k * .35, T: 1.05 + k * .35, kind: 2, R: (32 + (L >= 3 ? 8 : 0)) * A, dmg: 60 + 16 * (L >= 2) + 20 * (L >= 4)}); any = true; } }
+          wp.cd = any ? (L >= 4 ? 5.2 : 6.5) * cdm : .3; break; }
         case 'nekro': { const n = L >= 5 ? 3 : L >= 3 ? 2 : 1, room = 6 - this.allies.length;
           for (let k = 0; k < Math.min(n, room); k++) { const a = Math.random() * 6.283, o = {x: px + Math.cos(a) * 14, y: p.y + Math.sin(a) * 11, t: 9 + L, cd: .5, dmg: 5 + 2 * L, ox: Math.cos(a) * 16, oy: Math.sin(a) * 13, step: 0, face: true, spr: SKEL_SPR[0], flash: 0};
             this.allies.push(o); this.boom(o.x, o.y - 3, 8, 2); this.debris(o.x, o.y, 5, 3); }
           wp.cd = (L >= 4 ? 8.5 : 10.5) * cdm; break; }
         case 'meteor': { const n = L >= 4 ? 2 : 1; let any = false;
-          for (let k = 0; k < n; k++) for (let tr = 0; tr < 14; tr++) { const e = E[Math.random() * E.length | 0]; if (e.alive && Math.abs(e.x - px) < Math.min(85 * A, g.renderer.bw / 2 - 12) && Math.abs(e.y - py) < Math.min(110 * A, g.renderer.bh / 2 - 26)) { this.meteors.push({x: e.x, y: e.y - 2, t: .8, R: (22 + (L >= 3 ? 7 : 0)) * A, dmg: 34 + 10 * (L >= 2) + 14 * (L >= 5)}); any = true; break; } }
+          for (let k = 0; k < n; k++) for (let tr = 0; tr < 14; tr++) { const e = E[Math.random() * E.length | 0]; if (e.alive && Math.abs(e.x - px) < Math.min(85 * A, g.renderer.bw / 2 - 12) && Math.abs(e.y - py) < Math.min(110 * A, g.renderer.bh / 2 - 26)) { this.meteors.push({x: e.x, y: e.y - 2, t: .8, T: .8, kind: 0, R: (22 + (L >= 3 ? 7 : 0)) * A, dmg: 34 + 10 * (L >= 2) + 14 * (L >= 5)}); any = true; break; } }
           wp.cd = any ? (L >= 5 ? 4.2 : 5.5) * cdm : .3; break; }
         case 'pest': { let best = null, bd = (110 * A) ** 2;
           for (let i = 0; i < E.length; i++) { const e = E[i]; if (!e.alive || e.plagueT > 0) continue; const q = (e.x - px) ** 2 + (e.y - py) ** 2; if (q < bd) { bd = q; best = e; } }
@@ -2371,6 +2458,7 @@ class Combat {
       for (let j = 0; j < E.length; j++) { const e = E[j]; if (!e.alive || q.hits.indexOf(e) >= 0) continue; const r = e.type.r + 2 + q.rb;
         if (Math.abs(e.x - q.x) < r && Math.abs(e.y - r + 1 - q.y) < r + 1) {
           if (q.kind === 4) { const R = (11 + q.rb) * A; this.aoe(q.x, q.y, R, q.dmg, 1); this.boom(q.x, q.y, R); q.alive = false; break; }
+          if (q.tag === 'donner' && q.zt > 0) { q.zt--; this.strike(e.x, e.y - 2); this.aoe(e.x, e.y - 2, 11 * A, 9, 0); }   // Donnerspeer: Blitz in jeden Durchbohrten (begrenzt je Wurf)
           if (q.tag === 'eis') { const ex = e.x, ey = e.y - 2;      // Eislanze: Unterkühlte zersplittern, dann friert der Getroffene ein
             if (e.slowT > 0 || e.frozT > 0) { this.boom(ex, ey, 12 * A, 2); this.aoe(ex, ey, 13 * A, 8, 0); }
             if (e.alive) { e.slowT = 3.5; if (!e.type.boss && !e.type.guard) e.frozT = 1.2; } }
@@ -2415,20 +2503,33 @@ class Combat {
     for (const s of this.shrines) if (s.left > 0) r.light(s.x - cx, s.y - 6 - cy, 30);
     if (this.exitOpen) r.light(this.exit.x - cx, this.exit.y - 6 - cy, 78 + Math.sin(this.time * 4) * 8);
     for (const f of this.flames) if (f.alive) r.light((f.x | 0) - cx, (f.y | 0) - cy, 14);
-    for (const M of this.meteors) r.light(Math.round(M.x + M.t * 150) - cx, Math.round(M.y - M.t * 330) - cy, 30);
-    for (const q of this.proj) if (q.alive && (q.kind === 4 || q.kind === 7)) r.light(Math.round(q.x) - cx, Math.round(q.y) - cy, 16);
+    if (this.fuse) { const t = this.fuse.t; r.light(Math.round(p.x) - cx, Math.round(p.y) - 4 - cy, t < 1.1 ? 46 + t * 34 : Math.max(40, 130 - (t - 1.1) * 100)); }
+    for (const M of this.meteors) r.light(Math.round(M.x + M.t / (M.T || .8) * 120) - cx, Math.round(M.y - M.t / (M.T || .8) * 264) - cy, M.kind === 2 ? 50 : 26);
+    for (const q of this.proj) if (q.alive && (q.kind === 4 || q.kind === 7 || q.tag === 'donner')) r.light(Math.round(q.x) - cx, Math.round(q.y) - cy, 16);
     for (const f of this.fx) if (f.alive && (f.kind === 4 || f.kind === 1)) r.light(Math.round(f.x) - cx, Math.round(f.y) - cy, f.kind === 4 ? f.r * 2.4 : f.t < .16 ? 60 : 30);
     { const b0 = this.boss; if (b0 && b0.alive) r.light(Math.round(b0.x) - cx, Math.round(b0.y) - b0.spr.h / 2 - cy, b0.type === BOSS3 ? 44 : 30); }   // Bosse glimmen, damit man sie auch nachts kommen sieht
     const b = this.boss; if (b && b.alive && b.beam === 2) { const f = b.face ? 1 : -1; for (let q = 0; q < 300; q += 22) r.light(Math.round(b.x) - cx + f * q, Math.round(b.y - 9) - cy, 24); }
+  }
+  drawFuse(r, cx, cy) {                          // über allem: die Verschmelzung beim Schmied
+    const F = this.fuse; if (!F) return; const p = this.g.player, t = F.t, X0 = Math.round(p.x) - cx, Y0 = Math.round(p.y) - 3 - cy, T = 1.1;
+    if (t < T) { const u = t / T, RR = 46 * (1 - u) + 4, n = 28;
+      for (let i = 0; i < n; i++) { if ((i + (t * 14 | 0)) % 4 === 0) continue; const a = i * 6.283 / n - t * 2; r.dot(Math.round(X0 + Math.cos(a) * RR), Math.round(Y0 + Math.sin(a) * RR * .78), i & 1 ? 250 : 20); }   // Bannkreis zieht sich zu
+      for (let i = 0; i < 12; i++) { const a = i * .5236 + .4, q = 54 * (1 - ((t * 1.7 + i * .137) % 1)); if (q < RR) continue; const X = Math.round(X0 + Math.cos(a) * q), Y = Math.round(Y0 + Math.sin(a) * q * .78); r.dot(X, Y, i % 3 ? 250 : RED); r.dot(Math.round(X0 + Math.cos(a) * (q + 2)), Math.round(Y0 + Math.sin(a) * (q + 2) * .78), 110); }   // Funken werden hineingesogen
+      for (let sO = 0; sO < 2; sO++) for (let j = 26; j >= 0; j--) { const tj = t - j * .012; if (tj < 0) continue; const uj = tj / T, Rj = 38 * (1 - uj) * (1 - uj) + 2.5, a = 2 + 7 * uj + 17 * uj * uj + sO * 3.1416, X = Math.round(X0 + Math.cos(a) * Rj), Y = Math.round(Y0 + Math.sin(a) * Rj * .78);
+          if (j === 0) { for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) { const q = dx * dx + dy * dy; if (q <= 9) r.dot(X + dx, Y + dy, q <= 1 ? 250 : q > 5 ? 20 : sO ? 250 : RED); } }
+          else if (j < 9 || ((j + sO) & 1)) { r.dot(X, Y, sO ? ((j & 1) ? 250 : 20) : RED); if (j < 7) r.dot(X, Y - 1, sO ? 250 : RED); if (j < 14) r.dot(X, Y + 1, 20); } } }
+    else { const u = Math.min(1, (t - T) / .9), R0 = 5 + u * 40;
+      for (let i = 0; i < 16; i++) { const a = i * .3927 + .2, len = (i & 1 ? 9 : 17) * (1 - u), ca = Math.cos(a), sa = Math.sin(a) * .78; for (let q = 0; q < len; q++) { if (u > .45 && ((q + i) & 1)) continue; r.dot(Math.round(X0 + ca * (R0 + q)), Math.round(Y0 + sa * (R0 + q)), i & 1 ? RED : 250); } }   // Strahlenkranz
+      const cr = Math.round(7 * (1 - u)); for (let dy = -cr; dy <= cr; dy++) for (let dx = -cr; dx <= cr; dx++) { const q = dx * dx + dy * dy; if (q <= cr * cr) r.dot(X0 + dx, Y0 + dy, q > cr * cr * .55 ? RED : 250); } }
   }
   quakes(r, cx, cy) {                            // nach allem anderen: Bodenwelle hebt und senkt das fertige Bild im Ring
     for (const f of this.fx) if (f.alive && f.kind === 5) { const u = f.t / .6; r.ripple(Math.round(f.x) - cx, Math.round(f.y) - cy, 5 + u * f.r, 4.2 * (1 - u * .55)); }
   }
   drawOver(r, cx, cy, time) {
-    for (const M of this.meteors) { const x = Math.round(M.x) - cx, y = Math.round(M.y) - cy, k = 1 - M.t / .8, sr = 3 + (M.R * .7 - 3) * k, fx = Math.round(x + M.t * 150), fy = Math.round(y - M.t * 330);   // Meteor: Schatten am Ziel wächst, der Brocken kommt von rechts oben mit Feuerschweif
+    for (const M of this.meteors) { const T = M.T || .8, kd = M.kind | 0, x = Math.round(M.x) - cx, y = Math.round(M.y) - cy, k = 1 - M.t / T, sr = 3 + (M.R * .7 - 3) * k, u = M.t / T, fx = Math.round(x + u * (kd === 2 ? 150 : 120)), fy = Math.round(y - u * (kd === 2 ? 300 : 264)), rr = kd === 2 ? 7 : 3, tl = kd === 2 ? 44 : kd === 1 ? 17 : 22;   // Meteor: Schatten am Ziel wächst, der Brocken kommt von rechts oben mit Feuerschweif (Komet groß, Feuersturm klein)
       for (let dy = -sr | 0; dy <= sr; dy++) for (let dx = -sr | 0; dx <= sr; dx++) if (dx * dx + dy * dy * 1.6 < sr * sr && ((dx + dy) & 1)) r.dot(x + dx, y + dy, 20);
-      for (let q = 1; q < 22; q++) { const tx = fx + Math.round(q * .42), ty2 = fy - Math.round(q * .92); r.dot(tx, ty2, q < 12 || (q & 1) ? RED : 250); if (q < 12) { r.dot(tx + 1, ty2, q < 6 ? 250 : RED); r.dot(tx - 1, ty2, RED); } }
-      for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) { const q = dx * dx + dy * dy; if (q <= 10) r.dot(fx + dx, fy + dy, q <= 3 ? 96 : 20); } r.dot(fx - 1, fy + 1, RED); }
+      for (let q = 1; q < tl; q++) { const tx = fx + Math.round(q * .42), ty2 = fy - Math.round(q * .92), wd = Math.max(0, Math.round(rr * (1 - q / tl))); for (let o = -wd; o <= wd; o++) r.dot(tx + o, ty2, Math.abs(o) < wd * .5 && q < tl * .4 ? 250 : (q + o) % 5 === 0 && q > tl * .5 ? 250 : RED); }
+      for (let dy = -rr; dy <= rr; dy++) for (let dx = -rr; dx <= rr; dx++) { const q = dx * dx + dy * dy; if (q <= rr * rr + 1) r.dot(fx + dx, fy + dy, q <= rr * rr * .35 ? 96 : 20); } r.dot(fx - 1, fy + 1, RED); if (kd === 2) { r.dot(fx - 2, fy + 2, RED); r.dot(fx + 2, fy - 1, 250); } }
     for (const B of this.ebombs) { const x = Math.round(B.x) - cx, y = Math.round(B.y) - cy, R = 19, k = clamp(B.t / 1.2, 0, 1), rr = 3 + (R - 3) * k, n = 40, bl = (this.time * 10 | 0) & 1;   // Warnfläche über allem: gerasterte Scheibe, roter Rand, innen ein Ring, der sich zuzieht
       for (let dy = -15; dy <= 15; dy++) for (let dx = -19; dx <= 19; dx++) if (dx * dx / 361 + dy * dy / 231 < 1 && ((dx + dy) & 3) === 0) r.dot(x + dx, y + dy, bl ? RED : 20);
       for (let i = 0; i < n; i++) { const a = i * 6.283 / n; r.dot(Math.round(x + Math.cos(a) * R), Math.round(y + Math.sin(a) * R * .8), RED); r.dot(Math.round(x + Math.cos(a) * (R + 1)), Math.round(y + Math.sin(a) * (R + 1) * .8), 20); if (i % 2 === 0) r.dot(Math.round(x + Math.cos(a) * rr), Math.round(y + Math.sin(a) * rr * .8), 250); }
@@ -2449,6 +2550,17 @@ class Combat {
         for (let i = 0; i < n; i++) { const a = i * 6.283 / n + time * (hot ? .8 : -.4), fx = Math.round(px + Math.cos(a) * R) - cx, fy = Math.round(py + Math.sin(a) * R * .78) - cy;
           if (hot) { r.dot(fx, fy, RED); if (i % 3 === 0) { r.dot(fx, fy + 1, 20); r.dot(fx, fy - 1, RED); if ((i + (time * 9 | 0)) % 2) r.dot(fx, fy - 2, RED); } }
           else { r.dot(fx, fy, (i & 1) ? 238 : 110); if (i % 5 === 0) { r.dot(fx - 1, fy, 238); r.dot(fx + 1, fy, 238); r.dot(fx, fy - 1, 238); r.dot(fx, fy + 1, 238); r.dot(fx, fy, 20); } } } }
+      else if (wp.id === 'feuersturm') { const arms = wp.lvl >= 5 ? 4 : 3;   // Feuersturm: Glutarme drehen sich als Wirbel um dich, aus ihnen schlagen Zungen
+        for (let sA = 0; sA < arms; sA++) for (let j = 0; j < 26; j++) { const rad = (8 + j * 1.75) * A, a = time * 2.6 + sA * 6.283 / arms - j * .13, fl = (j + (time * 12 | 0) + sA * 2) % 5;
+          const X = Math.round(px + Math.cos(a) * rad) - cx, Y = Math.round(py + Math.sin(a) * rad * .78) - cy; if (j > 17 && fl > 2) continue; r.dot(X, Y, RED); r.dot(X, Y + 1, 20);
+          if (fl === 0) { r.dot(X, Y - 1, RED); r.dot(X, Y - 2, j < 9 ? 250 : RED); if (j > 6) r.dot(X + 1, Y - 3, RED); } else if (fl === 2 && j < 14) r.dot(X, Y - 1, 250); } }
+      else if (wp.id === 'wirbel') { const L = wp.lvl, nO = L >= 5 ? 9 : L >= 3 ? 7 : 5, nI = L >= 5 ? 5 : L >= 3 ? 4 : 3;   // Klingenwirbel: helle Sicheln mit dunklem Rücken, dahinter ein langer Schliff in der Luft
+        for (let k = 0; k < nO + nI; k++) { const inner = k >= nO, a = inner ? -wp.ang * 1.3 + (k - nO) * 6.283 / nI : wp.ang + k * 6.283 / nO, R = (inner ? 13 : 27) * A, dir = inner ? -1 : 1, st = 1 / R;
+          for (let j = 3; j <= (inner ? 12 : 20); j++) { if (j > 12 && ((j + k) & 1)) continue; const b = a - dir * j * st, cb = Math.cos(b), sb = Math.sin(b) * .78;
+            r.dot(Math.round(px + cb * R) - cx, Math.round(py + sb * R) - cy, j < 8 || (j & 1) ? 250 : 110); if (j < 10) r.dot(Math.round(px + cb * (R + 1)) - cx, Math.round(py + sb * (R + 1)) - cy, j < 6 ? 250 : 110); if (j < 13) r.dot(Math.round(px + cb * (R - 1.5)) - cx, Math.round(py + sb * (R - 1.5)) - cy, j < 8 || (j & 1) ? 20 : 110); }
+          for (let q = -3; q <= 3; q++) { const b = a + dir * q * st, cb = Math.cos(b), sb = Math.sin(b) * .78, th = 3 - Math.abs(q);
+            for (let o = -1; o <= th; o++) r.dot(Math.round(px + cb * (R - 1 + o)) - cx, Math.round(py + sb * (R - 1 + o)) - cy, o < 0 || o === th ? 20 : 250); }
+          { const b = a + dir * 4 * st; r.dot(Math.round(px + Math.cos(b) * R) - cx, Math.round(py + Math.sin(b) * .78 * R) - cy, RED); r.dot(Math.round(px + Math.cos(b) * (R - 1)) - cx, Math.round(py + Math.sin(b) * .78 * (R - 1)) - cy, 20); } } }
       else if (wp.id === 'begleiter' || wp.id === 'totenvogel') { const tv = wp.id === 'totenvogel', n = tv ? 2 + (wp.lvl >= 3) + (wp.lvl >= 5) : wp.lvl >= 5 ? 3 : wp.lvl >= 3 ? 2 : 1, fl = (time * 8 | 0) & 1;   // Rabe: Leib, Schwanz, heller Schnabel in Flugrichtung, schlagende Flügel
         for (let k = 0; k < n; k++) { const a = wp.ang + k * 6.283 / n, x = Math.round(px + Math.cos(a) * (tv ? 24 : 22) * A) - cx, y = Math.round(py + Math.sin(a) * (tv ? 17 : 16) * A) - cy, f = Math.sin(a) < 0 ? 1 : -1;
           if (tv) { r.dot(x - 3 * f, y + 1, RED); r.dot(x - 4 * f, y + ((time * 10 | 0) & 1), RED); }
@@ -2470,7 +2582,9 @@ class Combat {
           for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) { const q = dx * dx + dy * dy; if (q === 0 || (q === 1 && fl === 0)) r.dot(x + dx, Y + dy, 250); else if (q <= 4) r.dot(x + dx, Y + dy, RED); else if (q <= 8 && ((dx + dy + fl) & 1)) r.dot(x + dx, Y + dy, 20); }   // heller Kern, roter Leib, flirrender dunkler Saum
           r.dot(x, Y - 3, RED); r.dot(x + (fl === 1 ? 1 : 0), Y - 4, fl === 2 ? 20 : RED); break; }
         case 5: { const D = (k, g, o = 0) => r.dot(Math.round(x - ux * k - uy * o), Math.round(y - uy * k + ux * o), g);   // Speer: breite Spitze, langer Schaft, Fahrtstriche
-          D(0, 238); D(1, 238); D(2, 20, 1); D(2, 20, -1); for (let k = 2; k < 9; k++) D(k, 20); D(4, 238, 2); D(5, 238, 2); D(6, 238, -2); D(7, 238, -2); break; }
+          D(0, 238); D(1, 238); D(2, 20, 1); D(2, 20, -1); for (let k = 2; k < 9; k++) D(k, 20); D(4, 238, 2); D(5, 238, 2); D(6, 238, -2); D(7, 238, -2);
+          if (q.tag === 'donner') { const k = time * 30 | 0; D(-1, 250); D(-2, 250); D(-1, RED, 1); D(-1, RED, -1); for (let j = 1; j < 10; j++) D(j, (j + k) & 1 ? 250 : RED, ((j * 7 + k) % 5) - 2); for (let j = 10; j < 24; j += 2) D(j, (j >> 1) & 1 ? 250 : 20, ((j + k) % 3) - 1); }   // Donnerspeer: Funken zucken um den Schaft, dahinter ein heller Schweif
+          break; }
         case 7: { const k = (time * 12 | 0);       // Kugelblitz: heller Ball mit dunklem Rand, rotem Kern und zuckenden Funken
           for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) { const d2 = dx * dx + dy * dy; if (d2 <= 10) r.dot(x + dx, y + dy, d2 > 5 ? 20 : 238); }
           r.dot(x, y, RED); r.dot(x + ((k & 1) ? 1 : -1), y, RED);
@@ -2488,6 +2602,9 @@ class Combat {
       for (let dy = -9; dy <= 9; dy++) for (let dx = -7; dx <= 7; dx++) if (dx * dx / 49 + dy * dy / 81 < 1) r.dot(ex + dx, ey + dy, 20);
       for (let i = 0; i < 7; i++) { const a = time * 3 + i * .9, q = 1 + i * .8; r.dot(Math.round(ex + Math.cos(a) * q * .8), Math.round(ey + Math.sin(a) * q), i & 1 ? 250 : RED); }
       E(7, 9, 44, (x, y) => r.dot(x, y, RED)); E(8, 10, 48, (x, y) => r.dot(x, y, RED)); E(10, 12, 40, (x, y, i) => r.dot(x, y, (i + sw) % 4 < 2 ? 250 : 20)); }
+    for (const a of this.allies) if (a.plague) { const x = Math.round(a.x) - cx, y = Math.round(a.y) - cy;   // Seuchenheer: kreisender Dunst am Boden, rote Blasen steigen auf
+      for (let i = 0; i < 12; i++) { if ((i + (time * 6 | 0)) % 3 === 0) continue; const an = i * .5236 + time * .9 + a.ox; r.dot(Math.round(x + Math.cos(an) * 7), Math.round(y + Math.sin(an) * 4.5), i & 1 ? RED : 20); }
+      for (let i = 0; i < 3; i++) { const u = (time * .9 + i * .37 + Math.abs(a.ox) * .1) % 1; r.dot(x + Math.round(Math.sin(u * 9 + i * 2) * 2) + (i - 1) * 3, y - 5 - Math.round(u * 11), u < .6 ? RED : 110); } }
     for (let i = 0; i < this.dyn.length; i++) { const e = this.dyn[i]; if (!(e.plagueT > 0)) continue;                      // Seuche: rote Pusteln auf dem Leib, ein Mal über dem Kopf, Dunst steigt auf
       const sw = e.spr.w, sh = e.spr.h, x0 = (e.x | 0) - cx, yT = (e.y | 0) - sh - cy, k = (time * 4 | 0) + i * 7;
       for (let j = 0; j < 4; j++) { const hx = hash2(k + j * 13, i, 77), hy = hash2(k + j * 5, i, 91); r.dot(x0 + ((hx - .5) * sw * .7 | 0), yT + 2 + (hy * (sh - 3) | 0), RED); }
@@ -2691,12 +2808,15 @@ class Game {
       hellebarde: L => [13 + 3 * (L - 1), L >= 3 ? 1.7 : 2.1, 'Rundschlag; Stoß ' + Math.round((15 + 3 * (L - 1)) * p.dmgMul)], totenvogel: L => [8 + 2 * L, 0, (2 + g(L, 3) + g(L, 5)) + ' Raben, je Hieb; Irrlicht ' + Math.round((7 + 2 * L) * p.dmgMul)],
       beben: L => [9 + 3 * g(L, 2) + 3 * g(L, 4) + 3 * g(L, 5), L >= 5 ? 3.4 : 4.2, 'je Welle, ' + (L >= 3 ? 4 : 3) + ' Wellen'], pestfeuer: L => [4 + 1.3 * L, .35, 'je Feind im Feuer; dazu Seuche'],
       nekro: L => [5 + 2 * L, .55, (L >= 5 ? 3 : L >= 3 ? 2 : 1) + ' Skelette je Beschwörung, je Hieb, ' + (9 + L) + ' s lang'], meteor: L => [34 + 10 * g(L, 2) + 14 * g(L, 5), L >= 5 ? 4.2 : 5.5, (L >= 4 ? 2 : 1) + ' Brocken, Flächenschaden'],
+      feuersturm: L => [14 + 4 * g(L, 2) + 5 * g(L, 4), L >= 3 ? .3 : .42, 'je Einschlag, Flächenschaden' + (L >= 5 ? ', zwei Spiralen' : '')], seuchenheer: L => [7 + 2 * L, .55, (L >= 5 ? 4 : L >= 3 ? 3 : 2) + ' Skelette, je Hieb, stecken an, ' + (10 + L) + ' s lang'],
+      donnerspeer: L => [11 + 4 * g(L, 2) + 4 * g(L, 4), 1.5, 'je Durchbohrtem; dazu Blitz ' + Math.round(9 * p.dmgMul) + ' auf bis zu ' + (L >= 4 ? 5 : 3) + ' Feinde'], wirbel: L => [7 + 2 * g(L, 2) + 3 * g(L, 4), 0, (L >= 5 ? '9 + 5' : L >= 3 ? '7 + 4' : '5 + 3') + ' Klingen, je Treffer'],
+      komet: L => [60 + 16 * g(L, 2) + 20 * g(L, 4), L >= 4 ? 5.2 : 6.5, (L >= 5 ? 2 : 1) + ' Komet, großer Flächenschaden, bremst'],
       eislanze: L => [11 + 3 * g(L, 2) + 3 * g(L, 4) + 3 * g(L, 5), L >= 5 ? 1.1 : 1.4, 'Splitter ' + Math.round(8 * p.dmgMul) + ' Flächenschaden'], kugel: L => [5 + 2 * L, 4.5, 'neue Kugel; je Blitz, etwa drei Blitze je Sekunde auf bis zu 3 Feinde'],
       blutpest: L => [1.5 + pl + .5 * L, .5, 'je Angesteckten, alle halbe Sekunde'] };
     const num = v => (Math.round(v * 10) / 10).toString().replace('.', ',');
     for (const w of c.weapons) { const W = WEAPONS[w.id], f = WI[w.id], q = f ? f(w.lvl) : null, kind = W.forge ? 'Schmiedewerk' : W.found ? 'Kraft' : 'Waffe';
       if (!q) { row(W.name + ' ' + ROMAN[w.lvl], kind, ''); continue; }
-      const cont = q[1] === 0 || ['ring', 'seuche', 'flamme', 'dampf', 'pestfeuer', 'blutpest', 'nekro'].includes(w.id);
+      const cont = q[1] === 0 || ['ring', 'seuche', 'flamme', 'dampf', 'pestfeuer', 'blutpest', 'nekro', 'seuchenheer', 'feuersturm'].includes(w.id);
       row(W.name + ' ' + ROMAN[w.lvl], num(q[0] * p.dmgMul) + ' Schaden', kind + ' · Grundwert ' + num(q[0]) + ' ' + x(p.dmgMul) + (p.crit > 0 ? ' · kritisch ' + num(q[0] * p.dmgMul * 2) : '') + (q[1] ? (cont ? ' · alle ' + num(q[1]) + ' s' : ' · alle ' + num(q[1] * p.cdMul) + ' s') : '') + ' · ' + q[2]); }
     h2('Gegner in Ebene ' + this.level);
     row('Leben', x(c.lvlMul * (1 + (c.time + c.tOff) / BAL.hpRamp)), 'wächst mit der Zeit'); row('Schaden', x(c.dmgLvl), '');
@@ -2912,7 +3032,7 @@ class Game {
   function toMenu() {                                   // zurück ins Menü ohne Seitenwechsel (kein Neuladen -> kein 404)
     if (window.game && window.game.stop) window.game.stop();
     window.game = null;
-    for (const id of ['over', 'fin', 'ach', 'hud', 'lvl', 'arrow', 'pause', 'pauseBtn', 'shop', 'mapBtn', 'mapPage', 'joy', 'stallPage', 'smithPage', 'wiki', 'opts', 'testShop']) $(id).style.display = 'none';
+    for (const id of ['over', 'fin', 'ach', 'log', 'hud', 'lvl', 'arrow', 'pause', 'pauseBtn', 'shop', 'mapBtn', 'mapPage', 'joy', 'stallPage', 'smithPage', 'wiki', 'opts', 'testShop']) $(id).style.display = 'none';
     $('vignette').classList.remove('dread'); $('vignette').style.background = ''; $('toast').style.opacity = 0;
     try { const u = new URL(location.href); u.searchParams.delete('seed'); history.replaceState(null, '', u.toString()); } catch (e) {}
     input.value = randomSeed(); note.textContent = ''; menu.style.display = 'flex'; menuPreview(curSeed(), 200);
@@ -2950,6 +3070,15 @@ class Game {
     cin.addEventListener('keydown', async e => { if (e.key !== 'Enter') return; const w = cin.value.trim().toLowerCase(); cin.value = ''; const f = CHEATS[w];
       msg.textContent = f ? await f() : w ? '„' + w + '“ – nichts geschieht.' : ''; if (f) cin.blur(); }); }
   $('btnAchBack').addEventListener('click', () => { $('ach').style.display = 'none'; });
+  // ---- Changelog: wird aus der Tabelle CHANGELOG gebaut, neueste Version oben
+  $('changes').addEventListener('click', e => { e.preventDefault(); const box = $('logList'); box.textContent = '';
+    CHANGELOG.forEach(([v, c], k) => { const sec = document.createElement('section'), h = document.createElement('h3'); h.textContent = v; if (!k) { const t = document.createElement('small'); t.textContent = 'aktuell'; h.append(t); } sec.append(h);
+      if (c.note) { const p = document.createElement('p'); p.className = 'note'; p.textContent = c.note; sec.append(p); }
+      for (const [key, label] of [['n', 'Neu'], ['g', 'Geändert'], ['e', 'Entfernt']]) { if (!c[key] || !c[key].length) continue; const h4 = document.createElement('h4'); h4.textContent = label; sec.append(h4);
+        for (const line of c[key]) { const p = document.createElement('p'); p.textContent = line; sec.append(p); } }
+      box.append(sec); });
+    const pg = $('log'); pg.style.display = 'flex'; pg.scrollTop = 0; });
+  $('btnLogBack').addEventListener('click', () => { $('log').style.display = 'none'; });
   $('btnShop').addEventListener('click', () => { renderShop(); $('shop').style.display = 'flex'; });
   // ---- Almanach: wird aus denselben Tabellen gebaut wie das Spiel, bleibt also von selbst aktuell
   const ENEMY_INFO = {Schlurfer: 'Langsam, kommt in Massen.', 'Läufer': 'Schnell, hält wenig aus.', Schwarm: 'Flattert zu sechst im Zickzack heran.', 'Schütze': 'Hält Abstand und schießt. Den Geschossen kann man ausweichen.',
