@@ -398,7 +398,7 @@ const TINT_OF_TYPE = new Uint8Array([1, 2, 3, 4, 4, 5, 6, 6, 7, 8, 9, 10, 2, 19]
 const TINT_DESERT = new Uint8Array([14, 2, 1, 15, 15, 5, 6, 16, 17, 18, 9, 9, 2, 19]);   // Sand, Oase, grüner Uferrand, helle Piste, roter Fels, Ocker-Geröll, Dünen, Lehm   // Reihenfolge wie T
 const COLOR = { on: false, free: false };
 const LENS = { on: true }; try { LENS.on = localStorage.getItem('loLens') !== '0'; } catch (e) {}
-const VERSION = 'V0.996';
+const VERSION = 'V0.997';
 const ANKH = { has: false, price: 500, load(pr) { this.has = !!(pr && pr.ankh); } };   // Ankh: einmal wiederauferstehen, dann neu kaufen
 const START_LVL = { v: 1 }; try { START_LVL.v = Math.max(1, Math.min(6, parseInt(localStorage.getItem('loStartLvl'), 10) || 1)); } catch (e) {}   // nur zum Testen: auf welcher Ebene ein neues Spiel beginnt
 const SANDFX = { on: true }; try { SANDFX.on = localStorage.getItem('loSand') !== '0'; } catch (e) {}
@@ -1383,13 +1383,18 @@ class WorldGenerator {
     for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) {
       const k = y * W + x, t = type[k];
       let g;
-      if (DES && (t === T.GRASS || t === T.FOREST || t === T.WADI || t === T.MOUNT || (t === T.FOOT && rimAt(x, y)))) {          // Wüste: Sand mit Windrippeln, Dünen mit Licht- und Schattenhang, rissiger Lehm, geschichteter Fels
+      if (DES && (t === T.GRASS || t === T.FOREST || t === T.WADI || t === T.MOUNT)) {          // Wüste: Sand mit Windrippeln, Dünen mit Licht- und Schattenhang, rissiger Lehm, geschichteter Fels
         if (t === T.GRASS) { g = 222 + samp(fG, x, y) * .5; if (Math.sin(x * .32 + y * .95 + vnoise(x / 30, y / 30, S + 501) * 9) > .94) g = 170; else if (hash2(x, y, S + 3) < .004) g = 80; }
         else if (t === T.FOREST) { const du = q => Math.sin(q * .09 + vnoise(x / 60, y / 60, S + 503) * 5), sl = du(x + y * .4 + 2) - du(x + y * .4 - 2); g = sl > .05 ? 244 : sl < -.05 ? 184 : 220; if (Math.abs(sl) < .012 && du(x + y * .4) > .6) g = 120; else if (sl < -.05 && hash2(x, y, S + 509) < .05) g = 150; }
         else if (t === T.WADI) { g = Math.abs(vnoise(x / 5, y / 5, S + 505) - .5) < .035 || Math.abs(vnoise(x / 9, y / 9, S + 507) - .5) < .025 ? 64 : 176; }
-        else if (rimAt(x, y)) { const du = q => Math.sin(q * .07 + vnoise(x / 50, y / 50, S + 511) * 4), sl = du(x * .8 + y + 2) - du(x * .8 + y - 2);   // hohe Randdünen: steile Schattenhänge, scharfe Kämme, dunkle Kante zum begehbaren Sand
-          if (t === T.MOUNT) { g = sl > .03 ? (((x + 2 * y) % 11 === 0) ? 200 : 240) : sl < -.03 ? (((x - y) & 3) === 0 ? 132 : 46) : 150; if (Math.abs(sl) < .012) g = 28; if ((y + 1 < W && type[k + W] !== T.MOUNT) || (y > 0 && type[k - W] !== T.MOUNT) || type[k + 1] !== T.MOUNT || type[k - 1] !== T.MOUNT) g = 22; }
-          else { g = sl > .04 ? 246 : sl < -.04 ? 200 : 228; if (Math.abs(sl) < .01) g = 150; } }
+        else if (rimAt(x, y)) {                    // Wüste, Rand: hohe Felswand – oben Plateau, zur begehbaren Seite eine senkrechte, geschichtete Wand mit Rissen
+          const CH = 36; let dD = 0; while (dD < CH && y + dD + 1 < W && type[k + (dD + 1) * W] === T.MOUNT) dD++;
+          const dU = (y > 0 && type[k - W] !== T.MOUNT) || (y > 1 && type[k - 2 * W] !== T.MOUNT), dS = type[k - 1] !== T.MOUNT || type[k + 1] !== T.MOUNT || type[k - 2] !== T.MOUNT || type[k + 2] !== T.MOUNT;
+          if (dD < CH) { const u = dD / CH, cr = hash2(x, 0, S + 521) < .1 || (hash2(x >> 1, 1, S + 523) < .06), fac = vnoise(x / 7, y / 26, S + 525);
+            g = fac > .62 ? 132 : fac > .45 ? 92 : 62; if ((dD + (hash2(x >> 3, 2, S + 527) * 4 | 0)) % 7 === 0) g = Math.min(g, 40) + 60;
+            if (cr && dD > 1 && dD < CH - 2) g = 22; if (dD >= CH - 2) g = dD === CH - 1 ? 236 : 22; if (dD === 0) g = 18; else if (dD <= 2 && hash2(x, y, S + 529) < .5) g = 96; if (u > .9 && g < 200) g = 30; }
+          else if (dU || dS) g = 22;
+          else { g = 160 + (vnoise(x / 18, y / 18, S + 531) - .5) * 50; if ((x + y) % 4 === 0) g -= 46; if (hash2(x, y, S + 533) < .012) g = 60; else if (Math.abs(vnoise(x / 11, y / 11, S + 535) - .5) < .014) g = 40; } }   // Plateau: rauer, schraffierter Fels mit Rissen
         else { const lit = dt(x + 2, y + 2) - dt(x - 2, y - 2); g = lit > .05 ? 176 : lit < -.05 ? 58 : 122; if (y % 6 === 0 && lit > -.08) g = 92; if (y + 1 < W && type[k + W] !== T.MOUNT) g = 22; }
         ground[k] = clamp(g, 0, 255); continue; }
       switch (t) {
@@ -1540,7 +1545,7 @@ class WorldGenerator {
     const PH = [10, 14, 18, 23, 28, 34], peaks = PH.map(H => [Shapes.peak(rng, H), Shapes.peak(rng, H), Shapes.peak(rng, H)]); if (DES) for (const a of peaks) for (const q of a) q.tint = 16; const dunesB = DES ? PH.map(H => [Shapes.bigdune(rng, H), Shapes.bigdune(rng, H), Shapes.bigdune(rng, H)]) : null;
     for (let cy = 0; cy < W / 12; cy++) for (let cx = 0; cx < W / 12; cx++) {
       const x = cx * 12 + rng() * 11, y = cy * 12 + rng() * 11, r1 = rng(), r2 = rng();
-      const edgeD = DES && rimAt(x | 0, y | 0) === 1; if (w.typeAt(x, y) !== T.MOUNT || (r1 > .8 && !edgeD)) continue;
+      const edgeD = DES && rimAt(x | 0, y | 0) === 1; if (w.typeAt(x, y) !== T.MOUNT || r1 > .8 || edgeD) continue;   // auf der Felswand stehen keine Gipfel
       let si = clamp((samp(fH, x, y) - mountT) / .035 * PH.length | 0, 0, PH.length - 1);
       while (si > 0 && w.typeAt(x, y - PH[si] * .6) !== T.MOUNT) si--;
       w.add(x, y, (edgeD ? dunesB : peaks)[si][r2 * 3 | 0]);
@@ -1592,6 +1597,7 @@ class WorldGenerator {
     for (const p of w.pois) block(p.x, p.y, 9); for (const s of w.settlements) block(s.x, s.y, 14);
     if (bell) block(bell.x, bell.y, 12); if (exit) block(exit.x, exit.y, 22); if (boss) block(boss.x, boss.y, 16); if (player) block(player.x, player.y, 16);
     // Zeichen
+    if (combat && combat.wsh) for (const S of combat.wsh) if (!S.used) { const x = P(S.x), y = P(S.y); ctx.fillStyle = PAP_; ctx.fillRect(x - 7, y - 10, 14, 20); ctx.fillStyle = RED_; ctx.fillRect(x - 2, y - 9, 4, 18); ctx.fillRect(x - 6, y - 4, 12, 4); }   // Schreine: rotes Kreuz
     for (const p of w.pois) { const x = P(p.x), y = P(p.y); ctx.fillStyle = PAP_; ctx.fillRect(x - 8, y - 8, 16, 16); ctx.fillStyle = INK_; ctx.beginPath(); ctx.moveTo(x, y - 7); ctx.lineTo(x + 7, y); ctx.lineTo(x, y + 7); ctx.lineTo(x - 7, y); ctx.fill(); }
     for (const s of w.settlements) { const x = P(s.x), y = P(s.y), r = s.kind === 'Stadt' ? 11 : 8; ctx.fillStyle = PAP_; ctx.fillRect(x - r - 3, y - r - 3, r * 2 + 6, r * 2 + 6); ctx.fillStyle = INK_; ctx.fillRect(x - r, y - r, r * 2, r * 2); }
     const ring = (x, y, r, lw) => { ctx.beginPath(); ctx.arc(P(x), P(y), r, 0, 6.283); ctx.lineWidth = lw; ctx.stroke(); };
@@ -1604,6 +1610,7 @@ class WorldGenerator {
     if (exit) label(exit.x, exit.y, 'Tor', 30, 'bold', 26);
     for (const s of w.settlements) label(s.x, s.y, s.kind, 32, 'bold', 18);
     if (bell) label(bell.x, bell.y, 'Glocke', 26, 'italic', 16);
+    if (combat && combat.wsh) for (const S of combat.wsh) if (!S.used) label(S.x, S.y, 'Schrein', 24, 'italic', 13);
     const rank = ['Pyramide', 'Weltenbaum', 'Riesenburg', 'Nekropole', 'Riesensäule', 'Kolossstatue', 'Schmied', 'Stall', 'Opferaltar', 'Kapelle', 'Kirche', 'Turm', 'Burgruine', 'Ruine', 'Steinkreis', 'Obelisk', 'Großer Baum', 'Mühle', 'Friedhof'];
     for (const p of w.pois.slice().sort((a, b) => rank.indexOf(a.kind) - rank.indexOf(b.kind))) label(p.x, p.y, p.name || p.kind, 26, 'italic', 13);
   }
@@ -1740,7 +1747,7 @@ class Renderer {
     for (let y = 0; y < bh; y++) { const o = (cy + y) * WORLD + cx; f.set(world.ground.subarray(o, o + bw), y * bw); }
     const color = COLOR.on, tb = this.tint;
     if (color) { const ty = world.type, TT = world.tints || TINT_OF_TYPE, DS = world.biome === 'wueste'; for (let y = 0; y < bh; y++) { let o = (cy + y) * WORLD + cx, i = y * bw; const Y = cy + y, rimRow = DS && world.rim ? world.rim.subarray((Y >> 2) * (WORLD >> 2), ((Y >> 2) + 1) * (WORLD >> 2)) : null;
-      for (let x = 0; x < bw; x++, o++, i++) { const t = ty[o]; tb[i] = DS && (t === 7 || t === 8) && rimRow[(cx + x) >> 2] ? 18 : TT[t]; } } }   // Wüste: Randdünen in Dünenfarbe
+      for (let x = 0; x < bw; x++, o++, i++) { const t = ty[o]; tb[i] = DS && t === 7 && rimRow[(cx + x) >> 2] ? (world.ground[o] < 150 ? 16 : 17) : TT[t]; } } }   // Wüste: Randdünen in Dünenfarbe
     // Seen: die Wellenstriche wandern langsam, Zeile um Zeile gegenläufig (nur Zeilen, in denen überhaupt See liegt)
     if (world.waterRow) { const ty = world.type, sh = time * 2.2 | 0;
       for (let y = 0; y < bh; y++) { const wy = cy + y; if ((wy & 3) !== 0 || !world.waterRow[wy]) continue;
@@ -1943,6 +1950,8 @@ const META = {
   zweit:  {name: 'Zweite Waffe',   desc: 'Jeder Lauf beginnt mit einer zufälligen zweiten Waffe aus deiner Waffenkammer', max: 1, base: 150}
 };
 const CHANGELOG = [                                // neueste Version oben; n = neu, g = geändert, e = entfernt
+  ['V0.997', {n: ['Die Schreine sind auf der Karte eingetragen (rotes Kreuz), solange sie noch etwas bergen.'],
+             g: ['Rings um die Wüste stehen hohe, geschichtete Felswände statt Dünen.', 'Behoben: In V0.996 kamen keine Gegner mehr.']}],
   ['V0.996', {n: ['Ankh beim Krämer (500 Gold): einmal wiederauferstehen mit 75 % Leben, danach neu kaufen.', 'Erfolg „Zweites Leben“.'],
              g: ['Ab Ebene 3 wachsen Leben und Schaden der Gegner langsamer – die späteren Ebenen sind spürbar leichter.']}],
   ['V0.995', {n: ['Drei Schreine je Ebene – Wegkreuz im Grünland, kleiner Obelisk in der Wüste – mit zufälliger Gabe: doppelte Erfahrung, Unverwundbarkeit, doppeltes Gold, doppelter Schaden, eine Feindeswelle oder ein Rüstungsfluch.', 'Erfolg „Wegzehrung“.']}],
@@ -2061,7 +2070,7 @@ class Combat {
     for (const pool of [this.enemies, this.proj, this.drops, this.fx, this.flames, this.smoke]) for (const o of pool) { o.alive = false; o.pull = false; }
     { let st = (g.level - 1) % 3 + 1; if (g.endless) { st = 1; for (let l = g.level - 1; l >= 1 && biomeOf(g.seed, l, true) === biomeOf(g.seed, g.level, true); l--) st++; }   // jede neue Landschaft beginnt mit einem neuen Tag
       this.darkLv = st <= 1 ? 0 : Math.min(.8, .3 + .32 * (st - 2)); } this.desert = w.biome === 'wueste';   // jede Ebene dunkler: I hell, II Dämmerung, III Nacht; im Endlosmodus bis fast schwarz
-    { const a = Math.min(g.level, 2) - 1, b = Math.max(0, g.level - 2); this.lvlMul = (1 + BAL.lvlHp * a + BAL.lvlHp2 * b) * BAL.eHp; this.dmgLvl = (1 + BAL.lvlDmg * a + BAL.lvlDmg2 * b) * BAL.eDmg; }   // ab Ebene 3 wachsen Leben und Schaden langsamer this.tOff = Math.min(180, 50 * (g.level - 1));
+    { const a = Math.min(g.level, 2) - 1, b = Math.max(0, g.level - 2); this.lvlMul = (1 + BAL.lvlHp * a + BAL.lvlHp2 * b) * BAL.eHp; this.dmgLvl = (1 + BAL.lvlDmg * a + BAL.lvlDmg2 * b) * BAL.eDmg; } this.tOff = Math.min(180, 50 * (g.level - 1));   // ab Ebene 3 wachsen Leben und Schaden langsamer
     this.graves = w.pois.filter(o => o.kind === 'Friedhof' || o.kind === 'Nekropole'); this.ruins = w.pois.filter(o => o.kind === 'Ruine' || o.kind === 'Burgruine');
     const spot = this.spot = (x, y) => { for (let r = 0; r < 70; r += 3) for (let a = 0; a < 6.28; a += .7) { const px = x + Math.cos(a) * r, py = y + 10 + Math.sin(a) * r; if (!w.blocked(px, py) && !w.blocked(px + 2, py) && !w.blocked(px - 2, py) && w.reachable(px | 0, py | 0)) return {x: px | 0, y: py | 0, ok: true}; } return {x, y: y + 10, ok: false}; };
     // Kapellen und Kirche: je drei Kerzen = drei kleine Heilungen
